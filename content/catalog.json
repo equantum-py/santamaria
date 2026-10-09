@@ -1,0 +1,956 @@
+{
+  "_meta": {
+    "is_fictitious": true,
+    "notice": "DATOS FICTICIOS DE DEMOSTRACIÓN. Precios, disponibilidad, marcas e imágenes no son reales ni de Materiales Santa María. Pendiente de confirmar con Santa María antes de producción.",
+    "version": "1.0.0",
+    "updated_at": "2026-10-09",
+    "currency": "PYG",
+    "currency_label": "Gs.",
+    "price_format": "Entero sin decimales; mostrar con punto de miles: Gs. 62.000",
+    "product_count": 40,
+    "availability_values": {
+      "disponible": "Disponible",
+      "pocas_unidades": "Pocas unidades",
+      "consultar": "Consultar disponibilidad"
+    },
+    "is_bulky_meaning": "true = material voluminoso o pesado: solo entrega en obra con camión o retiro coordinado en el local.",
+    "image_note": "Las rutas de imagen son sugeridas; si el archivo no existe se muestra una imagen genérica de la categoría."
+  },
+  "categories": [
+    {
+      "id": "ferreteria",
+      "name": "Ferretería",
+      "sku_prefix": "FER",
+      "order": 1,
+      "subcategories": [
+        {
+          "id": "herramientas-manuales",
+          "name": "Herramientas manuales"
+        },
+        {
+          "id": "herramientas-electricas",
+          "name": "Herramientas eléctricas"
+        },
+        {
+          "id": "fijaciones",
+          "name": "Fijaciones"
+        },
+        {
+          "id": "pinturas-y-accesorios",
+          "name": "Pinturas y accesorios"
+        }
+      ]
+    },
+    {
+      "id": "sanitarios",
+      "name": "Artículos sanitarios",
+      "sku_prefix": "SAN",
+      "order": 2,
+      "subcategories": [
+        {
+          "id": "bano",
+          "name": "Baño"
+        },
+        {
+          "id": "griferia",
+          "name": "Grifería"
+        },
+        {
+          "id": "plomeria",
+          "name": "Plomería"
+        }
+      ]
+    },
+    {
+      "id": "construccion",
+      "name": "Materiales de construcción",
+      "sku_prefix": "CON",
+      "order": 3,
+      "subcategories": [
+        {
+          "id": "cementos-y-cales",
+          "name": "Cementos y cales"
+        },
+        {
+          "id": "aridos",
+          "name": "Áridos"
+        },
+        {
+          "id": "ladrillos-y-bloques",
+          "name": "Ladrillos y bloques"
+        },
+        {
+          "id": "hierros",
+          "name": "Hierros"
+        }
+      ]
+    },
+    {
+      "id": "electricos",
+      "name": "Materiales eléctricos",
+      "sku_prefix": "ELE",
+      "order": 4,
+      "subcategories": [
+        {
+          "id": "cables",
+          "name": "Cables"
+        },
+        {
+          "id": "llaves-y-tomas",
+          "name": "Llaves y tomas"
+        },
+        {
+          "id": "iluminacion",
+          "name": "Iluminación"
+        },
+        {
+          "id": "proteccion-electrica",
+          "name": "Protección eléctrica"
+        }
+      ]
+    }
+  ],
+  "products": [
+    {
+      "id": "martillo-de-carpintero-27-mm",
+      "sku": "SM-FER-001",
+      "name": "Martillo de carpintero 27 mm",
+      "category_id": "ferreteria",
+      "category": "Ferretería",
+      "subcategory_id": "herramientas-manuales",
+      "subcategory": "Herramientas manuales",
+      "brand": "Marca genérica A",
+      "presentation": "Unidad",
+      "sale_unit": "unidad",
+      "price_pyg": 45000,
+      "availability": "disponible",
+      "is_bulky": false,
+      "search_terms": [
+        "martillo"
+      ],
+      "image": "images/products/martillo-de-carpintero-27-mm.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "cinta-metrica-5-m",
+      "sku": "SM-FER-002",
+      "name": "Cinta métrica 5 m",
+      "category_id": "ferreteria",
+      "category": "Ferretería",
+      "subcategory_id": "herramientas-manuales",
+      "subcategory": "Herramientas manuales",
+      "brand": "Marca genérica B",
+      "presentation": "Unidad",
+      "sale_unit": "unidad",
+      "price_pyg": 28000,
+      "availability": "disponible",
+      "is_bulky": false,
+      "search_terms": [
+        "metro",
+        "flexómetro"
+      ],
+      "image": "images/products/cinta-metrica-5-m.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "cuchara-de-albanil-8-pulgadas",
+      "sku": "SM-FER-003",
+      "name": "Cuchara de albañil 8 pulgadas",
+      "category_id": "ferreteria",
+      "category": "Ferretería",
+      "subcategory_id": "herramientas-manuales",
+      "subcategory": "Herramientas manuales",
+      "brand": "Marca genérica A",
+      "presentation": "Unidad",
+      "sale_unit": "unidad",
+      "price_pyg": 35000,
+      "availability": "pocas_unidades",
+      "is_bulky": false,
+      "search_terms": [
+        "cuchara",
+        "paleta"
+      ],
+      "image": "images/products/cuchara-de-albanil-8-pulgadas.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "nivel-de-aluminio-60-cm",
+      "sku": "SM-FER-004",
+      "name": "Nivel de aluminio 60 cm",
+      "category_id": "ferreteria",
+      "category": "Ferretería",
+      "subcategory_id": "herramientas-manuales",
+      "subcategory": "Herramientas manuales",
+      "brand": "Marca genérica C",
+      "presentation": "Unidad",
+      "sale_unit": "unidad",
+      "price_pyg": 62000,
+      "availability": "disponible",
+      "is_bulky": false,
+      "search_terms": [
+        "nivel"
+      ],
+      "image": "images/products/nivel-de-aluminio-60-cm.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "taladro-percutor-650-w",
+      "sku": "SM-FER-005",
+      "name": "Taladro percutor 650 W",
+      "category_id": "ferreteria",
+      "category": "Ferretería",
+      "subcategory_id": "herramientas-electricas",
+      "subcategory": "Herramientas eléctricas",
+      "brand": "Marca genérica B",
+      "presentation": "Unidad con maletín",
+      "sale_unit": "unidad",
+      "price_pyg": 390000,
+      "availability": "pocas_unidades",
+      "is_bulky": false,
+      "search_terms": [
+        "taladro",
+        "agujereadora"
+      ],
+      "image": "images/products/taladro-percutor-650-w.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "amoladora-angular-115-mm-850-w",
+      "sku": "SM-FER-006",
+      "name": "Amoladora angular 115 mm 850 W",
+      "category_id": "ferreteria",
+      "category": "Ferretería",
+      "subcategory_id": "herramientas-electricas",
+      "subcategory": "Herramientas eléctricas",
+      "brand": "Marca genérica C",
+      "presentation": "Unidad",
+      "sale_unit": "unidad",
+      "price_pyg": 345000,
+      "availability": "consultar",
+      "is_bulky": false,
+      "search_terms": [
+        "amoladora",
+        "pulidora"
+      ],
+      "image": "images/products/amoladora-angular-115-mm-850-w.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "tornillos-para-madera-8-x-1-1-2-pulgadas",
+      "sku": "SM-FER-007",
+      "name": "Tornillos para madera 8 x 1 1/2 pulgadas",
+      "category_id": "ferreteria",
+      "category": "Ferretería",
+      "subcategory_id": "fijaciones",
+      "subcategory": "Fijaciones",
+      "brand": "Marca genérica A",
+      "presentation": "Caja de 100 unidades",
+      "sale_unit": "caja",
+      "price_pyg": 25000,
+      "availability": "disponible",
+      "is_bulky": false,
+      "search_terms": [
+        "tornillo"
+      ],
+      "image": "images/products/tornillos-para-madera-8-x-1-1-2-pulgadas.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "tarugos-plasticos-8-mm",
+      "sku": "SM-FER-008",
+      "name": "Tarugos plásticos 8 mm",
+      "category_id": "ferreteria",
+      "category": "Ferretería",
+      "subcategory_id": "fijaciones",
+      "subcategory": "Fijaciones",
+      "brand": "Marca genérica B",
+      "presentation": "Bolsa de 50 unidades",
+      "sale_unit": "bolsa",
+      "price_pyg": 15000,
+      "availability": "disponible",
+      "is_bulky": false,
+      "search_terms": [
+        "taco",
+        "tarugo"
+      ],
+      "image": "images/products/tarugos-plasticos-8-mm.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "pintura-latex-interior-blanca",
+      "sku": "SM-FER-009",
+      "name": "Pintura látex interior blanca",
+      "category_id": "ferreteria",
+      "category": "Ferretería",
+      "subcategory_id": "pinturas-y-accesorios",
+      "subcategory": "Pinturas y accesorios",
+      "brand": "Marca genérica C",
+      "presentation": "Balde de 18 litros",
+      "sale_unit": "balde",
+      "price_pyg": 420000,
+      "availability": "disponible",
+      "is_bulky": true,
+      "search_terms": [
+        "pintura",
+        "latex"
+      ],
+      "image": "images/products/pintura-latex-interior-blanca.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "rodillo-de-lana-23-cm",
+      "sku": "SM-FER-010",
+      "name": "Rodillo de lana 23 cm",
+      "category_id": "ferreteria",
+      "category": "Ferretería",
+      "subcategory_id": "pinturas-y-accesorios",
+      "subcategory": "Pinturas y accesorios",
+      "brand": "Marca genérica A",
+      "presentation": "Unidad",
+      "sale_unit": "unidad",
+      "price_pyg": 32000,
+      "availability": "disponible",
+      "is_bulky": false,
+      "search_terms": [
+        "rodillo"
+      ],
+      "image": "images/products/rodillo-de-lana-23-cm.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "inodoro-con-mochila-blanco",
+      "sku": "SM-SAN-001",
+      "name": "Inodoro con mochila blanco",
+      "category_id": "sanitarios",
+      "category": "Artículos sanitarios",
+      "subcategory_id": "bano",
+      "subcategory": "Baño",
+      "brand": "Marca genérica D",
+      "presentation": "Juego completo",
+      "sale_unit": "juego",
+      "price_pyg": 890000,
+      "availability": "pocas_unidades",
+      "is_bulky": true,
+      "search_terms": [
+        "inodoro",
+        "taza",
+        "water"
+      ],
+      "image": "images/products/inodoro-con-mochila-blanco.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "lavatorio-con-columna-blanco",
+      "sku": "SM-SAN-002",
+      "name": "Lavatorio con columna blanco",
+      "category_id": "sanitarios",
+      "category": "Artículos sanitarios",
+      "subcategory_id": "bano",
+      "subcategory": "Baño",
+      "brand": "Marca genérica D",
+      "presentation": "Juego completo",
+      "sale_unit": "juego",
+      "price_pyg": 520000,
+      "availability": "disponible",
+      "is_bulky": true,
+      "search_terms": [
+        "lavatorio",
+        "lavamanos",
+        "pileta"
+      ],
+      "image": "images/products/lavatorio-con-columna-blanco.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "asiento-para-inodoro-plastico",
+      "sku": "SM-SAN-003",
+      "name": "Asiento para inodoro plástico",
+      "category_id": "sanitarios",
+      "category": "Artículos sanitarios",
+      "subcategory_id": "bano",
+      "subcategory": "Baño",
+      "brand": "Marca genérica E",
+      "presentation": "Unidad",
+      "sale_unit": "unidad",
+      "price_pyg": 75000,
+      "availability": "disponible",
+      "is_bulky": false,
+      "search_terms": [
+        "tapa de inodoro"
+      ],
+      "image": "images/products/asiento-para-inodoro-plastico.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "grifo-monocomando-para-lavatorio",
+      "sku": "SM-SAN-004",
+      "name": "Grifo monocomando para lavatorio",
+      "category_id": "sanitarios",
+      "category": "Artículos sanitarios",
+      "subcategory_id": "griferia",
+      "subcategory": "Grifería",
+      "brand": "Marca genérica E",
+      "presentation": "Unidad",
+      "sale_unit": "unidad",
+      "price_pyg": 260000,
+      "availability": "disponible",
+      "is_bulky": false,
+      "search_terms": [
+        "canilla",
+        "grifo"
+      ],
+      "image": "images/products/grifo-monocomando-para-lavatorio.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "ducha-electrica-5500-w",
+      "sku": "SM-SAN-005",
+      "name": "Ducha eléctrica 5500 W",
+      "category_id": "sanitarios",
+      "category": "Artículos sanitarios",
+      "subcategory_id": "griferia",
+      "subcategory": "Grifería",
+      "brand": "Marca genérica D",
+      "presentation": "Unidad",
+      "sale_unit": "unidad",
+      "price_pyg": 185000,
+      "availability": "consultar",
+      "is_bulky": false,
+      "search_terms": [
+        "ducha",
+        "calefón de ducha"
+      ],
+      "image": "images/products/ducha-electrica-5500-w.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "cano-pvc-soldable-25-mm",
+      "sku": "SM-SAN-006",
+      "name": "Caño PVC soldable 25 mm",
+      "category_id": "sanitarios",
+      "category": "Artículos sanitarios",
+      "subcategory_id": "plomeria",
+      "subcategory": "Plomería",
+      "brand": "Marca genérica F",
+      "presentation": "Barra de 6 metros",
+      "sale_unit": "barra",
+      "price_pyg": 38000,
+      "availability": "disponible",
+      "is_bulky": true,
+      "search_terms": [
+        "caño",
+        "tubo",
+        "pvc"
+      ],
+      "image": "images/products/cano-pvc-soldable-25-mm.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "cano-pvc-desague-100-mm",
+      "sku": "SM-SAN-007",
+      "name": "Caño PVC desagüe 100 mm",
+      "category_id": "sanitarios",
+      "category": "Artículos sanitarios",
+      "subcategory_id": "plomeria",
+      "subcategory": "Plomería",
+      "brand": "Marca genérica F",
+      "presentation": "Barra de 6 metros",
+      "sale_unit": "barra",
+      "price_pyg": 125000,
+      "availability": "disponible",
+      "is_bulky": true,
+      "search_terms": [
+        "caño",
+        "tubo",
+        "desague",
+        "pvc"
+      ],
+      "image": "images/products/cano-pvc-desague-100-mm.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "codo-pvc-soldable-25-mm-90",
+      "sku": "SM-SAN-008",
+      "name": "Codo PVC soldable 25 mm 90°",
+      "category_id": "sanitarios",
+      "category": "Artículos sanitarios",
+      "subcategory_id": "plomeria",
+      "subcategory": "Plomería",
+      "brand": "Marca genérica F",
+      "presentation": "Unidad",
+      "sale_unit": "unidad",
+      "price_pyg": 4000,
+      "availability": "disponible",
+      "is_bulky": false,
+      "search_terms": [
+        "codo",
+        "conexión"
+      ],
+      "image": "images/products/codo-pvc-soldable-25-mm-90.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "llave-de-paso-esferica-3-4-pulgada",
+      "sku": "SM-SAN-009",
+      "name": "Llave de paso esférica 3/4 pulgada",
+      "category_id": "sanitarios",
+      "category": "Artículos sanitarios",
+      "subcategory_id": "plomeria",
+      "subcategory": "Plomería",
+      "brand": "Marca genérica E",
+      "presentation": "Unidad",
+      "sale_unit": "unidad",
+      "price_pyg": 48000,
+      "availability": "pocas_unidades",
+      "is_bulky": false,
+      "search_terms": [
+        "llave de paso",
+        "registro"
+      ],
+      "image": "images/products/llave-de-paso-esferica-3-4-pulgada.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "tanque-de-agua-1000-litros",
+      "sku": "SM-SAN-010",
+      "name": "Tanque de agua 1000 litros",
+      "category_id": "sanitarios",
+      "category": "Artículos sanitarios",
+      "subcategory_id": "plomeria",
+      "subcategory": "Plomería",
+      "brand": "Marca genérica F",
+      "presentation": "Unidad",
+      "sale_unit": "unidad",
+      "price_pyg": 1150000,
+      "availability": "consultar",
+      "is_bulky": true,
+      "search_terms": [
+        "tanque",
+        "cisterna"
+      ],
+      "image": "images/products/tanque-de-agua-1000-litros.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "cemento-portland-tipo-i",
+      "sku": "SM-CON-001",
+      "name": "Cemento Portland tipo I",
+      "category_id": "construccion",
+      "category": "Materiales de construcción",
+      "subcategory_id": "cementos-y-cales",
+      "subcategory": "Cementos y cales",
+      "brand": "Marca genérica G",
+      "presentation": "Bolsa de 50 kg",
+      "sale_unit": "bolsa",
+      "price_pyg": 62000,
+      "availability": "disponible",
+      "is_bulky": true,
+      "search_terms": [
+        "cemento"
+      ],
+      "image": "images/products/cemento-portland-tipo-i.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "cemento-de-albanileria",
+      "sku": "SM-CON-002",
+      "name": "Cemento de albañilería",
+      "category_id": "construccion",
+      "category": "Materiales de construcción",
+      "subcategory_id": "cementos-y-cales",
+      "subcategory": "Cementos y cales",
+      "brand": "Marca genérica H",
+      "presentation": "Bolsa de 40 kg",
+      "sale_unit": "bolsa",
+      "price_pyg": 48000,
+      "availability": "disponible",
+      "is_bulky": true,
+      "search_terms": [
+        "cemento",
+        "albañilería"
+      ],
+      "image": "images/products/cemento-de-albanileria.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "cal-hidratada",
+      "sku": "SM-CON-003",
+      "name": "Cal hidratada",
+      "category_id": "construccion",
+      "category": "Materiales de construcción",
+      "subcategory_id": "cementos-y-cales",
+      "subcategory": "Cementos y cales",
+      "brand": "Marca genérica G",
+      "presentation": "Bolsa de 25 kg",
+      "sale_unit": "bolsa",
+      "price_pyg": 30000,
+      "availability": "pocas_unidades",
+      "is_bulky": true,
+      "search_terms": [
+        "cal"
+      ],
+      "image": "images/products/cal-hidratada.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "pegamento-para-ceramica",
+      "sku": "SM-CON-004",
+      "name": "Pegamento para cerámica",
+      "category_id": "construccion",
+      "category": "Materiales de construcción",
+      "subcategory_id": "cementos-y-cales",
+      "subcategory": "Cementos y cales",
+      "brand": "Marca genérica H",
+      "presentation": "Bolsa de 30 kg",
+      "sale_unit": "bolsa",
+      "price_pyg": 55000,
+      "availability": "disponible",
+      "is_bulky": true,
+      "search_terms": [
+        "adhesivo",
+        "pegamento",
+        "cemento cola"
+      ],
+      "image": "images/products/pegamento-para-ceramica.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "arena-lavada",
+      "sku": "SM-CON-005",
+      "name": "Arena lavada",
+      "category_id": "construccion",
+      "category": "Materiales de construcción",
+      "subcategory_id": "aridos",
+      "subcategory": "Áridos",
+      "brand": "Sin marca",
+      "presentation": "Metro cúbico",
+      "sale_unit": "m3",
+      "price_pyg": 160000,
+      "availability": "disponible",
+      "is_bulky": true,
+      "search_terms": [
+        "arena"
+      ],
+      "image": "images/products/arena-lavada.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "piedra-triturada-6ta",
+      "sku": "SM-CON-006",
+      "name": "Piedra triturada 6ta",
+      "category_id": "construccion",
+      "category": "Materiales de construcción",
+      "subcategory_id": "aridos",
+      "subcategory": "Áridos",
+      "brand": "Sin marca",
+      "presentation": "Metro cúbico",
+      "sale_unit": "m3",
+      "price_pyg": 230000,
+      "availability": "consultar",
+      "is_bulky": true,
+      "search_terms": [
+        "piedra",
+        "triturada",
+        "ripio"
+      ],
+      "image": "images/products/piedra-triturada-6ta.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "ladrillo-comun",
+      "sku": "SM-CON-007",
+      "name": "Ladrillo común",
+      "category_id": "construccion",
+      "category": "Materiales de construcción",
+      "subcategory_id": "ladrillos-y-bloques",
+      "subcategory": "Ladrillos y bloques",
+      "brand": "Sin marca",
+      "presentation": "Millar (1000 unidades)",
+      "sale_unit": "millar",
+      "price_pyg": 900000,
+      "availability": "disponible",
+      "is_bulky": true,
+      "search_terms": [
+        "ladrillo"
+      ],
+      "image": "images/products/ladrillo-comun.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "ladrillo-hueco-12-x-18-x-33-cm",
+      "sku": "SM-CON-008",
+      "name": "Ladrillo hueco 12 x 18 x 33 cm",
+      "category_id": "construccion",
+      "category": "Materiales de construcción",
+      "subcategory_id": "ladrillos-y-bloques",
+      "subcategory": "Ladrillos y bloques",
+      "brand": "Marca genérica I",
+      "presentation": "Millar (1000 unidades)",
+      "sale_unit": "millar",
+      "price_pyg": 1850000,
+      "availability": "pocas_unidades",
+      "is_bulky": true,
+      "search_terms": [
+        "ladrillo hueco",
+        "ladrillo"
+      ],
+      "image": "images/products/ladrillo-hueco-12-x-18-x-33-cm.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "varilla-de-hierro-8-mm",
+      "sku": "SM-CON-009",
+      "name": "Varilla de hierro 8 mm",
+      "category_id": "construccion",
+      "category": "Materiales de construcción",
+      "subcategory_id": "hierros",
+      "subcategory": "Hierros",
+      "brand": "Marca genérica I",
+      "presentation": "Barra de 12 metros",
+      "sale_unit": "barra",
+      "price_pyg": 52000,
+      "availability": "disponible",
+      "is_bulky": true,
+      "search_terms": [
+        "varilla",
+        "hierro"
+      ],
+      "image": "images/products/varilla-de-hierro-8-mm.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "varilla-de-hierro-10-mm",
+      "sku": "SM-CON-010",
+      "name": "Varilla de hierro 10 mm",
+      "category_id": "construccion",
+      "category": "Materiales de construcción",
+      "subcategory_id": "hierros",
+      "subcategory": "Hierros",
+      "brand": "Marca genérica I",
+      "presentation": "Barra de 12 metros",
+      "sale_unit": "barra",
+      "price_pyg": 80000,
+      "availability": "disponible",
+      "is_bulky": true,
+      "search_terms": [
+        "varilla",
+        "hierro"
+      ],
+      "image": "images/products/varilla-de-hierro-10-mm.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "cable-unipolar-2-5-mm2",
+      "sku": "SM-ELE-001",
+      "name": "Cable unipolar 2,5 mm²",
+      "category_id": "electricos",
+      "category": "Materiales eléctricos",
+      "subcategory_id": "cables",
+      "subcategory": "Cables",
+      "brand": "Marca genérica J",
+      "presentation": "Rollo de 100 metros",
+      "sale_unit": "rollo",
+      "price_pyg": 410000,
+      "availability": "disponible",
+      "is_bulky": false,
+      "search_terms": [
+        "cable"
+      ],
+      "image": "images/products/cable-unipolar-2-5-mm2.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "cable-unipolar-1-5-mm2",
+      "sku": "SM-ELE-002",
+      "name": "Cable unipolar 1,5 mm²",
+      "category_id": "electricos",
+      "category": "Materiales eléctricos",
+      "subcategory_id": "cables",
+      "subcategory": "Cables",
+      "brand": "Marca genérica J",
+      "presentation": "Rollo de 100 metros",
+      "sale_unit": "rollo",
+      "price_pyg": 265000,
+      "availability": "disponible",
+      "is_bulky": false,
+      "search_terms": [
+        "cable"
+      ],
+      "image": "images/products/cable-unipolar-1-5-mm2.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "cano-corrugado-3-4-pulgada",
+      "sku": "SM-ELE-003",
+      "name": "Caño corrugado 3/4 pulgada",
+      "category_id": "electricos",
+      "category": "Materiales eléctricos",
+      "subcategory_id": "cables",
+      "subcategory": "Cables",
+      "brand": "Marca genérica K",
+      "presentation": "Rollo de 25 metros",
+      "sale_unit": "rollo",
+      "price_pyg": 65000,
+      "availability": "pocas_unidades",
+      "is_bulky": false,
+      "search_terms": [
+        "corrugado",
+        "manguera eléctrica",
+        "caño"
+      ],
+      "image": "images/products/cano-corrugado-3-4-pulgada.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "llave-de-luz-simple-con-placa",
+      "sku": "SM-ELE-004",
+      "name": "Llave de luz simple con placa",
+      "category_id": "electricos",
+      "category": "Materiales eléctricos",
+      "subcategory_id": "llaves-y-tomas",
+      "subcategory": "Llaves y tomas",
+      "brand": "Marca genérica K",
+      "presentation": "Unidad",
+      "sale_unit": "unidad",
+      "price_pyg": 22000,
+      "availability": "disponible",
+      "is_bulky": false,
+      "search_terms": [
+        "llave de luz",
+        "interruptor",
+        "tecla"
+      ],
+      "image": "images/products/llave-de-luz-simple-con-placa.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "tomacorriente-doble-con-placa",
+      "sku": "SM-ELE-005",
+      "name": "Tomacorriente doble con placa",
+      "category_id": "electricos",
+      "category": "Materiales eléctricos",
+      "subcategory_id": "llaves-y-tomas",
+      "subcategory": "Llaves y tomas",
+      "brand": "Marca genérica K",
+      "presentation": "Unidad",
+      "sale_unit": "unidad",
+      "price_pyg": 28000,
+      "availability": "disponible",
+      "is_bulky": false,
+      "search_terms": [
+        "toma",
+        "enchufe",
+        "tomacorriente"
+      ],
+      "image": "images/products/tomacorriente-doble-con-placa.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "lampara-led-9-w-luz-fria",
+      "sku": "SM-ELE-006",
+      "name": "Lámpara LED 9 W luz fría",
+      "category_id": "electricos",
+      "category": "Materiales eléctricos",
+      "subcategory_id": "iluminacion",
+      "subcategory": "Iluminación",
+      "brand": "Marca genérica L",
+      "presentation": "Pack de 4 unidades",
+      "sale_unit": "pack",
+      "price_pyg": 45000,
+      "availability": "disponible",
+      "is_bulky": false,
+      "search_terms": [
+        "foco",
+        "lámpara",
+        "led"
+      ],
+      "image": "images/products/lampara-led-9-w-luz-fria.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "reflector-led-50-w-exterior",
+      "sku": "SM-ELE-007",
+      "name": "Reflector LED 50 W exterior",
+      "category_id": "electricos",
+      "category": "Materiales eléctricos",
+      "subcategory_id": "iluminacion",
+      "subcategory": "Iluminación",
+      "brand": "Marca genérica L",
+      "presentation": "Unidad",
+      "sale_unit": "unidad",
+      "price_pyg": 120000,
+      "availability": "consultar",
+      "is_bulky": false,
+      "search_terms": [
+        "reflector",
+        "led"
+      ],
+      "image": "images/products/reflector-led-50-w-exterior.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "disyuntor-termomagnetico-2-x-20-a",
+      "sku": "SM-ELE-008",
+      "name": "Disyuntor termomagnético 2 x 20 A",
+      "category_id": "electricos",
+      "category": "Materiales eléctricos",
+      "subcategory_id": "proteccion-electrica",
+      "subcategory": "Protección eléctrica",
+      "brand": "Marca genérica J",
+      "presentation": "Unidad",
+      "sale_unit": "unidad",
+      "price_pyg": 68000,
+      "availability": "disponible",
+      "is_bulky": false,
+      "search_terms": [
+        "térmica",
+        "llave térmica",
+        "disyuntor"
+      ],
+      "image": "images/products/disyuntor-termomagnetico-2-x-20-a.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "interruptor-diferencial-2-x-25-a",
+      "sku": "SM-ELE-009",
+      "name": "Interruptor diferencial 2 x 25 A",
+      "category_id": "electricos",
+      "category": "Materiales eléctricos",
+      "subcategory_id": "proteccion-electrica",
+      "subcategory": "Protección eléctrica",
+      "brand": "Marca genérica J",
+      "presentation": "Unidad",
+      "sale_unit": "unidad",
+      "price_pyg": 215000,
+      "availability": "pocas_unidades",
+      "is_bulky": false,
+      "search_terms": [
+        "diferencial",
+        "disyuntor"
+      ],
+      "image": "images/products/interruptor-diferencial-2-x-25-a.jpg",
+      "is_fictitious": true
+    },
+    {
+      "id": "tablero-para-8-modulos-embutido",
+      "sku": "SM-ELE-010",
+      "name": "Tablero para 8 módulos embutido",
+      "category_id": "electricos",
+      "category": "Materiales eléctricos",
+      "subcategory_id": "proteccion-electrica",
+      "subcategory": "Protección eléctrica",
+      "brand": "Marca genérica K",
+      "presentation": "Unidad",
+      "sale_unit": "unidad",
+      "price_pyg": 95000,
+      "availability": "disponible",
+      "is_bulky": false,
+      "search_terms": [
+        "tablero",
+        "caja de llaves"
+      ],
+      "image": "images/products/tablero-para-8-modulos-embutido.jpg",
+      "is_fictitious": true
+    }
+  ]
+}
