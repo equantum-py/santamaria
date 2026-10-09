@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
+  availabilityLabels,
   calculateDelivery,
   categories,
   type CatalogProduct,
@@ -61,7 +62,7 @@ function ProductCard({ product, onOpen, onAdd }: {
       <div className="product-info">
         <span className="product-category">{product.subcategory}</span>
         <button className="product-name" onClick={() => onOpen(product)}>{product.name}</button>
-        <span className="product-unit">{product.presentation}</span>
+        <span className="product-unit">{product.presentation} · {availabilityLabels[product.availability]}</span>
         <div className="product-bottom">
           <div>
             <small>{product.availability === "consultar" ? "Consultar disponibilidad" : "Precio de demostración"}</small>
@@ -116,7 +117,7 @@ function Header({ itemCount, query, setQuery, setScreen, goHome, selectCategory 
         <div className="nav-inner">
           <button onClick={goHome}>Todo para tu obra</button>
           {categories.map((category) => <button key={category.id} onClick={() => { setQuery(""); selectCategory(category.id); }}>{category.name}</button>)}
-          <button onClick={() => { setQuery("plomeria"); setScreen("store"); document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth" }); }}>Plomería</button>
+          <button onClick={() => { setQuery(""); selectCategory("sanitarios"); window.setTimeout(() => document.getElementById("subcategory-plomeria")?.click(), 100); }}>Plomería</button>
         </div>
       </nav>
     </header>
@@ -164,7 +165,9 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (hydrated) window.localStorage.setItem(CART_KEY, JSON.stringify(cart));
+    if (hydrated) {
+      try { window.localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch { /* El carrito sigue activo durante esta sesión. */ }
+    }
   }, [cart, hydrated]);
 
   useEffect(() => {
@@ -312,6 +315,7 @@ export default function Home() {
           landmark: address.landmark,
           receiver_name: address.receiverName || customer.name,
           receiver_phone: address.receiverPhone || customer.phone,
+          map_link: address.mapLink,
           eta: estimatedDelivery,
         }
       : {
@@ -455,7 +459,7 @@ export default function Home() {
             {selectedCategory && (
               <div className="subcategory-row" aria-label="Subcategorías">
                 <button className={!subcategoryId ? "chip active" : "chip"} onClick={() => setSubcategoryId("")}>Todas</button>
-                {selectedCategory.subcategories.map((subcategory) => <button key={subcategory.id} className={subcategoryId === subcategory.id ? "chip active" : "chip"} onClick={() => setSubcategoryId(subcategory.id)}>{subcategory.name}</button>)}
+                {selectedCategory.subcategories.map((subcategory) => <button id={"subcategory-" + subcategory.id} key={subcategory.id} className={subcategoryId === subcategory.id ? "chip active" : "chip"} onClick={() => setSubcategoryId(subcategory.id)}>{subcategory.name}</button>)}
               </div>
             )}
             <div className="catalog-tools">
@@ -587,7 +591,7 @@ export default function Home() {
                 </div>
                 {paymentMethod === "tarjeta" && <p className="notice-box">En la demo no se cargan datos de tarjeta.</p>}
               </div>
-              <div className="form-card review-card"><h2>Resumen de tu pedido</h2><p><b>Entrega:</b> {deliveryText}</p><p><b>Cliente:</b> {customer.name} · {customer.phone}</p><p><b>Pago:</b> {paymentMethod}</p><button type="button" className="back-link" onClick={() => changeScreen("customer")}>Cambiar datos</button></div>
+              <div className="form-card review-card"><h2>Resumen de tu pedido</h2>{cartProducts.map((product) => <p key={product.id}>{cart[product.id]} × {product.name} · {money(product.price_pyg * cart[product.id])}</p>)}<p><b>Entrega:</b> {deliveryText}</p><p><b>Cliente:</b> {customer.name} · {customer.phone}</p><p><b>Pago:</b> {paymentMethod}</p><p><b>Total:</b> {money(orderTotal)}</p><button type="button" className="back-link" onClick={() => changeScreen("customer")}>Cambiar datos</button></div>
               {fieldError && <p className="field-error" role="alert">{fieldError}</p>}
               <div className="form-actions"><button className="button button-outline" type="button" onClick={() => changeScreen("customer")}>← Volver</button><button className="button button-yellow" type="submit" disabled={processing || !cartProducts.length}>{processing ? "Procesando tu pedido…" : "Confirmar pedido"}</button></div>
             </form>
@@ -638,7 +642,7 @@ export default function Home() {
       {filtersOpen && <div className="filter-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setFiltersOpen(false); }}><div className="mobile-filter-sheet"><div className="drawer-head"><h2>Filtros</h2><button className="icon-button" onClick={() => setFiltersOpen(false)}>×</button></div><label>Subcategoría<select value={subcategoryId} onChange={(event) => setSubcategoryId(event.target.value)}><option value="">Todas</option>{(selectedCategory?.subcategories || categories.flatMap((category) => category.subcategories)).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label>Marca<select value={filters.brand} onChange={(event) => setFilters({ ...filters, brand: event.target.value })}><option value="">Todas</option>{brands.map((brand) => <option key={brand}>{brand}</option>)}</select></label><fieldset><legend>Precio</legend><div className="price-fields"><input inputMode="numeric" aria-label="Precio mínimo" placeholder="Desde Gs." value={filters.minimum} onChange={(event) => setFilters({ ...filters, minimum: event.target.value.replace(/\D/g, "") })} /><input inputMode="numeric" aria-label="Precio máximo" placeholder="Hasta Gs." value={filters.maximum} onChange={(event) => setFilters({ ...filters, maximum: event.target.value.replace(/\D/g, "") })} /></div></fieldset><label>Disponibilidad<select value={filters.availability} onChange={(event) => setFilters({ ...filters, availability: event.target.value })}><option value="">Todas</option><option value="disponible">Disponible</option><option value="pocas_unidades">Pocas unidades</option><option value="consultar">Consultar disponibilidad</option></select></label><label className="checkbox-line"><input type="checkbox" checked={filters.smallOnly} onChange={(event) => setFilters({ ...filters, smallOnly: event.target.checked })} /> Solo productos chicos</label><button className="text-link" onClick={resetFilters}>Limpiar filtros</button><button className="button button-brand button-block" onClick={() => setFiltersOpen(false)}>Ver resultados</button></div></div>}
 
       {selectedProduct && <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelectedProduct(null); }}><section className="product-modal" role="dialog" aria-modal="true" aria-labelledby="product-title"><button className="modal-close" onClick={() => setSelectedProduct(null)} aria-label="Cerrar">×</button><ProductVisual product={selectedProduct} large /><div className="modal-copy"><p className="eyebrow">{selectedProduct.category} · {selectedProduct.subcategory}</p><h2 id="product-title">{selectedProduct.name}</h2><p><b>Marca:</b> {selectedProduct.brand}</p><p><b>Código:</b> {selectedProduct.sku}</p><p><b>Presentación:</b> {selectedProduct.presentation}</p><p><b>Disponibilidad:</b> {selectedProduct.availability === "disponible" ? "Disponible" : selectedProduct.availability === "pocas_unidades" ? "Pocas unidades" : "Consultar disponibilidad"}</p>{selectedProduct.availability === "consultar" && <div className="notice-box">Te confirmamos la disponibilidad después de recibir tu pedido.</div>}{selectedProduct.is_bulky && <div className="notice-box">Producto voluminoso: se entrega en camión en tu obra o se retira coordinado en el local.</div>}<small className="price-label">PRECIO DE DEMOSTRACIÓN</small><strong className="modal-price">{money(selectedProduct.price_pyg)}</strong><QuantityControl value={detailQuantity} onChange={(change) => setDetailQuantity((current) => Math.max(1, Math.min(999, current + change)))} /><button className="button button-yellow button-block" onClick={() => addToCart(selectedProduct, detailQuantity)}>Agregar al carrito</button><div className="related-products"><b>También te puede servir</b><div>{relatedProducts.map((product) => <button key={product.id} onClick={() => { setSelectedProduct(product); setDetailQuantity(1); }}>{product.name}</button>)}</div></div></div></section></div>}
-      {toast && <div className="toast" role="status">{toast}</div>}
+      {toast && <div className="toast" role="status">{toast}<button onClick={() => changeScreen("cart")}>Ir al carrito</button></div>}
     </main>
   );
 }
