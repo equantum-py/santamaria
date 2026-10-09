@@ -360,7 +360,25 @@ export default function Home() {
           <div className="breadcrumbs"><button onClick={() => setScreen("store")}>Inicio</button><span>/</span><b>Seguimiento</b></div>
           <div className="tracking-card">
             <p className="eyebrow">SEGUIMIENTO DE DEMOSTRACIÓN</p><h1>¿Dónde está tu pedido?</h1><p>Ingresá el código que aparece en la confirmación.</p>
-            <form className="tracking-search" onSubmit={(event) => { event.preventDefault(); setNotice(trackingCode ? "Mostrando el seguimiento de ejemplo." : "Ingresá un código de pedido."); window.setTimeout(() => setNotice(""), 2400); }}>
+            <form className="tracking-search" onSubmit={(event) => {
+                event.preventDefault();
+                try {
+                  const savedOrder = window.localStorage.getItem("santamaria-demo-order");
+                  const savedCode = savedOrder ? (JSON.parse(savedOrder) as { code?: string }).code : "";
+                  if (savedCode && trackingCode.trim().toUpperCase() === savedCode.toUpperCase()) {
+                    setOrderCode(savedCode);
+                    setTrackingCode(savedCode);
+                    setNotice("");
+                  } else {
+                    setOrderCode("");
+                    setNotice("No encontramos ese pedido de demostración en este navegador.");
+                    window.setTimeout(() => setNotice(""), 2800);
+                  }
+                } catch {
+                  setNotice("No pudimos consultar el pedido guardado.");
+                  window.setTimeout(() => setNotice(""), 2800);
+                }
+              }}>
               <input value={trackingCode} onChange={(event) => setTrackingCode(event.target.value)} placeholder="Ej.: SM-12345" aria-label="Número de pedido" />
               <button className="button button-yellow" type="submit">Consultar</button>
             </form>
