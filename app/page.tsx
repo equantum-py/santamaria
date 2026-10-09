@@ -29,6 +29,16 @@ const icons: Record<string, string> = {
   construccion: "🧱",
   electricos: "💡",
 };
+const categoryPhotos: Record<string, string> = {
+  ferreteria: "https://lafermu.es/cdn/shop/files/59009.jpg?v=1739006278",
+  sanitarios: "https://d2yhc5i93g5p7c.cloudfront.net/images/upload/3162/card/651de47b946166.66475335.png",
+  construccion: "https://hhmniisxddfuccbaybui.supabase.co/storage/v1/object/public/productImages/construshop/YG.jpg-1757537415270-large.jpg",
+  electricos: "https://acdn-us.mitiendanube.com/stores/004/754/236/products/cable-argenplas-juma-electric-junin-250-mm-azul-homologado-2-867a0e1f73ec21662e17321275162102-1024-1024.webp",
+};
+
+function productImage(product: CatalogProduct) {
+  return product.image.startsWith("http") ? product.image : categoryPhotos[product.category_id] || "";
+}
 
 const statusLabels: Record<OrderStatus, string> = {
   recibido: "Recibido",
@@ -41,9 +51,9 @@ const statusLabels: Record<OrderStatus, string> = {
 
 function ProductVisual({ product, large = false }: { product: CatalogProduct; large?: boolean }) {
   return (
-    <div className={large ? "product-visual product-visual-large" : "product-visual"} aria-label={"Imagen de muestra: " + product.name}>
-      <span aria-hidden="true">{icons[product.category_id] || "📦"}</span>
-      <small>Imagen de demostración</small>
+    <div className={large ? "product-visual product-visual-large" : "product-visual"} aria-label={"Foto referencial: " + product.name}>
+      <img src={productImage(product)} alt={product.name} loading="lazy" referrerPolicy="no-referrer" />
+      {!product.is_store_confirmed && <small>Foto referencial</small>}
     </div>
   );
 }
@@ -58,14 +68,15 @@ function ProductCard({ product, onOpen, onAdd }: {
       <button className="product-image-button" onClick={() => onOpen(product)} aria-label={"Ver " + product.name}>
         <ProductVisual product={product} />
         {product.is_bulky && <span className="product-tag">Voluminoso</span>}
+        {!product.is_store_confirmed && <span className="product-tag product-tag-reference">Referencia</span>}
       </button>
       <div className="product-info">
         <span className="product-category">{product.subcategory}</span>
         <button className="product-name" onClick={() => onOpen(product)}>{product.name}</button>
-        <span className="product-unit">{product.presentation} · {availabilityLabels[product.availability]}</span>
+        <span className="product-unit">{product.presentation} · Consultar disponibilidad</span>
         <div className="product-bottom">
           <div>
-            <small>{product.availability === "consultar" ? "Consultar disponibilidad" : "Precio de demostración"}</small>
+            <small>Precio de muestra</small>
             <strong>{money(product.price_pyg)}</strong>
           </div>
           <button className="add-button" onClick={() => onAdd(product)} aria-label={"Agregar " + product.name + " al carrito"}>+</button>
@@ -76,7 +87,7 @@ function ProductCard({ product, onOpen, onAdd }: {
 }
 
 function DemoBanner() {
-  return <div className="demo-notice"><span className="demo-dot" /> Esta es una demostración. Precios, disponibilidad, entregas y pagos son ficticios: no se cobra ni se envía nada.</div>;
+  return <div className="demo-notice"><span className="demo-dot" /> Demo interactiva · precios de muestra y stock por confirmar con Santa María.</div>;
 }
 
 function Header({ itemCount, query, setQuery, setScreen, goHome, selectCategory }: {
@@ -417,7 +428,8 @@ export default function Home() {
     return pickup.closed_weekdays.includes(new Date(value + "T12:00:00").getDay());
   }
 
-  const featuredProducts = categories.flatMap((category) => products.filter((product) => product.category_id === category.id && product.availability === "disponible").slice(0, 2));
+  const featuredIds = ["martillo-de-carpintero-27-mm", "cinta-metrica-5-m", "grifo-monocomando-para-lavatorio", "inodoro-con-mochila-blanco", "cemento-portland-tipo-i", "varilla-de-hierro-8-mm", "cable-unipolar-2-5-mm2", "disyuntor-termomagnetico-2-x-20-a"];
+  const featuredProducts = featuredIds.map((id) => products.find((product) => product.id === id)).filter((product): product is CatalogProduct => Boolean(product));
   const relatedProducts = selectedProduct
     ? [
         ...products.filter((product) => product.id !== selectedProduct.id && product.subcategory_id === selectedProduct.subcategory_id),
@@ -435,16 +447,17 @@ export default function Home() {
           <section className="hero wrap">
             <div className="hero-copy">
               <p className="eyebrow"><span /> TODO PARA TU OBRA · LÍMPIO, PARAGUAY</p>
-              <h1>Lo que tu obra necesita, <em>sin vueltas.</em></h1>
-              <p className="hero-text">Ferretería, sanitarios, materiales de construcción y eléctricos en un solo lugar.</p>
+              <h1>Todo para tu obra, <em>en un solo lugar.</em></h1>
+              <p className="hero-text">Herramientas, sanitarios y materiales de construcción para acompañar cada etapa de tu proyecto.</p>
               <button className="button button-yellow" onClick={() => selectCategory("construccion")}>Ver materiales de construcción <span>→</span></button>
-              <div className="hero-note"><span>✓</span> Elegí los productos y armá tu pedido en línea.</div>
+              <div className="hero-note"><span>✓</span> Comprá en Limpio o consultá la entrega para tu obra.</div>
             </div>
-            <div className="hero-art" aria-hidden="true">
-              <div className="art-grid" /><div className="art-sun" />
-              <div className="art-card art-card-one"><span>🧱</span><small>OBRA GRUESA</small></div>
-              <div className="art-card art-card-two"><span>🚿</span><small>SANITARIOS</small></div>
-              <div className="art-card art-card-three"><span>⚡</span><small>ELÉCTRICOS</small></div>
+            <div className="hero-art" aria-label="Productos de referencia para construcción">
+              <div className="hero-gallery-main"><img src={categoryPhotos.construccion} alt="Cemento Yguazú de 50 kg" /><span>Obra gruesa</span></div>
+              <div className="hero-gallery-side">
+                <div><img src={categoryPhotos.sanitarios} alt="Grifería para baño" /><span>Sanitarios</span></div>
+                <div><img src={categoryPhotos.electricos} alt="Cable eléctrico" /><span>Electricidad</span></div>
+              </div>
             </div>
           </section>
 
@@ -452,8 +465,8 @@ export default function Home() {
             <div className="section-heading"><div><p className="eyebrow">ENCONTRÁ LO QUE BUSCÁS</p><h2>Comprá por categoría</h2></div><span className="subtle">4 categorías para tu obra</span></div>
             <div className="category-grid">
               {categories.map((category, index) => (
-                <button className={"category-card tone-" + index} id={"category-" + category.id} key={category.id} onClick={() => selectCategory(category.id)}>
-                  <span className="category-number">0{index + 1}</span><span className="category-emoji">{icons[category.id]}</span><strong>{category.name}</strong><span className="category-arrow">↗</span>
+                <button className={"category-card tone-" + index} id={"category-" + category.id} key={category.id} onClick={() => selectCategory(category.id)} style={{ backgroundImage: `linear-gradient(0deg,rgba(36,29,24,.82),rgba(36,29,24,.04) 78%),url("${categoryPhotos[category.id]}")` }}>
+                  <span className="category-number">0{index + 1}</span><strong>{category.name}</strong><span className="category-arrow">↗</span>
                 </button>
               ))}
             </div>
@@ -461,7 +474,7 @@ export default function Home() {
 
           <section className="catalog-section wrap" id="catalogo">
             <div className="section-heading catalog-heading">
-              <div><p className="eyebrow">{query ? "RESULTADOS DE BÚSQUEDA" : selectedCategory ? selectedCategory.name : "SELECCIÓN PARA TU OBRA"}</p><h2>{query ? "Resultados para “" + query + "”" : selectedCategory?.name || "Lo más pedido"}</h2></div>
+              <div><p className="eyebrow">{query ? "RESULTADOS DE BÚSQUEDA" : selectedCategory ? selectedCategory.name : "SELECCIÓN PARA TU OBRA"}</p><h2>{query ? "Resultados para “" + query + "”" : selectedCategory?.name || "Para empezar tu obra"}</h2></div>
               {(selectedCategory || query) && <button className="clear-filter" onClick={goHome}>Ver todo ×</button>}
             </div>
             {selectedCategory && (
@@ -512,7 +525,7 @@ export default function Home() {
             <div className="checkout-layout">
               <div className="cart-lines">
                 {cartProducts.map((product) => <div className="cart-line" key={product.id}>
-                  <div className="cart-thumb">{icons[product.category_id]}</div>
+                  <div className="cart-thumb"><img src={productImage(product)} alt="" /></div>
                   <div className="cart-product"><span>{product.subcategory}{product.is_bulky ? " · Voluminoso" : ""}</span><strong>{product.name}</strong><small>{product.presentation} · {money(product.price_pyg)} c/u</small></div>
                   <QuantityControl value={cart[product.id]} onChange={(change) => updateQuantity(product.id, change)} />
                   <div className="line-total">{money(product.price_pyg * cart[product.id])}<button onClick={() => setCart((current) => { const next = { ...current }; delete next[product.id]; return next; })}>Quitar</button></div>
@@ -644,7 +657,7 @@ export default function Home() {
         </section>
       )}
 
-      <footer className="site-footer"><div className="wrap footer-main"><div className="brand footer-brand"><span className="brand-mark"><i /><i /><i /></span><span className="brand-copy"><strong>SANTA MARÍA</strong><small>MATERIALES DE CONSTRUCCIÓN</small></span></div><p>Todo para tu obra, en Limpio.</p><div className="footer-meta"><span>Dirección y horarios pendientes de confirmar</span><span>WhatsApp pendiente de confirmar</span></div></div><div className="footer-bottom">© 2026 Materiales Santa María. Demo de presentación.</div></footer>
+      <footer className="site-footer"><div className="wrap footer-main"><div className="brand footer-brand"><span className="brand-mark"><i /><i /><i /></span><span className="brand-copy"><strong>SANTA MARÍA</strong><small>MATERIALES DE CONSTRUCCIÓN</small></span></div><p>Todo para tu obra, en Limpio.</p><div className="footer-meta"><span>Limpio · Consultá horarios y ubicación exacta</span><a href="https://wa.me/595983564690">WhatsApp: 0983 564 690</span></div></div><div className="footer-bottom">© 2026 Materiales Santa María. Demo de presentación.</div></footer>
       <DemoBanner />
 
       {filtersOpen && <div className="filter-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setFiltersOpen(false); }}><div className="mobile-filter-sheet"><div className="drawer-head"><h2>Filtros</h2><button className="icon-button" onClick={() => setFiltersOpen(false)}>×</button></div><label>Subcategoría<select value={subcategoryId} onChange={(event) => setSubcategoryId(event.target.value)}><option value="">Todas</option>{(selectedCategory?.subcategories || categories.flatMap((category) => category.subcategories)).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label>Marca<select value={filters.brand} onChange={(event) => setFilters({ ...filters, brand: event.target.value })}><option value="">Todas</option>{brands.map((brand) => <option key={brand}>{brand}</option>)}</select></label><fieldset><legend>Precio</legend><div className="price-fields"><input inputMode="numeric" aria-label="Precio mínimo" placeholder="Desde Gs." value={filters.minimum} onChange={(event) => setFilters({ ...filters, minimum: event.target.value.replace(/\D/g, "") })} /><input inputMode="numeric" aria-label="Precio máximo" placeholder="Hasta Gs." value={filters.maximum} onChange={(event) => setFilters({ ...filters, maximum: event.target.value.replace(/\D/g, "") })} /></div></fieldset><label>Disponibilidad<select value={filters.availability} onChange={(event) => setFilters({ ...filters, availability: event.target.value })}><option value="">Todas</option><option value="disponible">Disponible</option><option value="pocas_unidades">Pocas unidades</option><option value="consultar">Consultar disponibilidad</option></select></label><label className="checkbox-line"><input type="checkbox" checked={filters.smallOnly} onChange={(event) => setFilters({ ...filters, smallOnly: event.target.checked })} /> Solo productos chicos</label><button className="text-link" onClick={resetFilters}>Limpiar filtros</button><button className="button button-brand button-block" onClick={() => setFiltersOpen(false)}>Ver resultados</button></div></div>}
