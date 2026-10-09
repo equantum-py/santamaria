@@ -15,6 +15,7 @@ import {
   type OrderStatus,
   zones,
 } from "@/lib/store";
+import { BANK_PROMOTION_SLOTS, type BankPromotion, bankPromotions, PARTNER_SLOTS, partners } from "@/lib/promotions";
 
 type Screen = "store" | "cart" | "fulfillment" | "customer" | "payment" | "confirmation" | "tracking";
 type SortOrder = "relevance" | "price_asc" | "price_desc" | "name_asc";
@@ -22,12 +23,8 @@ type CartState = Record<string, number>;
 
 const CART_KEY = "santamaria-demo-cart";
 const ORDERS_KEY = "santamaria-demo-orders";
-const icons: Record<string, string> = {
-  ferreteria: "🛠️",
-  sanitarios: "🚿",
-  construccion: "🧱",
-  electricos: "💡",
-};
+const WHATSAPP_URL = "https://wa.me/595983564690";
+const WHATSAPP_LABEL = "0983 564 690";
 const categoryPhotos: Record<string, string> = {
   ferreteria: "https://ferreteriatecnica.co/cdn/shop/products/Flexometro-5-mts-stanley_900x.jpg?v=1625496120",
   sanitarios: "https://d2yhc5i93g5p7c.cloudfront.net/images/upload/3162/card/651de47b946166.66475335.png",
@@ -58,13 +55,66 @@ const statusLabels: Record<OrderStatus, string> = {
   cancelado: "Cancelado",
 };
 
+type IconName =
+  | "search" | "cart" | "truck" | "store" | "chat" | "package" | "menu" | "home" | "grid" | "arrow" | "check" | "close"
+  | "ferreteria" | "sanitarios" | "construccion" | "electricos" | "bank" | "handshake" | "shield" | "plus";
+
+const iconPaths: Record<IconName, string> = {
+  search: "M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14Zm9 16-4.2-4.2",
+  cart: "M3 4h2l2.4 11h10.2L20 8H6.3M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm8 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z",
+  truck: "M2 6h11v10H2zM13 10h4l3 3v3h-7M6 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm11 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z",
+  store: "M3 9l1.5-5h15L21 9M3 9h18M3 9v1.5a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0V9M5 13v7h14v-7M10 20v-4h4v4",
+  chat: "M4 5h16v11H9l-5 4V5Zm4 5h.01M12 10h.01M16 10h.01",
+  package: "M12 3 3 7.5v9L12 21l9-4.5v-9L12 3Zm0 0v0M3 7.5 12 12l9-4.5M12 12v9",
+  menu: "M4 7h16M4 12h16M4 17h16",
+  home: "M3 11 12 4l9 7M5 10v10h5v-6h4v6h5V10",
+  grid: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
+  arrow: "M5 12h14m-6-6 6 6-6 6",
+  check: "m5 12 5 5 9-10",
+  close: "M6 6l12 12M18 6 6 18",
+  ferreteria: "M14 4a4 4 0 0 0-4.6 5.4L3.5 15.3a1.8 1.8 0 0 0 2.6 2.6l5.9-5.9A4 4 0 0 0 17.4 7.4l-2.4 2.4-2.2-.6-.6-2.2L14.6 4.6 14 4Z",
+  sanitarios: "M7 3h4v4H7zM9 7v3M4 10h16v2a6 6 0 0 1-6 6h-4a6 6 0 0 1-6-6v-2ZM9 18l-1 3m7-3 1 3",
+  construccion: "M3 6h8v5H3zM13 6h8v5h-8zM3 13h4v5H3zM9 13h8v5H9zM19 13h2v5h-2z",
+  electricos: "M13 3 5 14h6l-1 7 8-11h-6l1-7Z",
+  bank: "M3 9 12 4l9 5M4 9h16M6 9v8m4-8v8m4-8v8m4-8v8M3 20h18",
+  handshake: "M3 8l4-3 5 3 5-3 4 3v6l-4 3-3-2M3 8v6l5 4 3-2M8 11l3 2 3-2",
+  shield: "M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3Zm-3 9 2 2 4-4",
+  plus: "M12 5v14M5 12h14",
+};
+
+function Icon({ name, size = 22 }: { name: IconName; size?: number }) {
+  return (
+    <svg className="icon" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d={iconPaths[name]} />
+    </svg>
+  );
+}
+
+function categoryIcon(categoryId: string): IconName {
+  return (["ferreteria", "sanitarios", "construccion", "electricos"] as const).find((id) => id === categoryId) ?? "grid";
+}
+
 function ProductVisual({ product, large = false }: { product: CatalogProduct; large?: boolean }) {
+  const [failed, setFailed] = useState(false);
+  const source = productImage(product);
   return (
     <div className={large ? "product-visual product-visual-large" : "product-visual"} aria-label={"Foto referencial: " + product.name}>
-      <img src={productImage(product)} alt={product.name} loading="lazy" referrerPolicy="no-referrer" />
+      {source && !failed ? (
+        <img src={source} alt={product.name} loading="lazy" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
+      ) : (
+        <div className={"image-fallback fallback-" + product.category_id}><Icon name={categoryIcon(product.category_id)} size={large ? 64 : 40} /><span>{product.subcategory}</span></div>
+      )}
       {!product.is_store_confirmed && <small>Foto referencial</small>}
     </div>
   );
+}
+
+function CartThumb({ product }: { product: CatalogProduct }) {
+  const [failed, setFailed] = useState(false);
+  const source = productImage(product);
+  return source && !failed
+    ? <img src={source} alt="" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
+    : <div className={"image-fallback fallback-" + product.category_id}><Icon name={categoryIcon(product.category_id)} size={28} /></div>;
 }
 
 function ProductCard({ product, onOpen, onAdd }: {
@@ -76,71 +126,168 @@ function ProductCard({ product, onOpen, onAdd }: {
     <article className="product-card">
       <button className="product-image-button" onClick={() => onOpen(product)} aria-label={"Ver " + product.name}>
         <ProductVisual product={product} />
-        {product.is_bulky && <span className="product-tag">Voluminoso</span>}
-        {!product.is_store_confirmed && <span className="product-tag product-tag-reference">Referencia</span>}
+        <span className="product-tags">
+          {product.is_bulky && <span className="product-tag product-tag-bulky"><Icon name="truck" size={13} /> Voluminoso</span>}
+          {!product.is_store_confirmed && <span className="product-tag product-tag-reference">Referencia</span>}
+        </span>
       </button>
       <div className="product-info">
         <span className="product-category">{product.subcategory}</span>
         <button className="product-name" onClick={() => onOpen(product)}>{product.name}</button>
-        <span className="product-unit">{product.presentation} · Consultar disponibilidad</span>
-        <div className="product-bottom">
-          <div>
-            <small>Precio de muestra</small>
-            <strong>{money(product.price_pyg)}</strong>
-          </div>
-          <button className="add-button" onClick={() => onAdd(product)} aria-label={"Agregar " + product.name + " al carrito"}>+</button>
+        <span className="product-unit">{product.presentation}</span>
+        <span className="product-stock">Consultar disponibilidad</span>
+        <div className="product-price">
+          <strong>{money(product.price_pyg)}</strong>
+          <small>Precio de muestra</small>
         </div>
+        <button className="button button-yellow add-button" onClick={() => onAdd(product)} aria-label={"Agregar " + product.name + " al carrito"}><Icon name="cart" size={18} /> Agregar</button>
       </div>
     </article>
   );
 }
 
-function DemoBanner() {
-  return <div className="demo-notice"><span className="demo-dot" /> Demo interactiva · precios de muestra y stock por confirmar con Santa María.</div>;
+function TopBar() {
+  return (
+    <div className="top-bar">
+      <div className="top-bar-inner">
+        <span className="top-bar-demo"><span className="demo-dot" /> Demo: precios de muestra, stock y entregas por confirmar</span>
+        <span className="top-bar-links">
+          <span><Icon name="store" size={15} /> Limpio, Paraguay</span>
+          <a href={WHATSAPP_URL}><Icon name="chat" size={15} /> WhatsApp {WHATSAPP_LABEL}</a>
+        </span>
+      </div>
+    </div>
+  );
 }
 
-function Header({ itemCount, query, setQuery, setScreen, goHome, selectCategory }: {
+function Header({ itemCount, query, setQuery, setScreen, goHome, selectCategory, selectSubcategory }: {
   itemCount: number;
   query: string;
   setQuery: (value: string) => void;
   setScreen: (screen: Screen) => void;
   goHome: () => void;
   selectCategory: (id: string) => void;
+  selectSubcategory: (categoryId: string, subcategoryId: string) => void;
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   function submitSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (query.trim()) setScreen("store");
-    document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth" });
+    window.setTimeout(() => document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth" }), 60);
   }
 
   return (
     <header className="site-header">
+      <TopBar />
       <div className="header-main">
+        <button className="menu-button" onClick={() => setMenuOpen(true)} aria-label="Abrir categorías"><Icon name="menu" /></button>
         <button className="brand" onClick={goHome} aria-label="Materiales Santa María, inicio">
           <span className="brand-mark" aria-hidden="true"><i /><i /><i /></span>
           <span className="brand-copy"><strong>SANTA MARÍA</strong><small>MATERIALES DE CONSTRUCCIÓN</small></span>
-          <span className="demo-badge">Demo</span>
         </button>
-        <form className="search-box" onSubmit={submitSearch}>
-          <span aria-hidden="true">⌕</span>
-          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="¿Qué necesitás para tu obra? Ej.: cemento, caño, cable" aria-label="Buscar productos" />
+        <form className="search-box" onSubmit={submitSearch} role="search">
+          <Icon name="search" size={20} />
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="¿Qué necesitás para tu obra?" aria-label="Buscar productos" />
           <button type="submit">Buscar</button>
         </form>
         <div className="header-actions">
-          <button className="text-action" onClick={() => setScreen("tracking")}>Mi pedido</button>
-          <button className="cart-button" onClick={() => setScreen("cart")} aria-label={itemCount + " en el carrito"}>
-            <span aria-hidden="true">▱</span><span>Carrito</span><b>{itemCount}</b>
+          <a className="header-link header-whatsapp" href={WHATSAPP_URL}><Icon name="chat" /><span><small>¿Te asesoramos?</small>WhatsApp</span></a>
+          <button className="header-link" onClick={() => setScreen("tracking")}><Icon name="package" /><span><small>Seguí tu compra</small>Mi pedido</span></button>
+          <button className="cart-button" onClick={() => setScreen("cart")} aria-label={itemCount + " productos en el carrito"}>
+            <Icon name="cart" /><span>Carrito</span><b>{itemCount}</b>
           </button>
         </div>
       </div>
       <nav className="category-nav" aria-label="Categorías principales">
         <div className="nav-inner">
-          <button onClick={goHome}>Todo para tu obra</button>
-          {categories.map((category) => <button key={category.id} onClick={() => { setQuery(""); selectCategory(category.id); }}>{category.name}</button>)}
-          <button onClick={() => { setQuery(""); selectCategory("sanitarios"); window.setTimeout(() => document.getElementById("subcategory-plomeria")?.click(), 100); }}>Plomería</button>
+          <button className="nav-all" onClick={() => setMenuOpen(true)}><Icon name="menu" size={18} /> Categorías</button>
+          {categories.map((category) => <button key={category.id} onClick={() => { setQuery(""); selectCategory(category.id); }}><Icon name={categoryIcon(category.id)} size={17} /> {category.name}</button>)}
+          <button onClick={() => { setQuery(""); selectSubcategory("sanitarios", "plomeria"); }}>Plomería</button>
+          <span className="nav-spacer" />
+          <span className="nav-promise"><Icon name="truck" size={17} /> Entrega en obra o retiro</span>
         </div>
       </nav>
+      {menuOpen && (
+        <div className="menu-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setMenuOpen(false); }}>
+          <aside className="menu-drawer" aria-label="Todas las categorías">
+            <div className="drawer-head"><h2>Categorías</h2><button className="icon-button" onClick={() => setMenuOpen(false)} aria-label="Cerrar"><Icon name="close" /></button></div>
+            {categories.map((category) => (
+              <div className="menu-group" key={category.id}>
+                <button className="menu-category" onClick={() => { setMenuOpen(false); setQuery(""); selectCategory(category.id); }}><span className={"menu-icon tone-" + category.id}><Icon name={categoryIcon(category.id)} /></span>{category.name}<Icon name="arrow" size={18} /></button>
+                <div className="menu-subcategories">{category.subcategories.map((subcategory) => <button key={subcategory.id} onClick={() => { setMenuOpen(false); setQuery(""); selectSubcategory(category.id, subcategory.id); }}>{subcategory.name}</button>)}</div>
+              </div>
+            ))}
+            <div className="menu-help"><b>¿No encontrás lo que buscás?</b><a className="button button-brand button-block" href={WHATSAPP_URL}><Icon name="chat" size={18} /> Consultanos por WhatsApp</a></div>
+          </aside>
+        </div>
+      )}
     </header>
+  );
+}
+
+function BankPromotions() {
+  const slots: Array<BankPromotion | { id: string }> = bankPromotions.length ? bankPromotions : Array.from({ length: BANK_PROMOTION_SLOTS }, (_, index) => ({ id: "slot-" + index }));
+  return (
+    <section className="promo-section wrap" aria-labelledby="promos-title">
+      <div className="section-heading"><div><p className="eyebrow">PROMOCIONES BANCARIAS</p><h2 id="promos-title">Pagá con beneficios</h2></div><span className="subtle">Se publican cuando Santa María confirme cada convenio</span></div>
+      <div className="promo-grid">
+        {slots.map((slot) => "bank" in slot ? (
+          <article className="promo-card" key={slot.id}><span className="promo-icon"><Icon name="bank" /></span><div><strong>{slot.bank}</strong><p>{slot.benefit}</p><small>{slot.conditions} · Vigente hasta {slot.valid_until}</small></div></article>
+        ) : (
+          <article className="promo-card promo-slot" key={slot.id} aria-label="Espacio reservado para promoción bancaria">
+            <span className="promo-icon"><Icon name="bank" /></span>
+            <div><strong>Espacio para promoción bancaria</strong><p>Banco, beneficio y vigencia a confirmar.</p><small>Pendiente de carga</small></div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Partners() {
+  const slots = partners.length ? partners : Array.from({ length: PARTNER_SLOTS }, (_, index) => ({ id: "slot-" + index, name: "" }));
+  return (
+    <section className="partners-section wrap" aria-labelledby="partners-title">
+      <div className="partners-head"><span className="promo-icon"><Icon name="handshake" /></span><div><p className="eyebrow">ALIANZAS Y MARCAS</p><h2 id="partners-title">Aliados de Santa María</h2></div></div>
+      <div className="partner-grid">
+        {slots.map((partner) => partner.name ? (
+          <div className="partner-logo" key={partner.id}>{partner.name}</div>
+        ) : (
+          <div className="partner-logo partner-slot" key={partner.id}>Logo de aliado<small>a confirmar</small></div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function SiteFooter({ goHome, selectCategory, setScreen }: { goHome: () => void; selectCategory: (id: string) => void; setScreen: (screen: Screen) => void }) {
+  return (
+    <footer className="site-footer">
+      <div className="wrap footer-grid">
+        <div className="footer-about">
+          <button className="brand footer-brand" onClick={goHome}><span className="brand-mark" aria-hidden="true"><i /><i /><i /></span><span className="brand-copy"><strong>SANTA MARÍA</strong><small>MATERIALES DE CONSTRUCCIÓN</small></span></button>
+          <p>Ferretería y materiales para construcción en Limpio, Paraguay.</p>
+          <a className="button button-yellow" href={WHATSAPP_URL}><Icon name="chat" size={18} /> WhatsApp {WHATSAPP_LABEL}</a>
+        </div>
+        <div><h3>Categorías</h3>{categories.map((category) => <button key={category.id} onClick={() => selectCategory(category.id)}>{category.name}</button>)}</div>
+        <div><h3>Tu compra</h3><button onClick={() => setScreen("cart")}>Carrito</button><button onClick={() => setScreen("tracking")}>Seguí tu pedido</button><span>Entrega en obra o retiro en el local</span></div>
+        <div><h3>El local</h3><span>Limpio, Paraguay</span><span>Dirección y horarios: a confirmar</span><span>Medios de pago: a confirmar</span></div>
+      </div>
+      <div className="footer-bottom">© 2026 Materiales Santa María · Demo de presentación: precios, stock, pagos y entregas son de muestra.</div>
+    </footer>
+  );
+}
+
+function MobileNav({ screen, itemCount, goHome, openSearch, setScreen }: { screen: Screen; itemCount: number; goHome: () => void; openSearch: () => void; setScreen: (screen: Screen) => void }) {
+  return (
+    <nav className="mobile-nav" aria-label="Navegación rápida">
+      <button className={screen === "store" ? "active" : ""} onClick={goHome}><Icon name="home" /><span>Inicio</span></button>
+      <button onClick={openSearch}><Icon name="search" /><span>Buscar</span></button>
+      <a href={WHATSAPP_URL}><Icon name="chat" /><span>WhatsApp</span></a>
+      <button className={screen === "tracking" ? "active" : ""} onClick={() => setScreen("tracking")}><Icon name="package" /><span>Mi pedido</span></button>
+      <button className={screen === "cart" ? "active" : ""} onClick={() => setScreen("cart")}><span className="mobile-cart"><Icon name="cart" />{itemCount > 0 && <b>{itemCount}</b>}</span><span>Carrito</span></button>
+    </nav>
   );
 }
 
@@ -236,6 +383,7 @@ export default function Home() {
 
   function changeScreen(next: Screen) {
     setFieldError("");
+    setToast("");
     setScreen(next);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -254,6 +402,19 @@ export default function Home() {
     setQuery("");
     changeScreen("store");
     window.setTimeout(() => document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth" }), 80);
+  }
+
+  function selectSubcategory(nextCategoryId: string, nextSubcategoryId: string) {
+    selectCategory(nextCategoryId);
+    setSubcategoryId(nextSubcategoryId);
+  }
+
+  function openSearch() {
+    if (screen !== "store") changeScreen("store");
+    window.setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      document.querySelector<HTMLInputElement>(".search-box input")?.focus();
+    }, 60);
   }
 
   function addToCart(product: CatalogProduct, quantity = 1) {
@@ -449,42 +610,67 @@ export default function Home() {
 
   return (
     <main className="app-shell">
-      <Header itemCount={itemCount} query={query} setQuery={setQuery} setScreen={changeScreen} goHome={goHome} selectCategory={selectCategory} />
+      <Header itemCount={itemCount} query={query} setQuery={setQuery} setScreen={changeScreen} goHome={goHome} selectCategory={selectCategory} selectSubcategory={selectSubcategory} />
 
       {screen === "store" && (
         <>
-          <section className="hero wrap">
-            <div className="hero-copy">
-              <p className="eyebrow"><span /> TODO PARA TU OBRA · LIMPIO, PARAGUAY</p>
-              <h1>Todo para tu obra, <em>en un solo lugar.</em></h1>
-              <p className="hero-text">Herramientas, sanitarios y materiales de construcción para acompañar cada etapa de tu proyecto.</p>
-              <button className="button button-yellow" onClick={() => selectCategory("construccion")}>Ver materiales de construcción <span>→</span></button>
-              <div className="hero-note"><span>✓</span> Comprá en Limpio o consultá la entrega para tu obra.</div>
-            </div>
-            <div className="hero-art" aria-label="Productos de referencia para construcción">
-              <div className="hero-gallery-main"><img src={categoryPhotos.construccion} alt="Cemento Yguazú de 50 kg" /><span>Obra gruesa</span></div>
-              <div className="hero-gallery-side">
-                <div><img src={categoryPhotos.sanitarios} alt="Grifería para baño" /><span>Sanitarios</span></div>
-                <div><img src={categoryPhotos.electricos} alt="Cable eléctrico" /><span>Electricidad</span></div>
-              </div>
-            </div>
-          </section>
+          {!categoryId && !query.trim() && (
+            <>
+              <section className="hero">
+                <div className="wrap hero-inner">
+                  <div className="hero-copy">
+                    <p className="eyebrow"><span /> FERRETERÍA Y MATERIALES · LIMPIO</p>
+                    <h1>Todo para tu obra, <em>en un solo lugar.</em></h1>
+                    <p className="hero-text">Herramientas, sanitarios, electricidad y materiales de construcción. Pedí desde el celular y elegí si te lo llevamos a la obra o lo retirás en el local.</p>
+                    <div className="hero-actions">
+                      <button className="button button-yellow button-large" onClick={() => selectCategory("construccion")}>Ver materiales de obra <Icon name="arrow" size={18} /></button>
+                      <a className="button button-ghost button-large" href={WHATSAPP_URL}><Icon name="chat" size={18} /> Pedí asesoramiento</a>
+                    </div>
+                  </div>
+                  <div className="hero-steps" aria-label="Cómo comprar">
+                    <p className="hero-steps-title">Comprá en 3 pasos</p>
+                    <ol>
+                      <li><span><Icon name="search" /></span><div><b>Elegí tus productos</b><small>Buscá por nombre o por categoría.</small></div></li>
+                      <li><span><Icon name="truck" /></span><div><b>Entrega en obra o retiro</b><small>Elegí cómo recibir tu pedido.</small></div></li>
+                      <li><span><Icon name="package" /></span><div><b>Seguí tu pedido</b><small>Con tu número de pedido.</small></div></li>
+                    </ol>
+                  </div>
+                </div>
+              </section>
 
-          <section className="category-section wrap">
-            <div className="section-heading"><div><p className="eyebrow">ENCONTRÁ LO QUE BUSCÁS</p><h2>Comprá por categoría</h2></div><span className="subtle">4 categorías para tu obra</span></div>
-            <div className="category-grid">
-              {categories.map((category, index) => (
-                <button className={"category-card tone-" + index} id={"category-" + category.id} key={category.id} onClick={() => selectCategory(category.id)} style={{ backgroundImage: `linear-gradient(0deg,rgba(36,29,24,.82),rgba(36,29,24,.04) 78%),url("${categoryPhotos[category.id]}")` }}>
-                  <span className="category-number">0{index + 1}</span><strong>{category.name}</strong><span className="category-arrow">↗</span>
-                </button>
-              ))}
-            </div>
-          </section>
+              <section className="benefit-strip wrap" aria-label="Por qué comprar en Santa María">
+                <div><Icon name="truck" /><span><b>Entrega en obra</b><small>Zonas y costos a confirmar</small></span></div>
+                <div><Icon name="store" /><span><b>Retiro en el local</b><small>En Limpio</small></span></div>
+                <div><Icon name="chat" /><span><b>Te asesoramos</b><small>Consultanos por WhatsApp</small></span></div>
+                <div><Icon name="shield" /><span><b>Pedido con seguimiento</b><small>Con tu número de pedido</small></span></div>
+              </section>
 
-          <section className="catalog-section wrap" id="catalogo">
+              <section className="category-section wrap">
+                <div className="section-heading"><div><p className="eyebrow">ENCONTRÁ LO QUE BUSCÁS</p><h2>Comprá por categoría</h2></div></div>
+                <div className="category-grid">
+                  {categories.map((category) => (
+                    <div className={"category-card tone-" + category.id} key={category.id} id={"category-" + category.id}>
+                      <button className="category-main" onClick={() => selectCategory(category.id)}>
+                        <span className="category-icon"><Icon name={categoryIcon(category.id)} size={30} /></span>
+                        <strong>{category.name}</strong>
+                        <small>{products.filter((product) => product.category_id === category.id).length} productos</small>
+                      </button>
+                      <div className="category-links">{category.subcategories.slice(0, 4).map((subcategory) => <button key={subcategory.id} onClick={() => selectSubcategory(category.id, subcategory.id)}>{subcategory.name}</button>)}</div>
+                      <button className="category-cta" onClick={() => selectCategory(category.id)}>Ver todo <Icon name="arrow" size={16} /></button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <BankPromotions />
+            </>
+          )}
+
+          <section className={"catalog-section wrap" + (categoryId || query.trim() ? " catalog-only" : "")} id="catalogo">
+            {selectedCategory && <div className="breadcrumbs"><button onClick={goHome}>Inicio</button><span><i>/</i>{subcategoryId ? <button onClick={() => setSubcategoryId("")}>{selectedCategory.name}</button> : <b>{selectedCategory.name}</b>}</span>{subcategoryId && <span><i>/</i><b>{selectedCategory.subcategories.find((item) => item.id === subcategoryId)?.name}</b></span>}</div>}
             <div className="section-heading catalog-heading">
-              <div><p className="eyebrow">{query ? "RESULTADOS DE BÚSQUEDA" : selectedCategory ? selectedCategory.name : "SELECCIÓN PARA TU OBRA"}</p><h2>{query ? "Resultados para “" + query + "”" : selectedCategory?.name || "Para empezar tu obra"}</h2></div>
-              {(selectedCategory || query) && <button className="clear-filter" onClick={goHome}>Ver todo ×</button>}
+              <div><p className="eyebrow">{query ? "RESULTADOS DE BÚSQUEDA" : selectedCategory ? "CATEGORÍA" : "SELECCIÓN PARA TU OBRA"}</p><h2>{query ? "Resultados para “" + query + "”" : selectedCategory?.name || "Productos destacados"}</h2></div>
+              {(selectedCategory || query) && <button className="clear-filter" onClick={goHome}>Ver todo <Icon name="close" size={16} /></button>}
             </div>
             {selectedCategory && (
               <div className="subcategory-row" aria-label="Subcategorías">
@@ -494,8 +680,8 @@ export default function Home() {
             )}
             <div className="catalog-tools">
               <span>{storefrontProducts.length} productos{query ? " encontrados" : ""}</span>
-              <button className="filter-toggle" onClick={() => setFiltersOpen(true)}>☷ Filtrar</button>
-              <label className="sort-control">Ordenar por
+              <button className="filter-toggle" onClick={() => setFiltersOpen(true)}><Icon name="grid" size={16} /> Filtrar</button>
+              <label className="sort-control"><span>Ordenar por</span>
                 <select value={sortOrder} onChange={(event) => setSortOrder(event.target.value as SortOrder)}>
                   <option value="relevance">Más relevantes</option><option value="price_asc">Menor precio</option><option value="price_desc">Mayor precio</option><option value="name_asc">Nombre (A–Z)</option>
                 </select>
@@ -509,20 +695,22 @@ export default function Home() {
                 <fieldset><legend>Precio</legend><div className="price-fields"><input inputMode="numeric" aria-label="Precio mínimo" placeholder="Desde Gs." value={filters.minimum} onChange={(event) => setFilters({ ...filters, minimum: event.target.value.replace(/\D/g, "") })} /><input inputMode="numeric" aria-label="Precio máximo" placeholder="Hasta Gs." value={filters.maximum} onChange={(event) => setFilters({ ...filters, maximum: event.target.value.replace(/\D/g, "") })} /></div></fieldset>
                 <label>Disponibilidad<select value={filters.availability} onChange={(event) => setFilters({ ...filters, availability: event.target.value })}><option value="">Todas</option><option value="disponible">Disponible</option><option value="pocas_unidades">Pocas unidades</option><option value="consultar">Consultar disponibilidad</option></select></label>
                 <label className="checkbox-line"><input type="checkbox" checked={filters.smallOnly} onChange={(event) => setFilters({ ...filters, smallOnly: event.target.checked })} /> Solo productos chicos</label>
-                <button className="button button-brand filter-apply" onClick={() => setFiltersOpen(false)}>Ver resultados</button>
               </aside>
               {storefrontProducts.length ? <div className="product-grid">{storefrontProducts.map((product) => <ProductCard key={product.id} product={product} onOpen={(item) => { setSelectedProduct(item); setDetailQuantity(1); }} onAdd={addToCart} />)}</div> : (
-                <div className="empty-results"><span>⌕</span><h3>{query ? "No encontramos “" + query + "”" : "No hay productos con estos filtros."}</h3><p>{query ? "Revisá cómo lo escribiste o buscá por categoría. Si no está en la web, preguntanos: capaz lo tenemos en el local." : "Probá quitando alguno."}</p><div className="empty-categories">{categories.map((category) => <button key={category.id} onClick={() => selectCategory(category.id)}>{category.name}</button>)}</div></div>
+                <div className="empty-results"><Icon name="search" size={34} /><h3>{query ? "No encontramos “" + query + "”" : "No hay productos con estos filtros."}</h3><p>{query ? "Revisá cómo lo escribiste o buscá por categoría. Si no está en la web, preguntanos: capaz lo tenemos en el local." : "Probá quitando alguno."}</p><div className="empty-categories">{categories.map((category) => <button key={category.id} onClick={() => selectCategory(category.id)}>{category.name}</button>)}</div>{query && <a className="button button-brand" href={WHATSAPP_URL}><Icon name="chat" size={18} /> Consultar por WhatsApp</a>}</div>
               )}
             </div>
-            {!query && !categoryId && (
-              <div className="benefit-grid">
-                <div className="benefit-card"><span>🚚</span><div><strong>Te lo llevamos a la obra</strong><p>Elegí tu zona y recibí en tu obra (servicio de demostración).</p></div></div>
-                <div className="benefit-card"><span>⌂</span><div><strong>O retiralo en el local</strong><p>Pedí por la web y pasá a buscar en Limpio (servicio de demostración).</p></div></div>
-                <div className="benefit-card"><span>◎</span><div><strong>Te asesoramos</strong><p>¿No sabés qué llevar? Consultanos y te ayudamos a elegir.</p></div></div>
-              </div>
-            )}
           </section>
+
+          {!categoryId && !query.trim() && (
+            <>
+              <section className="service-band wrap">
+                <div className="service-card service-delivery"><Icon name="truck" size={30} /><div><h3>Te lo llevamos a la obra</h3><p>Elegí tu zona al finalizar la compra y coordinamos la entrega. Zonas, costos y plazos de demostración.</p></div></div>
+                <div className="service-card service-pickup"><Icon name="store" size={30} /><div><h3>O retiralo en el local</h3><p>Pedí por la web y pasá a buscar tu pedido en Limpio en el día y horario que elijas.</p></div></div>
+              </section>
+              <Partners />
+            </>
+          )}
         </>
       )}
 
@@ -530,11 +718,11 @@ export default function Home() {
         <section className="flow-page wrap">
           <Breadcrumbs items={["Inicio", "Tu carrito"]} goHome={goHome} />
           <div className="flow-title"><div><p className="eyebrow">REVISÁ TU PEDIDO</p><h1>Tu carrito</h1></div><span className="step-pill">Paso 1 de 4</span></div>
-          {cartProducts.length === 0 ? <div className="empty-cart"><span>▱</span><h2>Tu carrito está vacío</h2><p>Buscá lo que necesitás para tu obra y agregalo acá.</p><button className="button button-brand" onClick={goHome}>Ir al inicio</button></div> : (
+          {cartProducts.length === 0 ? <div className="empty-cart"><Icon name="cart" size={34} /><h2>Tu carrito está vacío</h2><p>Buscá lo que necesitás para tu obra y agregalo acá.</p><button className="button button-brand" onClick={goHome}>Ir al inicio</button></div> : (
             <div className="checkout-layout">
               <div className="cart-lines">
                 {cartProducts.map((product) => <div className="cart-line" key={product.id}>
-                  <div className="cart-thumb"><img src={productImage(product)} alt="" /></div>
+                  <div className="cart-thumb"><CartThumb product={product} /></div>
                   <div className="cart-product"><span>{product.subcategory}{product.is_bulky ? " · Voluminoso" : ""}</span><strong>{product.name}</strong><small>{product.presentation} · {money(product.price_pyg)} c/u</small></div>
                   <QuantityControl value={cart[product.id]} onChange={(change) => updateQuantity(product.id, change)} />
                   <div className="line-total">{money(product.price_pyg * cart[product.id])}<button onClick={() => setCart((current) => { const next = { ...current }; delete next[product.id]; return next; })}>Quitar</button></div>
@@ -543,6 +731,7 @@ export default function Home() {
                 <button className="back-link" onClick={goHome}>← Seguir comprando</button>
               </div>
               <OrderSummary subtotal={subtotal} deliveryFee={null} total={null} itemCount={itemCount} onContinue={() => changeScreen("fulfillment")} continueLabel="Continuar con la compra" />
+              <div className="mobile-checkout-bar"><div><small>Subtotal ({itemCount})</small><strong>{money(subtotal)}</strong></div><button className="button button-yellow" onClick={() => changeScreen("fulfillment")}>Continuar <Icon name="arrow" size={18} /></button></div>
             </div>
           )}
         </section>
@@ -666,12 +855,12 @@ export default function Home() {
         </section>
       )}
 
-      <footer className="site-footer"><div className="wrap footer-main"><div className="brand footer-brand"><span className="brand-mark"><i /><i /><i /></span><span className="brand-copy"><strong>SANTA MARÍA</strong><small>MATERIALES DE CONSTRUCCIÓN</small></span></div><p>Todo para tu obra, en Limpio.</p><div className="footer-meta"><span>Limpio · Consultá horarios y ubicación exacta</span><a href="https://wa.me/595983564690">WhatsApp: 0983 564 690</a></div></div><div className="footer-bottom">© 2026 Materiales Santa María. Demo de presentación.</div></footer>
-      <DemoBanner />
+      <SiteFooter goHome={goHome} selectCategory={selectCategory} setScreen={changeScreen} />
+      <MobileNav screen={screen} itemCount={itemCount} goHome={goHome} openSearch={openSearch} setScreen={changeScreen} />
 
-      {filtersOpen && <div className="filter-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setFiltersOpen(false); }}><div className="mobile-filter-sheet"><div className="drawer-head"><h2>Filtros</h2><button className="icon-button" onClick={() => setFiltersOpen(false)}>×</button></div><label>Subcategoría<select value={subcategoryId} onChange={(event) => setSubcategoryId(event.target.value)}><option value="">Todas</option>{(selectedCategory?.subcategories || categories.flatMap((category) => category.subcategories)).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label>Marca<select value={filters.brand} onChange={(event) => setFilters({ ...filters, brand: event.target.value })}><option value="">Todas</option>{brands.map((brand) => <option key={brand}>{brand}</option>)}</select></label><fieldset><legend>Precio</legend><div className="price-fields"><input inputMode="numeric" aria-label="Precio mínimo" placeholder="Desde Gs." value={filters.minimum} onChange={(event) => setFilters({ ...filters, minimum: event.target.value.replace(/\D/g, "") })} /><input inputMode="numeric" aria-label="Precio máximo" placeholder="Hasta Gs." value={filters.maximum} onChange={(event) => setFilters({ ...filters, maximum: event.target.value.replace(/\D/g, "") })} /></div></fieldset><label>Disponibilidad<select value={filters.availability} onChange={(event) => setFilters({ ...filters, availability: event.target.value })}><option value="">Todas</option><option value="disponible">Disponible</option><option value="pocas_unidades">Pocas unidades</option><option value="consultar">Consultar disponibilidad</option></select></label><label className="checkbox-line"><input type="checkbox" checked={filters.smallOnly} onChange={(event) => setFilters({ ...filters, smallOnly: event.target.checked })} /> Solo productos chicos</label><button className="text-link" onClick={resetFilters}>Limpiar filtros</button><button className="button button-brand button-block" onClick={() => setFiltersOpen(false)}>Ver resultados</button></div></div>}
+      {filtersOpen && <div className="filter-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setFiltersOpen(false); }}><div className="mobile-filter-sheet"><div className="drawer-head"><h2>Filtros</h2><button className="icon-button" onClick={() => setFiltersOpen(false)} aria-label="Cerrar"><Icon name="close" /></button></div><label>Subcategoría<select value={subcategoryId} onChange={(event) => setSubcategoryId(event.target.value)}><option value="">Todas</option>{(selectedCategory?.subcategories || categories.flatMap((category) => category.subcategories)).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label>Marca<select value={filters.brand} onChange={(event) => setFilters({ ...filters, brand: event.target.value })}><option value="">Todas</option>{brands.map((brand) => <option key={brand}>{brand}</option>)}</select></label><fieldset><legend>Precio</legend><div className="price-fields"><input inputMode="numeric" aria-label="Precio mínimo" placeholder="Desde Gs." value={filters.minimum} onChange={(event) => setFilters({ ...filters, minimum: event.target.value.replace(/\D/g, "") })} /><input inputMode="numeric" aria-label="Precio máximo" placeholder="Hasta Gs." value={filters.maximum} onChange={(event) => setFilters({ ...filters, maximum: event.target.value.replace(/\D/g, "") })} /></div></fieldset><label>Disponibilidad<select value={filters.availability} onChange={(event) => setFilters({ ...filters, availability: event.target.value })}><option value="">Todas</option><option value="disponible">Disponible</option><option value="pocas_unidades">Pocas unidades</option><option value="consultar">Consultar disponibilidad</option></select></label><label className="checkbox-line"><input type="checkbox" checked={filters.smallOnly} onChange={(event) => setFilters({ ...filters, smallOnly: event.target.checked })} /> Solo productos chicos</label><button className="text-link" onClick={resetFilters}>Limpiar filtros</button><button className="button button-brand button-block" onClick={() => setFiltersOpen(false)}>Ver resultados</button></div></div>}
 
-      {selectedProduct && <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelectedProduct(null); }}><section className="product-modal" role="dialog" aria-modal="true" aria-labelledby="product-title"><button className="modal-close" onClick={() => setSelectedProduct(null)} aria-label="Cerrar">×</button><ProductVisual product={selectedProduct} large /><div className="modal-copy"><p className="eyebrow">{selectedProduct.category} · {selectedProduct.subcategory}</p><h2 id="product-title">{selectedProduct.name}</h2><p><b>Marca:</b> {selectedProduct.brand}</p><p><b>Código:</b> {selectedProduct.sku}</p><p><b>Presentación:</b> {selectedProduct.presentation}</p><p><b>Disponibilidad:</b> {selectedProduct.availability === "disponible" ? "Disponible" : selectedProduct.availability === "pocas_unidades" ? "Pocas unidades" : "Consultar disponibilidad"}</p>{selectedProduct.availability === "consultar" && <div className="notice-box">Te confirmamos la disponibilidad después de recibir tu pedido.</div>}{selectedProduct.is_bulky && <div className="notice-box">Producto voluminoso: se entrega en camión en tu obra o se retira coordinado en el local.</div>}<small className="price-label">PRECIO DE DEMOSTRACIÓN</small><strong className="modal-price">{money(selectedProduct.price_pyg)}</strong><QuantityControl value={detailQuantity} onChange={(change) => setDetailQuantity((current) => Math.max(1, Math.min(999, current + change)))} /><button className="button button-yellow button-block" onClick={() => addToCart(selectedProduct, detailQuantity)}>Agregar al carrito</button><div className="related-products"><b>También te puede servir</b><div>{relatedProducts.map((product) => <button key={product.id} onClick={() => { setSelectedProduct(product); setDetailQuantity(1); }}>{product.name}</button>)}</div></div></div></section></div>}
+      {selectedProduct && <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelectedProduct(null); }}><section className="product-modal" role="dialog" aria-modal="true" aria-labelledby="product-title"><button className="modal-close" onClick={() => setSelectedProduct(null)} aria-label="Cerrar"><Icon name="close" /></button><ProductVisual product={selectedProduct} large /><div className="modal-copy"><p className="eyebrow">{selectedProduct.category} · {selectedProduct.subcategory}</p><h2 id="product-title">{selectedProduct.name}</h2><p><b>Marca:</b> {selectedProduct.brand}</p><p><b>Código:</b> {selectedProduct.sku}</p><p><b>Presentación:</b> {selectedProduct.presentation}</p><p><b>Disponibilidad:</b> {selectedProduct.availability === "disponible" ? "Disponible" : selectedProduct.availability === "pocas_unidades" ? "Pocas unidades" : "Consultar disponibilidad"}</p>{selectedProduct.availability === "consultar" && <div className="notice-box">Te confirmamos la disponibilidad después de recibir tu pedido.</div>}{selectedProduct.is_bulky && <div className="notice-box">Producto voluminoso: se entrega en camión en tu obra o se retira coordinado en el local.</div>}<div className="modal-buy"><div className="modal-buy-price"><small className="price-label">PRECIO DE MUESTRA</small><strong className="modal-price">{money(selectedProduct.price_pyg)}</strong></div><QuantityControl value={detailQuantity} onChange={(change) => setDetailQuantity((current) => Math.max(1, Math.min(999, current + change)))} /><button className="button button-yellow button-block button-large" onClick={() => addToCart(selectedProduct, detailQuantity)}><Icon name="cart" size={18} /> Agregar al carrito</button></div><div className="related-products"><b>También te puede servir</b><div>{relatedProducts.map((product) => <button key={product.id} onClick={() => { setSelectedProduct(product); setDetailQuantity(1); }}>{product.name}</button>)}</div></div></div></section></div>}
       {toast && <div className="toast" role="status">{toast}<button onClick={() => changeScreen("cart")}>Ir al carrito</button></div>}
     </main>
   );
