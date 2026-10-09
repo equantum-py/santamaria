@@ -5,6 +5,7 @@ import {
   calculateDelivery,
   categories,
   type CatalogProduct,
+  type ProductCategory,
   type DemoOrder,
   formatDateTime,
   money,
@@ -245,18 +246,22 @@ function BankPromotions() {
   if (!bankPromotions.length) {
     return (
       <section className="promo-section wrap" aria-labelledby="promos-title">
-        <div className="promo-soon">
-          <div className="promo-soon-copy">
-            <span className="promo-icon"><Icon name="bank" size={28} /></span>
-            <p className="eyebrow">PROMOCIONES BANCARIAS</p>
+        <div className="bank-banner">
+          <div className="bank-banner-copy">
+            <p className="eyebrow"><Icon name="bank" size={18} /> PROMOCIONES CON BANCOS Y TARJETAS</p>
             <h2 id="promos-title">Beneficios en preparación</h2>
-            <p>Santa María está definiendo sus promociones con bancos y tarjetas. Las vamos a publicar acá recién cuando estén confirmadas.</p>
+            <p>Santa María está conversando con bancos y emisores de tarjetas. Cuando una promoción esté confirmada la vas a ver acá, con su banco, sus condiciones y su vigencia.</p>
+            <a className="button button-yellow" href={WHATSAPP_URL}><Icon name="chat" size={18} /> Consultá formas de pago</a>
           </div>
-          <ul className="promo-soon-list" aria-label="Qué vas a ver en cada promoción">
-            <li><Icon name="bank" size={20} /> Banco y tarjetas participantes</li>
-            <li><Icon name="check" size={20} /> Beneficio y condiciones</li>
-            <li><Icon name="package" size={20} /> Vigencia de la promoción</li>
-          </ul>
+          <div className="bank-banner-panel">
+            <p className="bank-banner-panel-title">Cada promoción va a mostrar</p>
+            <ul className="bank-banner-list" aria-label="Qué vas a ver en cada promoción">
+              <li><span><Icon name="bank" size={20} /></span><div><b>Banco y tarjetas</b><small>Qué tarjetas participan</small></div></li>
+              <li><span><Icon name="check" size={20} /></span><div><b>Beneficio y condiciones</b><small>Cuotas, reintegro o descuento confirmado</small></div></li>
+              <li><span><Icon name="package" size={20} /></span><div><b>Vigencia</b><small>Desde y hasta cuándo aplica</small></div></li>
+            </ul>
+            <p className="bank-banner-note">Todavía no hay promociones bancarias vigentes en esta tienda.</p>
+          </div>
         </div>
       </section>
     );
@@ -323,6 +328,33 @@ function MobileNav({ screen, itemCount, goHome, openSearch, setScreen }: { scree
   );
 }
 
+function ProductRow({ category, items, onOpen, onAdd, onSeeAll, onSubcategory }: { category: ProductCategory; items: CatalogProduct[]; onOpen: (product: CatalogProduct) => void; onAdd: (product: CatalogProduct) => void; onSeeAll: () => void; onSubcategory: (id: string) => void }) {
+  const rowRef = useRef<HTMLDivElement>(null);
+  const scroll = (direction: number) => {
+    const row = rowRef.current;
+    if (row) row.scrollBy({ left: direction * row.clientWidth * 0.9, behavior: "smooth" });
+  };
+  return (
+    <section className={"product-row-section wrap tone-" + category.id} id={"fila-" + category.id} aria-labelledby={"fila-title-" + category.id}>
+      <div className="row-heading">
+        <span className="category-icon"><Icon name={categoryIcon(category.id)} size={24} /></span>
+        <div className="row-title"><h2 id={"fila-title-" + category.id}>{category.name}</h2><small>{items.length} productos</small></div>
+        <div className="row-controls">
+          <button className="row-arrow" aria-label={"Ver productos anteriores de " + category.name} onClick={() => scroll(-1)}><Icon name="arrow" size={18} /></button>
+          <button className="row-arrow" aria-label={"Ver más productos de " + category.name} onClick={() => scroll(1)}><Icon name="arrow" size={18} /></button>
+        </div>
+        <button className="link-button" onClick={onSeeAll}>Ver todo <Icon name="arrow" size={18} /></button>
+      </div>
+      <div className="row-subcategories" aria-label={"Subcategorías de " + category.name}>
+        {category.subcategories.map((subcategory) => <button key={subcategory.id} className="chip" onClick={() => onSubcategory(subcategory.id)}>{subcategory.name}</button>)}
+      </div>
+      <div className="product-row" ref={rowRef}>
+        {items.map((product) => <ProductCard key={product.id} product={product} onOpen={onOpen} onAdd={onAdd} />)}
+      </div>
+    </section>
+  );
+}
+
 export default function Home() {
   const [screen, setScreen] = useState<Screen>("store");
   const [categoryId, setCategoryId] = useState("");
@@ -339,7 +371,6 @@ export default function Home() {
   const [toast, setToast] = useState("");
   const [hydrated, setHydrated] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [featuredTab, setFeaturedTab] = useState("");
   const [filters, setFilters] = useState({ brand: "", availability: "", minimum: "", maximum: "", smallOnly: false });
   const [fulfillmentType, setFulfillmentType] = useState<"delivery" | "pickup">("delivery");
   const [zoneId, setZoneId] = useState("limpio");
@@ -631,8 +662,6 @@ export default function Home() {
     return pickup.closed_weekdays.includes(new Date(value + "T12:00:00").getDay());
   }
 
-  const featuredIds = ["martillo-de-carpintero-27-mm", "pintura-latex-interior-blanca", "grifo-monocomando-para-lavatorio", "inodoro-con-mochila-blanco", "cemento-portland-tipo-i", "cal-hidratada", "cable-unipolar-2-5-mm2", "disyuntor-termomagnetico-2-x-20-a"];
-  const featuredProducts = featuredIds.map((id) => products.find((product) => product.id === id)).filter((product): product is CatalogProduct => Boolean(product));
   const relatedProducts = selectedProduct
     ? [
         ...products.filter((product) => product.id !== selectedProduct.id && product.subcategory_id === selectedProduct.subcategory_id),
@@ -640,8 +669,6 @@ export default function Home() {
       ].slice(0, 4)
     : [];
   const isHome = !categoryId && !query.trim();
-  const featuredCategory = categories.find((category) => category.id === featuredTab);
-  const homeProducts = featuredCategory ? products.filter((product) => product.category_id === featuredCategory.id).slice(0, 8) : featuredProducts;
   const storefrontProducts = filteredProducts;
   const openProduct = (item: CatalogProduct) => { setSelectedProduct(item); setDetailQuantity(1); };
 
@@ -682,34 +709,21 @@ export default function Home() {
                 <div><Icon name="shield" /><span><b>Pedido con seguimiento</b><small>Con tu número de pedido</small></span></div>
               </section>
 
-              <section className="category-section wrap">
-                <div className="section-heading"><div><p className="eyebrow">ENCONTRÁ LO QUE BUSCÁS</p><h2>Comprá por categoría</h2></div></div>
-                <div className="category-grid">
-                  {categories.map((category) => (
-                    <div className={"category-card tone-" + category.id} key={category.id} id={"category-" + category.id}>
-                      <button className="category-main" onClick={() => selectCategory(category.id)}>
-                        <span className="category-icon"><Icon name={categoryIcon(category.id)} size={30} /></span>
-                        <strong>{category.name}</strong>
-                        <small>{products.filter((product) => product.category_id === category.id).length} productos</small>
-                      </button>
-                      <div className="category-links">{category.subcategories.slice(0, 4).map((subcategory) => <button key={subcategory.id} onClick={() => selectSubcategory(category.id, subcategory.id)}>{subcategory.name}</button>)}</div>
-                      <button className="category-cta" onClick={() => selectCategory(category.id)}>Ver todo <Icon name="arrow" size={16} /></button>
-                    </div>
-                  ))}
-                </div>
-              </section>
+              <nav className="category-quick wrap" aria-label="Comprá por categoría">
+                {categories.map((category) => (
+                  <a className={"quick-card tone-" + category.id} key={category.id} id={"category-" + category.id} href={"#fila-" + category.id}>
+                    <span className="category-icon"><Icon name={categoryIcon(category.id)} size={26} /></span>
+                    <span><strong>{category.name}</strong><small>{products.filter((product) => product.category_id === category.id).length} productos</small></span>
+                  </a>
+                ))}
+              </nav>
 
-              <section className="featured-section wrap" id="destacados" aria-labelledby="featured-title">
-                <div className="section-heading"><div><p className="eyebrow">SELECCIÓN PARA TU OBRA</p><h2 id="featured-title">Productos destacados</h2></div><button className="link-button" onClick={() => selectCategory(featuredCategory?.id ?? "construccion")}>Ver todo en {featuredCategory?.name ?? "Materiales de construcción"} <Icon name="arrow" size={18} /></button></div>
-                <div className="featured-tabs" role="tablist" aria-label="Destacados por categoría">
-                  <button role="tab" aria-selected={!featuredTab} className={!featuredTab ? "chip active" : "chip"} onClick={() => setFeaturedTab("")}>Para empezar</button>
-                  {categories.map((category) => <button role="tab" aria-selected={featuredTab === category.id} key={category.id} className={featuredTab === category.id ? "chip active" : "chip"} onClick={() => setFeaturedTab(category.id)}>{category.name}</button>)}
-                </div>
-                <div className="product-grid product-grid-home">{homeProducts.map((product) => <ProductCard key={product.id} product={product} onOpen={openProduct} onAdd={addToCart} />)}</div>
-              </section>
-
-              <PromoBanners selectCategory={selectCategory} />
+              <ProductRow category={categories.find((category) => category.id === "ferreteria")!} items={products.filter((product) => product.category_id === "ferreteria")} onOpen={openProduct} onAdd={addToCart} onSeeAll={() => selectCategory("ferreteria")} onSubcategory={(id) => selectSubcategory("ferreteria", id)} />
+              <ProductRow category={categories.find((category) => category.id === "sanitarios")!} items={products.filter((product) => product.category_id === "sanitarios")} onOpen={openProduct} onAdd={addToCart} onSeeAll={() => selectCategory("sanitarios")} onSubcategory={(id) => selectSubcategory("sanitarios", id)} />
               <BankPromotions />
+              <ProductRow category={categories.find((category) => category.id === "construccion")!} items={products.filter((product) => product.category_id === "construccion")} onOpen={openProduct} onAdd={addToCart} onSeeAll={() => selectCategory("construccion")} onSubcategory={(id) => selectSubcategory("construccion", id)} />
+              <ProductRow category={categories.find((category) => category.id === "electricos")!} items={products.filter((product) => product.category_id === "electricos")} onOpen={openProduct} onAdd={addToCart} onSeeAll={() => selectCategory("electricos")} onSubcategory={(id) => selectSubcategory("electricos", id)} />
+              <PromoBanners selectCategory={selectCategory} />
             </>
           )}
 
