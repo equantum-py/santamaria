@@ -427,7 +427,7 @@ export default function Home() {
     return pickup.closed_weekdays.includes(new Date(value + "T12:00:00").getDay());
   }
 
-  const featuredIds = ["martillo-de-carpintero-27-mm", "pintura-latex-interior-blanca", "grifo-monocomando-para-lavatorio", "inodoro-con-mochila-blanco", "cemento-portland-tipo-i", "varilla-de-hierro-8-mm", "cable-unipolar-2-5-mm2", "disyuntor-termomagnetico-2-x-20-a"];
+  const featuredIds = ["martillo-de-carpintero-27-mm", "pintura-latex-interior-blanca", "grifo-monocomando-para-lavatorio", "inodoro-con-mochila-blanco", "cemento-portland-tipo-i", "cal-hidratada", "cable-unipolar-2-5-mm2", "disyuntor-termomagnetico-2-x-20-a"];
   const featuredProducts = featuredIds.map((id) => products.find((product) => product.id === id)).filter((product): product is CatalogProduct => Boolean(product));
   const relatedProducts = selectedProduct
     ? [
@@ -445,7 +445,7 @@ export default function Home() {
         <>
           <section className="hero wrap">
             <div className="hero-copy">
-              <p className="eyebrow"><span /> TODO PARA TU OBRA · LÍMPIO, PARAGUAY</p>
+              <p className="eyebrow"><span /> TODO PARA TU OBRA · LIMPIO, PARAGUAY</p>
               <h1>Todo para tu obra, <em>en un solo lugar.</em></h1>
               <p className="hero-text">Herramientas, sanitarios y materiales de construcción para acompañar cada etapa de tu proyecto.</p>
               <button className="button button-yellow" onClick={() => selectCategory("construccion")}>Ver materiales de construcción <span>→</span></button>
