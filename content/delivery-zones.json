@@ -1,0 +1,122 @@
+{
+  "_meta": {
+    "is_fictitious": true,
+    "notice": "ZONAS, COSTOS Y PLAZOS FICTICIOS DE DEMOSTRACIÓN. Santa María todavía no confirmó si entrega en obra, en qué zonas, con qué costo ni en qué plazo.",
+    "version": "1.0.0",
+    "updated_at": "2026-10-09",
+    "currency": "PYG",
+    "rules": [
+      "El costo de entrega se calcula por pedido, no por producto.",
+      "Si el carrito tiene al menos un producto con is_bulky = true, se usa bulky_fee_pyg y bulky_eta en lugar de standard_fee_pyg y standard_eta.",
+      "Si el subtotal del pedido es igual o mayor a free_delivery_from_pyg, el costo de entrega es 0 (solo para pedidos sin voluminosos).",
+      "Retiro en el local siempre tiene costo 0.",
+      "Si la zona tiene available = false, se muestra pero no se puede elegir, con el texto de unavailable_message."
+    ]
+  },
+  "pickup": {
+    "id": "retiro-local",
+    "name": "Retiro en el local",
+    "address": "Pendiente de confirmar (Limpio, Paraguay)",
+    "fee_pyg": 0,
+    "ready_eta": "Listo en 2 a 4 horas hábiles (ficticio)",
+    "time_slots": [
+      {
+        "id": "manana",
+        "label": "Mañana, 7:00 a 11:00 (ficticio)"
+      },
+      {
+        "id": "mediodia",
+        "label": "Mediodía, 11:00 a 14:00 (ficticio)"
+      },
+      {
+        "id": "tarde",
+        "label": "Tarde, 14:00 a 17:00 (ficticio)"
+      }
+    ],
+    "days_ahead": 6,
+    "closed_weekdays": [
+      0
+    ],
+    "is_fictitious": true
+  },
+  "zones": [
+    {
+      "id": "limpio",
+      "name": "Limpio",
+      "available": true,
+      "standard_fee_pyg": 20000,
+      "bulky_fee_pyg": 60000,
+      "standard_eta": "En el día (ficticio)",
+      "bulky_eta": "24 a 48 horas (ficticio)",
+      "free_delivery_from_pyg": 500000,
+      "is_fictitious": true
+    },
+    {
+      "id": "mariano-roque-alonso",
+      "name": "Mariano Roque Alonso",
+      "available": true,
+      "standard_fee_pyg": 30000,
+      "bulky_fee_pyg": 90000,
+      "standard_eta": "24 horas (ficticio)",
+      "bulky_eta": "24 a 48 horas (ficticio)",
+      "free_delivery_from_pyg": 800000,
+      "is_fictitious": true
+    },
+    {
+      "id": "luque",
+      "name": "Luque",
+      "available": true,
+      "standard_fee_pyg": 35000,
+      "bulky_fee_pyg": 100000,
+      "standard_eta": "24 horas (ficticio)",
+      "bulky_eta": "48 horas (ficticio)",
+      "free_delivery_from_pyg": 800000,
+      "is_fictitious": true
+    },
+    {
+      "id": "emboscada",
+      "name": "Emboscada",
+      "available": true,
+      "standard_fee_pyg": 40000,
+      "bulky_fee_pyg": 120000,
+      "standard_eta": "24 a 48 horas (ficticio)",
+      "bulky_eta": "48 a 72 horas (ficticio)",
+      "free_delivery_from_pyg": 1000000,
+      "is_fictitious": true
+    },
+    {
+      "id": "asuncion",
+      "name": "Asunción",
+      "available": true,
+      "standard_fee_pyg": 45000,
+      "bulky_fee_pyg": 140000,
+      "standard_eta": "24 a 48 horas (ficticio)",
+      "bulky_eta": "48 a 72 horas (ficticio)",
+      "free_delivery_from_pyg": 1200000,
+      "is_fictitious": true
+    },
+    {
+      "id": "san-lorenzo",
+      "name": "San Lorenzo",
+      "available": true,
+      "standard_fee_pyg": 50000,
+      "bulky_fee_pyg": 150000,
+      "standard_eta": "48 horas (ficticio)",
+      "bulky_eta": "48 a 72 horas (ficticio)",
+      "free_delivery_from_pyg": 1200000,
+      "is_fictitious": true
+    },
+    {
+      "id": "otras-zonas",
+      "name": "Otras ciudades",
+      "available": false,
+      "standard_fee_pyg": null,
+      "bulky_fee_pyg": null,
+      "standard_eta": null,
+      "bulky_eta": null,
+      "free_delivery_from_pyg": null,
+      "unavailable_message": "Por ahora no llegamos a tu zona. Escribinos por WhatsApp y lo vemos (ficticio).",
+      "is_fictitious": true
+    }
+  ]
+}
