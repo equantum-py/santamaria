@@ -18,7 +18,7 @@ type Screen = "store" | "cart" | "checkout" | "confirmation" | "tracking";
 
 const CATEGORIES = [
   { name: "Ferretería", emoji: "🛠️", tone: "sand" },
-  { name: "Sanitarios", emoji: "🚿", tone: "blue" },
+  { name: "Artículos sanitarios", emoji: "🚿", tone: "blue" },
   { name: "Materiales de construcción", emoji: "🧱", tone: "clay" },
   { name: "Materiales eléctricos", emoji: "💡", tone: "gold" },
 ];
@@ -28,10 +28,10 @@ const PRODUCTS: Product[] = [
   { id: "ladrillo-1", name: "Ladrillo hueco 6 tubos", category: "Materiales de construcción", subcategory: "Cerámica", unit: "Unidad", price: 4900, emoji: "🧱", bulky: true },
   { id: "arena-1", name: "Arena lavada", category: "Materiales de construcción", subcategory: "Agregados", unit: "Bolsa", price: 16000, emoji: "⛰️", bulky: true },
   { id: "caño-1", name: "Caño PVC sanitario 100 mm", category: "Materiales de construcción", subcategory: "Plomería", unit: "Tramo de 6 m", price: 42000, emoji: "🪠", bulky: true },
-  { id: "inodoro-1", name: "Inodoro con mochila", category: "Sanitarios", subcategory: "Inodoros", unit: "Unidad", price: 465000, emoji: "🚽" },
-  { id: "ducha-1", name: "Ducha eléctrica básica", category: "Sanitarios", subcategory: "Duchas", unit: "Unidad", price: 198000, emoji: "🚿" },
-  { id: "griferia-1", name: "Grifería monocomando", category: "Sanitarios", subcategory: "Griferías", unit: "Unidad", price: 315000, emoji: "🚰" },
-  { id: "lavatorio-1", name: "Lavatorio de loza", category: "Sanitarios", subcategory: "Lavatorios", unit: "Unidad", price: 235000, emoji: "🚰" },
+  { id: "inodoro-1", name: "Inodoro con mochila", category: "Artículos sanitarios", subcategory: "Inodoros", unit: "Unidad", price: 465000, emoji: "🚽" },
+  { id: "ducha-1", name: "Ducha eléctrica básica", category: "Artículos sanitarios", subcategory: "Duchas", unit: "Unidad", price: 198000, emoji: "🚿" },
+  { id: "griferia-1", name: "Grifería monocomando", category: "Artículos sanitarios", subcategory: "Griferías", unit: "Unidad", price: 315000, emoji: "🚰" },
+  { id: "lavatorio-1", name: "Lavatorio de loza", category: "Artículos sanitarios", subcategory: "Lavatorios", unit: "Unidad", price: 235000, emoji: "🚰" },
   { id: "cable-1", name: "Cable unipolar 2,5 mm", category: "Materiales eléctricos", subcategory: "Cables", unit: "Rollo de 100 m", price: 228000, emoji: "🔌" },
   { id: "llave-1", name: "Llave termomagnética 20 A", category: "Materiales eléctricos", subcategory: "Protección", unit: "Unidad", price: 42000, emoji: "⚡" },
   { id: "toma-1", name: "Tomacorriente doble", category: "Materiales eléctricos", subcategory: "Tomacorrientes", unit: "Unidad", price: 18500, emoji: "🔌" },
@@ -53,6 +53,7 @@ export default function Home() {
   const [screen, setScreen] = useState<Screen>("store");
   const [category, setCategory] = useState("");
   const [query, setQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState<"recommended" | "price">("recommended");
   const [cart, setCart] = useState<Cart>({});
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [delivery, setDelivery] = useState<"obra" | "retiro">("obra");
@@ -60,15 +61,16 @@ export default function Home() {
   const [trackingCode, setTrackingCode] = useState("");
   const [notice, setNotice] = useState("");
 
-  const visibleProducts = useMemo(
-    () =>
-      PRODUCTS.filter((product) => {
-        const matchesCategory = !category || product.category === category;
-        const text = `${product.name} ${product.subcategory} ${product.category}`.toLowerCase();
-        return matchesCategory && text.includes(query.trim().toLowerCase());
-      }),
-    [category, query],
-  );
+  const visibleProducts = useMemo(() => {
+    const filtered = PRODUCTS.filter((product) => {
+      const matchesCategory = !category || product.category === category;
+      const text = `${product.name} ${product.subcategory} ${product.category}`.toLowerCase();
+      return matchesCategory && text.includes(query.trim().toLowerCase());
+    });
+    return sortOrder === "price"
+      ? [...filtered].sort((a, b) => a.price - b.price)
+      : filtered;
+  }, [category, query, sortOrder]);
 
   const cartProducts = PRODUCTS.filter((product) => cart[product.id]);
   const itemCount = Object.values(cart).reduce((sum, quantity) => sum + quantity, 0);
@@ -212,12 +214,7 @@ export default function Home() {
             </div>
             <div className="filter-row">
               <span>{visibleProducts.length} productos de muestra</span>
-              <select aria-label="Ordenar productos" onChange={(event) => {
-                if (event.target.value === "price") {
-                  setNotice("Orden por precio: disponible al integrar el catálogo completo");
-                  window.setTimeout(() => setNotice(""), 2400);
-                }
-              }}>
+              <select aria-label="Ordenar productos" value={sortOrder} onChange={(event) => setSortOrder(event.target.value as "recommended" | "price")}>
                 <option value="recommended">Ordenar: Recomendados</option>
                 <option value="price">Menor precio</option>
               </select>
