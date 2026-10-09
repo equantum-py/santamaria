@@ -29,7 +29,7 @@ const icons: Record<string, string> = {
   electricos: "💡",
 };
 const categoryPhotos: Record<string, string> = {
-  ferreteria: "https://lafermu.es/cdn/shop/files/59009.jpg?v=1739006278",
+  ferreteria: "https://ferreteriatecnica.co/cdn/shop/products/Flexometro-5-mts-stanley_900x.jpg?v=1625496120",
   sanitarios: "https://d2yhc5i93g5p7c.cloudfront.net/images/upload/3162/card/651de47b946166.66475335.png",
   construccion: "https://hhmniisxddfuccbaybui.supabase.co/storage/v1/object/public/productImages/construshop/YG.jpg-1757537415270-large.jpg",
   electricos: "https://acdn-us.mitiendanube.com/stores/004/754/236/products/cable-argenplas-juma-electric-junin-250-mm-azul-homologado-2-867a0e1f73ec21662e17321275162102-1024-1024.webp",
