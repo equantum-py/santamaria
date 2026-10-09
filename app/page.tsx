@@ -39,6 +39,16 @@ function productImage(product: CatalogProduct) {
   return product.image.startsWith("http") ? product.image : categoryPhotos[product.category_id] || "";
 }
 
+function formatPickupDate(value: string) {
+  const date = new Date(value + "T12:00:00");
+  return new Intl.DateTimeFormat("es-PY", {
+    timeZone: "America/Asuncion",
+    weekday: "long",
+    day: "2-digit",
+    month: "2-digit",
+  }).format(date);
+}
+
 const statusLabels: Record<OrderStatus, string> = {
   recibido: "Recibido",
   en_preparacion: "En preparación",
@@ -540,14 +550,14 @@ export default function Home() {
 
       {screen === "fulfillment" && (
         <section className="flow-page wrap">
-          <Breadcrumbs items={["Inicio", "Carrito", "Entrega o retiro"]} goHome={goHome} />
+          <Breadcrumbs items={["Inicio", "Carrito", "Entrega o retiro"]} goHome={goHome} goCart={() => changeScreen("cart")} />
           <div className="flow-title"><div><p className="eyebrow">PASO 2 DE 4</p><h1>¿Cómo querés recibir tu pedido?</h1></div><span className="step-pill">Entrega</span></div>
           <div className="checkout-layout">
             <div className="form-column">
               <div className="form-card">
                 <div className="choice-grid">
                   <button className={fulfillmentType === "delivery" ? "choice selected" : "choice"} onClick={() => { setFulfillmentType("delivery"); setFieldError(""); }}><span>🚚</span><b>Entrega en obra</b><small>Te lo llevamos a la dirección que nos indiques.</small></button>
-                  <button className={fulfillmentType === "pickup" ? "choice selected" : "choice"} onClick={() => { setFulfillmentType("pickup"); setFieldError(""); }}><span>⌂</span><b>Retiro en el local</b><small>Pasás a buscar tu pedido en Santa María, Limpio. Sin costo.</small></button>
+                  <button className={fulfillmentType === "pickup" ? "choice selected" : "choice"} onClick={() => { setFulfillmentType("pickup"); setFieldError(""); }}><span>⌂</span><b>Retiro en el local</b><small>Pasás a buscar tu pedido en Santa María, Limpio.</small></button>
                 </div>
                 {fulfillmentType === "delivery" ? (
                   <div className="form-stack">
@@ -611,7 +621,7 @@ export default function Home() {
                 </div>
                 {paymentMethod === "tarjeta" && <p className="notice-box">En la demo no se cargan datos de tarjeta.</p>}
               </div>
-              <div className="form-card review-card"><h2>Resumen de tu pedido</h2>{cartProducts.map((product) => <p key={product.id}>{cart[product.id]} × {product.name} · {money(product.price_pyg * cart[product.id])}</p>)}<p><b>Entrega:</b> {deliveryText}</p><p><b>Cliente:</b> {customer.name} · {customer.phone}</p><p><b>Pago:</b> {paymentMethod}</p><p><b>Total:</b> {money(orderTotal)}</p><button type="button" className="back-link" onClick={() => changeScreen("customer")}>Cambiar datos</button></div>
+              <div className="form-card review-card"><h2>Resumen de tu pedido</h2>{cartProducts.map((product) => <p key={product.id}>{cart[product.id]} × {product.name} · {money(product.price_pyg * cart[product.id])}</p>)}<p><b>Entrega:</b> {deliveryText}</p><p><b>Cliente:</b> {customer.name} · {customer.phone}</p><p><b>Pago:</b> {paymentMethod === "transferencia" ? "Transferencia bancaria" : paymentMethod === "tarjeta" ? "Tarjeta de crédito o débito" : "Efectivo al recibir o al retirar"}</p><p><b>Total:</b> {money(orderTotal)}</p><button type="button" className="back-link" onClick={() => changeScreen("customer")}>Cambiar datos</button></div>
               {fieldError && <p className="field-error" role="alert">{fieldError}</p>}
               <div className="form-actions"><button className="button button-outline" type="button" onClick={() => changeScreen("customer")}>← Volver</button><button className="button button-yellow" type="submit" disabled={processing || !cartProducts.length}>{processing ? "Procesando tu pedido…" : "Confirmar pedido"}</button></div>
             </form>
@@ -648,7 +658,7 @@ export default function Home() {
                   return <li className={stepIndex === currentIndex ? "current" : stepIndex < currentIndex ? "done" : ""} key={status}><i>{stepIndex <= currentIndex ? "✓" : stepIndex + 1}</i><div><b>{statusLabels[status as OrderStatus]}</b><small>{historyEntry && date ? "Actualizado el " + date.date + " a las " + date.time : "Pendiente"}</small></div></li>;
                 })}</ol>
               )}
-              <div className="tracking-order-summary"><h3>Resumen del pedido</h3>{trackingOrder.items.map((item) => <p key={item.product_id}>{item.quantity} × {item.name} <span>{money(item.price_pyg * item.quantity)}</span></p>)}<p><b>Total</b><b>{money(trackingOrder.total_pyg)}</b></p><small>{trackingOrder.fulfillment.type === "pickup" ? "Retiro en local: " + trackingOrder.fulfillment.date + " · " + trackingOrder.fulfillment.slot_label : "Entrega en " + trackingOrder.fulfillment.zone_name + " · " + trackingOrder.fulfillment.address}</small></div>
+              <div className="tracking-order-summary"><h3>Resumen del pedido</h3>{trackingOrder.items.map((item) => <p key={item.product_id}>{item.quantity} × {item.name} <span>{money(item.price_pyg * item.quantity)}</span></p>)}<p><b>Total</b><b>{money(trackingOrder.total_pyg)}</b></p><small>{trackingOrder.fulfillment.type === "pickup" ? "Retiro en local: " + formatPickupDate(trackingOrder.fulfillment.date) + " · " + trackingOrder.fulfillment.slot_label : "Entrega en " + trackingOrder.fulfillment.zone_name + " · " + trackingOrder.fulfillment.address}</small></div>
               {trackingOrder.status !== "entregado" && trackingOrder.status !== "cancelado" && <div className="tracking-demo-controls"><button className="button button-outline advance-status" onClick={advanceDemoStatus}>Avanzar estado de demostración</button><button className="text-link" onClick={cancelDemoOrder}>Cancelar pedido de demostración</button></div>}
             </div>}
             <p className="form-note">El estado lo actualiza el equipo de Santa María desde su panel. En esta demo, es simulado.</p>
@@ -668,11 +678,44 @@ export default function Home() {
 }
 
 function QuantityControl({ value, onChange }: { value: number; onChange: (amount: number) => void }) {
-  return <div className="quantity-control"><button onClick={() => onChange(-1)} aria-label="Quitar una unidad">−</button><b>{value}</b><button onClick={() => onChange(1)} aria-label="Agregar una unidad">+</button></div>;
+  const [draft, setDraft] = useState(String(value));
+
+  useEffect(() => setDraft(String(value)), [value]);
+
+  function commitQuantity() {
+    const parsed = Number(draft);
+    const next = Number.isInteger(parsed) ? Math.max(1, Math.min(999, parsed)) : value;
+    setDraft(String(next));
+    if (next !== value) onChange(next - value);
+  }
+
+  return (
+    <div className="quantity-control">
+      <button onClick={() => onChange(-1)} aria-label="Quitar una unidad">−</button>
+      <input
+        type="number"
+        inputMode="numeric"
+        min="1"
+        max="999"
+        step="1"
+        aria-label="Cantidad"
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+        onBlur={commitQuantity}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            commitQuantity();
+          }
+        }}
+      />
+      <button onClick={() => onChange(1)} aria-label="Agregar una unidad">+</button>
+    </div>
+  );
 }
 
-function Breadcrumbs({ items, goHome }: { items: string[]; goHome: () => void }) {
-  return <div className="breadcrumbs"><button onClick={goHome}>Inicio</button>{items.slice(1).map((item, index) => <span key={item}><i>/</i>{index === items.length - 2 ? <b>{item}</b> : <button onClick={goHome}>{item}</button>}</span>)}</div>;
+function Breadcrumbs({ items, goHome, goCart }: { items: string[]; goHome: () => void; goCart?: () => void }) {
+  return <div className="breadcrumbs"><button onClick={goHome}>Inicio</button>{items.slice(1).map((item, index) => <span key={item}><i>/</i>{index === items.length - 2 ? <b>{item}</b> : <button onClick={item === "Carrito" && goCart ? goCart : goHome}>{item}</button>}</span>)}</div>;
 }
 
 function OrderSummary({ subtotal, deliveryFee, total, itemCount, deliveryLabel, onContinue, continueLabel }: {
