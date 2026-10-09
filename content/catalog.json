@@ -1,7 +1,7 @@
 {
   "_meta": {
     "is_fictitious": true,
-    "notice": "DATOS FICTICIOS DE DEMOSTRACIÓN. Precios, disponibilidad, marcas e imágenes no son reales ni de Materiales Santa María. Pendiente de confirmar con Santa María antes de producción.",
+    "notice": "Demo de catálogo con productos reales de referencia e imágenes públicas. La disponibilidad en Santa María, precios, marcas ofrecidas, SKU y condiciones de entrega deben confirmarse. Los importes son ficticios y solo permiten probar el carrito y el checkout.",
     "version": "1.0.0",
     "updated_at": "2026-10-09",
     "currency": "PYG",
@@ -14,7 +14,12 @@
       "consultar": "Consultar disponibilidad"
     },
     "is_bulky_meaning": "true = material voluminoso o pesado: solo entrega en obra con camión o retiro coordinado en el local.",
-    "image_note": "Las rutas de imagen son sugeridas; si el archivo no existe se muestra una imagen genérica de la categoría."
+    "image_note": "Los productos destacados usan fotos de referencia enlazadas desde sus publicaciones o catálogos públicos. Los demás productos usan foto referencial por categoría hasta recibir las fotos oficiales.",
+    "sources": [
+      "https://www.instagram.com/mc_santamariapy/",
+      "https://www.construex.com.py/exhibidores/materiales_de_construccion_santa_maria/producto/grifos_bano_paraguay",
+      "https://pry.sika.com/es/construccion/impermeabilizacion/impermeabilizaciondefachadas/sikacryl-plus-py.html"
+    ]
   },
   "categories": [
     {
@@ -114,43 +119,51 @@
     {
       "id": "martillo-de-carpintero-27-mm",
       "sku": "SM-FER-001",
-      "name": "Martillo de carpintero 27 mm",
+      "name": "Martillo de carpintero Bellota 8002 · 13 oz",
       "category_id": "ferreteria",
       "category": "Ferretería",
       "subcategory_id": "herramientas-manuales",
       "subcategory": "Herramientas manuales",
-      "brand": "Marca genérica A",
+      "brand": "Bellota",
       "presentation": "Unidad",
       "sale_unit": "unidad",
       "price_pyg": 45000,
-      "availability": "disponible",
+      "availability": "consultar",
       "is_bulky": false,
       "search_terms": [
         "martillo"
       ],
-      "image": "images/products/martillo-de-carpintero-27-mm.jpg",
-      "is_fictitious": true
+      "image": "https://lafermu.es/cdn/shop/files/59009.jpg?v=1739006278",
+      "is_fictitious": false,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true,
+      "image_source": "https://lafermu.es/products/59772-martillo-carpintero-con-mango-madera-de-haya-pefc-13-oz-800213"
     },
     {
       "id": "cinta-metrica-5-m",
       "sku": "SM-FER-002",
-      "name": "Cinta métrica 5 m",
+      "name": "Flexómetro Stanley 5 m · modelo 30-615",
       "category_id": "ferreteria",
       "category": "Ferretería",
       "subcategory_id": "herramientas-manuales",
       "subcategory": "Herramientas manuales",
-      "brand": "Marca genérica B",
+      "brand": "Stanley",
       "presentation": "Unidad",
       "sale_unit": "unidad",
       "price_pyg": 28000,
-      "availability": "disponible",
+      "availability": "consultar",
       "is_bulky": false,
       "search_terms": [
         "metro",
         "flexómetro"
       ],
-      "image": "images/products/cinta-metrica-5-m.jpg",
-      "is_fictitious": true
+      "image": "https://ferreteriatecnica.co/cdn/shop/products/Flexometro-5-mts-stanley_900x.jpg?v=1625496120",
+      "is_fictitious": false,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true,
+      "image_source": "https://ferreteriatecnica.co/products/cinta-metrica-global-5-mts"
     },
     {
       "id": "cuchara-de-albanil-8-pulgadas",
@@ -171,7 +184,10 @@
         "paleta"
       ],
       "image": "images/products/cuchara-de-albanil-8-pulgadas.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "nivel-de-aluminio-60-cm",
@@ -191,7 +207,10 @@
         "nivel"
       ],
       "image": "images/products/nivel-de-aluminio-60-cm.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "taladro-percutor-650-w",
@@ -212,7 +231,10 @@
         "agujereadora"
       ],
       "image": "images/products/taladro-percutor-650-w.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "amoladora-angular-115-mm-850-w",
@@ -233,7 +255,10 @@
         "pulidora"
       ],
       "image": "images/products/amoladora-angular-115-mm-850-w.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "tornillos-para-madera-8-x-1-1-2-pulgadas",
@@ -253,7 +278,10 @@
         "tornillo"
       ],
       "image": "images/products/tornillos-para-madera-8-x-1-1-2-pulgadas.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "tarugos-plasticos-8-mm",
@@ -274,7 +302,10 @@
         "tarugo"
       ],
       "image": "images/products/tarugos-plasticos-8-mm.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "pintura-latex-interior-blanca",
@@ -295,7 +326,10 @@
         "latex"
       ],
       "image": "images/products/pintura-latex-interior-blanca.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "rodillo-de-lana-23-cm",
@@ -315,29 +349,36 @@
         "rodillo"
       ],
       "image": "images/products/rodillo-de-lana-23-cm.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "inodoro-con-mochila-blanco",
       "sku": "SM-SAN-001",
-      "name": "Inodoro con mochila blanco",
+      "name": "Inodoro Deca Quadra con mochila · blanco",
       "category_id": "sanitarios",
       "category": "Artículos sanitarios",
       "subcategory_id": "bano",
       "subcategory": "Baño",
-      "brand": "Marca genérica D",
+      "brand": "Deca",
       "presentation": "Juego completo",
       "sale_unit": "juego",
       "price_pyg": 890000,
-      "availability": "pocas_unidades",
+      "availability": "consultar",
       "is_bulky": true,
       "search_terms": [
         "inodoro",
         "taza",
         "water"
       ],
-      "image": "images/products/inodoro-con-mochila-blanco.jpg",
-      "is_fictitious": true
+      "image": "https://images.tcdn.com.br/img/img_prod/1349798/kit_completo_bacia_com_caixa_acoplada_quadra_branco_deca_20691_1_580b98277fd7893e864a182927198389.jpg",
+      "is_fictitious": false,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true,
+      "image_source": "https://www.allbanho.com.br/banheiro/loucas-sanitarias/bacias-e-caixas/kit-completo-bacia-com-caixa-acoplada-quadra-branco-deca-20691"
     },
     {
       "id": "lavatorio-con-columna-blanco",
@@ -359,7 +400,10 @@
         "pileta"
       ],
       "image": "images/products/lavatorio-con-columna-blanco.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "asiento-para-inodoro-plastico",
@@ -379,28 +423,35 @@
         "tapa de inodoro"
       ],
       "image": "images/products/asiento-para-inodoro-plastico.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "grifo-monocomando-para-lavatorio",
       "sku": "SM-SAN-004",
-      "name": "Grifo monocomando para lavatorio",
+      "name": "Grifería para baño · referencia publicada por Santa María",
       "category_id": "sanitarios",
       "category": "Artículos sanitarios",
       "subcategory_id": "griferia",
       "subcategory": "Grifería",
-      "brand": "Marca genérica E",
+      "brand": "Santa María · referencia pública",
       "presentation": "Unidad",
       "sale_unit": "unidad",
       "price_pyg": 260000,
-      "availability": "disponible",
+      "availability": "consultar",
       "is_bulky": false,
       "search_terms": [
         "canilla",
         "grifo"
       ],
-      "image": "images/products/grifo-monocomando-para-lavatorio.jpg",
-      "is_fictitious": true
+      "image": "https://d2yhc5i93g5p7c.cloudfront.net/images/upload/3162/card/651de47b946166.66475335.png",
+      "is_fictitious": false,
+      "is_store_confirmed": true,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true,
+      "image_source": "https://www.construex.com.py/exhibidores/materiales_de_construccion_santa_maria/producto/grifos_bano_paraguay"
     },
     {
       "id": "ducha-electrica-5500-w",
@@ -421,7 +472,10 @@
         "calefón de ducha"
       ],
       "image": "images/products/ducha-electrica-5500-w.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "cano-pvc-soldable-25-mm",
@@ -443,7 +497,10 @@
         "pvc"
       ],
       "image": "images/products/cano-pvc-soldable-25-mm.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "cano-pvc-desague-100-mm",
@@ -466,7 +523,10 @@
         "pvc"
       ],
       "image": "images/products/cano-pvc-desague-100-mm.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "codo-pvc-soldable-25-mm-90",
@@ -487,7 +547,10 @@
         "conexión"
       ],
       "image": "images/products/codo-pvc-soldable-25-mm-90.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "llave-de-paso-esferica-3-4-pulgada",
@@ -508,7 +571,10 @@
         "registro"
       ],
       "image": "images/products/llave-de-paso-esferica-3-4-pulgada.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "tanque-de-agua-1000-litros",
@@ -529,27 +595,34 @@
         "cisterna"
       ],
       "image": "images/products/tanque-de-agua-1000-litros.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "cemento-portland-tipo-i",
       "sku": "SM-CON-001",
-      "name": "Cemento Portland tipo I",
+      "name": "Cemento Yguazú Portland compuesto CPII-C32 · 50 kg",
       "category_id": "construccion",
       "category": "Materiales de construcción",
       "subcategory_id": "cementos-y-cales",
       "subcategory": "Cementos y cales",
-      "brand": "Marca genérica G",
+      "brand": "Yguazú",
       "presentation": "Bolsa de 50 kg",
       "sale_unit": "bolsa",
       "price_pyg": 62000,
-      "availability": "disponible",
+      "availability": "consultar",
       "is_bulky": true,
       "search_terms": [
         "cemento"
       ],
-      "image": "images/products/cemento-portland-tipo-i.jpg",
-      "is_fictitious": true
+      "image": "https://hhmniisxddfuccbaybui.supabase.co/storage/v1/object/public/productImages/construshop/YG.jpg-1757537415270-large.jpg",
+      "is_fictitious": false,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true,
+      "image_source": "https://construshop.com.py/23460"
     },
     {
       "id": "cemento-de-albanileria",
@@ -570,7 +643,10 @@
         "albañilería"
       ],
       "image": "images/products/cemento-de-albanileria.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "cal-hidratada",
@@ -590,7 +666,10 @@
         "cal"
       ],
       "image": "images/products/cal-hidratada.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "pegamento-para-ceramica",
@@ -612,7 +691,10 @@
         "cemento cola"
       ],
       "image": "images/products/pegamento-para-ceramica.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "arena-lavada",
@@ -632,7 +714,10 @@
         "arena"
       ],
       "image": "images/products/arena-lavada.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "piedra-triturada-6ta",
@@ -654,7 +739,10 @@
         "ripio"
       ],
       "image": "images/products/piedra-triturada-6ta.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "ladrillo-comun",
@@ -674,7 +762,10 @@
         "ladrillo"
       ],
       "image": "images/products/ladrillo-comun.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "ladrillo-hueco-12-x-18-x-33-cm",
@@ -695,28 +786,35 @@
         "ladrillo"
       ],
       "image": "images/products/ladrillo-hueco-12-x-18-x-33-cm.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "varilla-de-hierro-8-mm",
       "sku": "SM-CON-009",
-      "name": "Varilla de hierro 8 mm",
+      "name": "Varilla corrugada de construcción · 8 mm x 12 m",
       "category_id": "construccion",
       "category": "Materiales de construcción",
       "subcategory_id": "hierros",
       "subcategory": "Hierros",
-      "brand": "Marca genérica I",
+      "brand": "Consultar marca",
       "presentation": "Barra de 12 metros",
       "sale_unit": "barra",
       "price_pyg": 52000,
-      "availability": "disponible",
+      "availability": "consultar",
       "is_bulky": true,
       "search_terms": [
         "varilla",
         "hierro"
       ],
-      "image": "images/products/varilla-de-hierro-8-mm.jpg",
-      "is_fictitious": true
+      "image": "https://d2yhc5i93g5p7c.cloudfront.net/images/upload/120752/card/17272743524836a7a7c8baadfe034846b81eb.11677281.jpg",
+      "is_fictitious": false,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true,
+      "image_source": "https://www.construex.com.py/exhibidores/deposito_de_materiales_serrana/producto/varilla_corrugada_paraguay"
     },
     {
       "id": "varilla-de-hierro-10-mm",
@@ -737,27 +835,34 @@
         "hierro"
       ],
       "image": "images/products/varilla-de-hierro-10-mm.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "cable-unipolar-2-5-mm2",
       "sku": "SM-ELE-001",
-      "name": "Cable unipolar 2,5 mm²",
+      "name": "Cable unipolar Argenplas 2,5 mm² · rollo 100 m",
       "category_id": "electricos",
       "category": "Materiales eléctricos",
       "subcategory_id": "cables",
       "subcategory": "Cables",
-      "brand": "Marca genérica J",
+      "brand": "Argenplas",
       "presentation": "Rollo de 100 metros",
       "sale_unit": "rollo",
       "price_pyg": 410000,
-      "availability": "disponible",
+      "availability": "consultar",
       "is_bulky": false,
       "search_terms": [
         "cable"
       ],
-      "image": "images/products/cable-unipolar-2-5-mm2.jpg",
-      "is_fictitious": true
+      "image": "https://acdn-us.mitiendanube.com/stores/004/754/236/products/cable-argenplas-juma-electric-junin-250-mm-azul-homologado-2-867a0e1f73ec21662e17321275162102-1024-1024.webp",
+      "is_fictitious": false,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true,
+      "image_source": "https://www.jumaelectric.com.ar/productos/cable-unipolar-argenplas-flexible-25-mm-celeste-100-mts/"
     },
     {
       "id": "cable-unipolar-1-5-mm2",
@@ -777,7 +882,10 @@
         "cable"
       ],
       "image": "images/products/cable-unipolar-1-5-mm2.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "cano-corrugado-3-4-pulgada",
@@ -799,7 +907,10 @@
         "caño"
       ],
       "image": "images/products/cano-corrugado-3-4-pulgada.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "llave-de-luz-simple-con-placa",
@@ -821,7 +932,10 @@
         "tecla"
       ],
       "image": "images/products/llave-de-luz-simple-con-placa.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "tomacorriente-doble-con-placa",
@@ -843,7 +957,10 @@
         "tomacorriente"
       ],
       "image": "images/products/tomacorriente-doble-con-placa.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "lampara-led-9-w-luz-fria",
@@ -865,7 +982,10 @@
         "led"
       ],
       "image": "images/products/lampara-led-9-w-luz-fria.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "reflector-led-50-w-exterior",
@@ -886,29 +1006,36 @@
         "led"
       ],
       "image": "images/products/reflector-led-50-w-exterior.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "disyuntor-termomagnetico-2-x-20-a",
       "sku": "SM-ELE-008",
-      "name": "Disyuntor termomagnético 2 x 20 A",
+      "name": "Interruptor termomagnético Schneider Acti9 · 1 polo, 40 A",
       "category_id": "electricos",
       "category": "Materiales eléctricos",
       "subcategory_id": "proteccion-electrica",
       "subcategory": "Protección eléctrica",
-      "brand": "Marca genérica J",
+      "brand": "Schneider Electric",
       "presentation": "Unidad",
       "sale_unit": "unidad",
       "price_pyg": 68000,
-      "availability": "disponible",
+      "availability": "consultar",
       "is_bulky": false,
       "search_terms": [
         "térmica",
         "llave térmica",
         "disyuntor"
       ],
-      "image": "images/products/disyuntor-termomagnetico-2-x-20-a.jpg",
-      "is_fictitious": true
+      "image": "https://syzcominsa.pe/cdn/shop/files/0037149_5cf55a0a-9ee0-40d8-bc71-659654272bc7_1024x.jpg?v=1762037638",
+      "is_fictitious": false,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true,
+      "image_source": "https://syzcominsa.pe/products/a9f74140-interruptor-termomagnetico-riel-acti-9-schneider"
     },
     {
       "id": "interruptor-diferencial-2-x-25-a",
@@ -929,7 +1056,10 @@
         "disyuntor"
       ],
       "image": "images/products/interruptor-diferencial-2-x-25-a.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     },
     {
       "id": "tablero-para-8-modulos-embutido",
@@ -950,7 +1080,10 @@
         "caja de llaves"
       ],
       "image": "images/products/tablero-para-8-modulos-embutido.jpg",
-      "is_fictitious": true
+      "is_fictitious": true,
+      "is_store_confirmed": false,
+      "price_is_fictitious": true,
+      "availability_is_fictitious": true
     }
   ]
 }
