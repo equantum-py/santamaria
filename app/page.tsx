@@ -15,7 +15,8 @@ import {
   type OrderStatus,
   zones,
 } from "@/lib/store";
-import { bankPromotions, partners } from "@/lib/promotions";
+import { productPhoto } from "@/lib/media";
+import { bankPromotions, partners, promoBanners } from "@/lib/promotions";
 
 type Screen = "store" | "cart" | "fulfillment" | "customer" | "payment" | "confirmation" | "tracking";
 type SortOrder = "relevance" | "price_asc" | "price_desc" | "name_asc";
@@ -25,17 +26,6 @@ const CART_KEY = "santamaria-demo-cart";
 const ORDERS_KEY = "santamaria-demo-orders";
 const WHATSAPP_URL = "https://wa.me/595983564690";
 const WHATSAPP_LABEL = "0983 564 690";
-const categoryPhotos: Record<string, string> = {
-  ferreteria: "https://ferreteriatecnica.co/cdn/shop/products/Flexometro-5-mts-stanley_900x.jpg?v=1625496120",
-  sanitarios: "https://d2yhc5i93g5p7c.cloudfront.net/images/upload/3162/card/651de47b946166.66475335.png",
-  construccion: "https://hhmniisxddfuccbaybui.supabase.co/storage/v1/object/public/productImages/construshop/YG.jpg-1757537415270-large.jpg",
-  electricos: "https://acdn-us.mitiendanube.com/stores/004/754/236/products/cable-argenplas-juma-electric-junin-250-mm-azul-homologado-2-867a0e1f73ec21662e17321275162102-1024-1024.webp",
-};
-
-function productImage(product: CatalogProduct) {
-  return product.image.startsWith("http") ? product.image : categoryPhotos[product.category_id] || "";
-}
-
 function formatPickupDate(value: string) {
   const date = new Date(value + "T12:00:00");
   return new Intl.DateTimeFormat("es-PY", {
@@ -94,27 +84,34 @@ function categoryIcon(categoryId: string): IconName {
   return (["ferreteria", "sanitarios", "construccion", "electricos"] as const).find((id) => id === categoryId) ?? "grid";
 }
 
+function PhotoFallback({ product, large = false }: { product: CatalogProduct; large?: boolean }) {
+  return (
+    <div className={"image-fallback fallback-" + product.category_id}>
+      <span className="fallback-icon"><Icon name={categoryIcon(product.category_id)} size={large ? 52 : 34} /></span>
+      <span className="fallback-text">{product.subcategory}</span>
+      <small>Foto pendiente</small>
+    </div>
+  );
+}
+
 function ProductVisual({ product, large = false }: { product: CatalogProduct; large?: boolean }) {
   const [failed, setFailed] = useState(false);
-  const source = productImage(product);
+  const photo = productPhoto(product);
   return (
-    <div className={large ? "product-visual product-visual-large" : "product-visual"} aria-label={"Foto referencial: " + product.name}>
-      {source && !failed ? (
-        <img src={source} alt={product.name} loading="lazy" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
-      ) : (
-        <div className={"image-fallback fallback-" + product.category_id}><Icon name={categoryIcon(product.category_id)} size={large ? 64 : 40} /><span>{product.subcategory}</span></div>
-      )}
-      {!product.is_store_confirmed && <small>Foto referencial</small>}
+    <div className={large ? "product-visual product-visual-large" : "product-visual"}>
+      {photo && !failed
+        ? <img src={photo.src} alt={product.name} loading="lazy" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
+        : <PhotoFallback product={product} large={large} />}
     </div>
   );
 }
 
 function CartThumb({ product }: { product: CatalogProduct }) {
   const [failed, setFailed] = useState(false);
-  const source = productImage(product);
-  return source && !failed
-    ? <img src={source} alt="" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
-    : <div className={"image-fallback fallback-" + product.category_id}><Icon name={categoryIcon(product.category_id)} size={28} /></div>;
+  const photo = productPhoto(product);
+  return photo && !failed
+    ? <img src={photo.src} alt="" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
+    : <div className={"image-fallback fallback-" + product.category_id}><Icon name={categoryIcon(product.category_id)} size={26} /></div>;
 }
 
 function ProductCard({ product, onOpen, onAdd }: {
@@ -124,23 +121,23 @@ function ProductCard({ product, onOpen, onAdd }: {
 }) {
   return (
     <article className="product-card">
-      <button className="product-image-button" onClick={() => onOpen(product)} aria-label={"Ver " + product.name}>
+      <button className="product-media" onClick={() => onOpen(product)} aria-label={"Ver " + product.name}>
         <ProductVisual product={product} />
-        <span className="product-tags">
-          {product.is_bulky && <span className="product-tag product-tag-bulky"><Icon name="truck" size={13} /> Voluminoso</span>}
-          {!product.is_store_confirmed && <span className="product-tag product-tag-reference">Referencia</span>}
-        </span>
       </button>
       <div className="product-info">
-        <span className="product-category">{product.subcategory}</span>
-        <button className="product-name" onClick={() => onOpen(product)}>{product.name}</button>
-        <span className="product-unit">{product.presentation}</span>
-        <span className="product-stock">Consultar disponibilidad</span>
-        <div className="product-price">
-          <strong>{money(product.price_pyg)}</strong>
-          <small>Precio de muestra</small>
+        <div className="product-meta">
+          <span className="product-category">{product.subcategory}</span>
+          {product.is_bulky && <span className="product-chip"><Icon name="truck" size={14} /> Voluminoso</span>}
         </div>
-        <button className="button button-yellow add-button" onClick={() => onAdd(product)} aria-label={"Agregar " + product.name + " al carrito"}><Icon name="cart" size={18} /> Agregar</button>
+        <button className="product-name" onClick={() => onOpen(product)} title={product.name}>{product.name}</button>
+        <span className="product-unit">{product.presentation}</span>
+        <div className="product-buy">
+          <div className="product-price">
+            <strong>{money(product.price_pyg)}</strong>
+            <small>Precio de muestra · Consultar stock</small>
+          </div>
+          <button className="button button-yellow add-button" onClick={() => onAdd(product)} aria-label={"Agregar " + product.name + " al carrito"}><Icon name="cart" size={18} /> Agregar</button>
+        </div>
       </div>
     </article>
   );
@@ -226,13 +223,40 @@ function Header({ itemCount, query, setQuery, setScreen, goHome, selectCategory,
   );
 }
 
+function PromoBanners({ selectCategory }: { selectCategory: (id: string) => void }) {
+  if (!promoBanners.length) return null;
+  return (
+    <section className="banner-section wrap" aria-label="Promociones de Santa María">
+      <div className="banner-grid">
+        {promoBanners.map((banner) => (
+          <article className="promo-banner" key={banner.id} style={banner.image ? { backgroundImage: `linear-gradient(90deg,rgba(62,42,35,.92),rgba(62,42,35,.35)),url("${banner.image}")` } : undefined}>
+            <p className="eyebrow">PROMOCIÓN · HASTA {banner.valid_until}</p>
+            <h3>{banner.title}</h3>
+            <p>{banner.subtitle}</p>
+            {banner.category_id && <button className="button button-yellow" onClick={() => selectCategory(banner.category_id ?? "")}>Ver productos <Icon name="arrow" size={18} /></button>}
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function BankPromotions() {
   if (!bankPromotions.length) {
     return (
       <section className="promo-section wrap" aria-labelledby="promos-title">
         <div className="promo-soon">
-          <span className="promo-icon"><Icon name="bank" size={26} /></span>
-          <div><p className="eyebrow">PROMOCIONES BANCARIAS</p><h2 id="promos-title">Beneficios próximamente</h2><p>Acá vas a encontrar las promociones con bancos y tarjetas cuando Santa María las confirme.</p></div>
+          <div className="promo-soon-copy">
+            <span className="promo-icon"><Icon name="bank" size={28} /></span>
+            <p className="eyebrow">PROMOCIONES BANCARIAS</p>
+            <h2 id="promos-title">Beneficios en preparación</h2>
+            <p>Santa María está definiendo sus promociones con bancos y tarjetas. Las vamos a publicar acá recién cuando estén confirmadas.</p>
+          </div>
+          <ul className="promo-soon-list" aria-label="Qué vas a ver en cada promoción">
+            <li><Icon name="bank" size={20} /> Banco y tarjetas participantes</li>
+            <li><Icon name="check" size={20} /> Beneficio y condiciones</li>
+            <li><Icon name="package" size={20} /> Vigencia de la promoción</li>
+          </ul>
         </div>
       </section>
     );
@@ -244,7 +268,7 @@ function BankPromotions() {
         {bankPromotions.map((promotion) => (
           <article className="promo-card" key={promotion.id}>
             <span className="promo-icon">{promotion.logo ? <img src={promotion.logo} alt={promotion.bank} /> : <Icon name="bank" />}</span>
-            <div><strong>{promotion.bank}</strong><p>{promotion.benefit}</p><small>{promotion.conditions} · Vigente hasta {promotion.valid_until}</small></div>
+            <div><strong>{promotion.bank}</strong><p>{promotion.benefit}</p><small>{promotion.cards} · {promotion.conditions} · Vigente hasta {promotion.valid_until}</small></div>
           </article>
         ))}
       </div>
@@ -315,6 +339,7 @@ export default function Home() {
   const [toast, setToast] = useState("");
   const [hydrated, setHydrated] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [featuredTab, setFeaturedTab] = useState("");
   const [filters, setFilters] = useState({ brand: "", availability: "", minimum: "", maximum: "", smallOnly: false });
   const [fulfillmentType, setFulfillmentType] = useState<"delivery" | "pickup">("delivery");
   const [zoneId, setZoneId] = useState("limpio");
@@ -614,7 +639,11 @@ export default function Home() {
         ...products.filter((product) => product.id !== selectedProduct.id && product.category_id === selectedProduct.category_id && product.subcategory_id !== selectedProduct.subcategory_id),
       ].slice(0, 4)
     : [];
-  const storefrontProducts = !categoryId && !query.trim() ? featuredProducts : filteredProducts;
+  const isHome = !categoryId && !query.trim();
+  const featuredCategory = categories.find((category) => category.id === featuredTab);
+  const homeProducts = featuredCategory ? products.filter((product) => product.category_id === featuredCategory.id).slice(0, 8) : featuredProducts;
+  const storefrontProducts = filteredProducts;
+  const openProduct = (item: CatalogProduct) => { setSelectedProduct(item); setDetailQuantity(1); };
 
   return (
     <main className="app-shell">
@@ -670,11 +699,21 @@ export default function Home() {
                 </div>
               </section>
 
+              <section className="featured-section wrap" id="destacados" aria-labelledby="featured-title">
+                <div className="section-heading"><div><p className="eyebrow">SELECCIÓN PARA TU OBRA</p><h2 id="featured-title">Productos destacados</h2></div><button className="link-button" onClick={() => selectCategory(featuredCategory?.id ?? "construccion")}>Ver todo en {featuredCategory?.name ?? "Materiales de construcción"} <Icon name="arrow" size={18} /></button></div>
+                <div className="featured-tabs" role="tablist" aria-label="Destacados por categoría">
+                  <button role="tab" aria-selected={!featuredTab} className={!featuredTab ? "chip active" : "chip"} onClick={() => setFeaturedTab("")}>Para empezar</button>
+                  {categories.map((category) => <button role="tab" aria-selected={featuredTab === category.id} key={category.id} className={featuredTab === category.id ? "chip active" : "chip"} onClick={() => setFeaturedTab(category.id)}>{category.name}</button>)}
+                </div>
+                <div className="product-grid product-grid-home">{homeProducts.map((product) => <ProductCard key={product.id} product={product} onOpen={openProduct} onAdd={addToCart} />)}</div>
+              </section>
+
+              <PromoBanners selectCategory={selectCategory} />
               <BankPromotions />
             </>
           )}
 
-          <section className={"catalog-section wrap" + (categoryId || query.trim() ? " catalog-only" : "")} id="catalogo">
+          {!isHome && <section className="catalog-section wrap catalog-only" id="catalogo">
             {selectedCategory && <div className="breadcrumbs"><button onClick={goHome}>Inicio</button><span><i>/</i>{subcategoryId ? <button onClick={() => setSubcategoryId("")}>{selectedCategory.name}</button> : <b>{selectedCategory.name}</b>}</span>{subcategoryId && <span><i>/</i><b>{selectedCategory.subcategories.find((item) => item.id === subcategoryId)?.name}</b></span>}</div>}
             <div className="section-heading catalog-heading">
               <div><p className="eyebrow">{query ? "RESULTADOS DE BÚSQUEDA" : selectedCategory ? "CATEGORÍA" : "SELECCIÓN PARA TU OBRA"}</p><h2>{query ? "Resultados para “" + query + "”" : selectedCategory?.name || "Productos destacados"}</h2></div>
@@ -704,17 +743,21 @@ export default function Home() {
                 <label>Disponibilidad<select value={filters.availability} onChange={(event) => setFilters({ ...filters, availability: event.target.value })}><option value="">Todas</option><option value="disponible">Disponible</option><option value="pocas_unidades">Pocas unidades</option><option value="consultar">Consultar disponibilidad</option></select></label>
                 <label className="checkbox-line"><input type="checkbox" checked={filters.smallOnly} onChange={(event) => setFilters({ ...filters, smallOnly: event.target.checked })} /> Solo productos chicos</label>
               </aside>
-              {storefrontProducts.length ? <div className="product-grid">{storefrontProducts.map((product) => <ProductCard key={product.id} product={product} onOpen={(item) => { setSelectedProduct(item); setDetailQuantity(1); }} onAdd={addToCart} />)}</div> : (
+              {storefrontProducts.length ? <div className="product-grid">{storefrontProducts.map((product) => <ProductCard key={product.id} product={product} onOpen={openProduct} onAdd={addToCart} />)}</div> : (
                 <div className="empty-results"><Icon name="search" size={34} /><h3>{query ? "No encontramos “" + query + "”" : "No hay productos con estos filtros."}</h3><p>{query ? "Revisá cómo lo escribiste o buscá por categoría. Si no está en la web, preguntanos: capaz lo tenemos en el local." : "Probá quitando alguno."}</p><div className="empty-categories">{categories.map((category) => <button key={category.id} onClick={() => selectCategory(category.id)}>{category.name}</button>)}</div>{query && <a className="button button-brand" href={WHATSAPP_URL}><Icon name="chat" size={18} /> Consultar por WhatsApp</a>}</div>
               )}
             </div>
-          </section>
+          </section>}
 
-          {!categoryId && !query.trim() && (
+          {isHome && (
             <>
               <section className="service-band wrap">
                 <div className="service-card service-delivery"><Icon name="truck" size={30} /><div><h3>Te lo llevamos a la obra</h3><p>Elegí tu zona al finalizar la compra y coordinamos la entrega. Zonas, costos y plazos de demostración.</p></div></div>
                 <div className="service-card service-pickup"><Icon name="store" size={30} /><div><h3>O retiralo en el local</h3><p>Pedí por la web y pasá a buscar tu pedido en Limpio en el día y horario que elijas.</p></div></div>
+              </section>
+              <section className="list-cta wrap">
+                <div><p className="eyebrow">¿TENÉS TU LISTA DE MATERIALES?</p><h2>Mandanos tu lista y te ayudamos a armar el pedido</h2><p>Escribinos por WhatsApp con lo que necesitás para tu obra y te orientamos con cantidades y productos.</p></div>
+                <a className="button button-yellow button-large" href={WHATSAPP_URL}><Icon name="chat" size={20} /> Enviar mi lista</a>
               </section>
               <Partners />
             </>
@@ -868,7 +911,7 @@ export default function Home() {
 
       {filtersOpen && <div className="filter-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setFiltersOpen(false); }}><div className="mobile-filter-sheet"><div className="drawer-head"><h2>Filtros</h2><button className="icon-button" onClick={() => setFiltersOpen(false)} aria-label="Cerrar"><Icon name="close" /></button></div><label>Subcategoría<select value={subcategoryId} onChange={(event) => setSubcategoryId(event.target.value)}><option value="">Todas</option>{(selectedCategory?.subcategories || categories.flatMap((category) => category.subcategories)).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label>Marca<select value={filters.brand} onChange={(event) => setFilters({ ...filters, brand: event.target.value })}><option value="">Todas</option>{brands.map((brand) => <option key={brand}>{brand}</option>)}</select></label><fieldset><legend>Precio</legend><div className="price-fields"><input inputMode="numeric" aria-label="Precio mínimo" placeholder="Desde Gs." value={filters.minimum} onChange={(event) => setFilters({ ...filters, minimum: event.target.value.replace(/\D/g, "") })} /><input inputMode="numeric" aria-label="Precio máximo" placeholder="Hasta Gs." value={filters.maximum} onChange={(event) => setFilters({ ...filters, maximum: event.target.value.replace(/\D/g, "") })} /></div></fieldset><label>Disponibilidad<select value={filters.availability} onChange={(event) => setFilters({ ...filters, availability: event.target.value })}><option value="">Todas</option><option value="disponible">Disponible</option><option value="pocas_unidades">Pocas unidades</option><option value="consultar">Consultar disponibilidad</option></select></label><label className="checkbox-line"><input type="checkbox" checked={filters.smallOnly} onChange={(event) => setFilters({ ...filters, smallOnly: event.target.checked })} /> Solo productos chicos</label><button className="text-link" onClick={resetFilters}>Limpiar filtros</button><button className="button button-brand button-block" onClick={() => setFiltersOpen(false)}>Ver resultados</button></div></div>}
 
-      {selectedProduct && <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelectedProduct(null); }}><section className="product-modal" role="dialog" aria-modal="true" aria-labelledby="product-title"><button className="modal-close" onClick={() => setSelectedProduct(null)} aria-label="Cerrar"><Icon name="close" /></button><ProductVisual product={selectedProduct} large /><div className="modal-copy"><p className="eyebrow">{selectedProduct.category} · {selectedProduct.subcategory}</p><h2 id="product-title">{selectedProduct.name}</h2><p><b>Marca:</b> {selectedProduct.brand}</p><p><b>Código:</b> {selectedProduct.sku}</p><p><b>Presentación:</b> {selectedProduct.presentation}</p><p><b>Disponibilidad:</b> {selectedProduct.availability === "disponible" ? "Disponible" : selectedProduct.availability === "pocas_unidades" ? "Pocas unidades" : "Consultar disponibilidad"}</p>{selectedProduct.availability === "consultar" && <div className="notice-box">Te confirmamos la disponibilidad después de recibir tu pedido.</div>}{selectedProduct.is_bulky && <div className="notice-box">Producto voluminoso: se entrega en camión en tu obra o se retira coordinado en el local.</div>}<div className="modal-buy"><div className="modal-buy-price"><small className="price-label">PRECIO DE MUESTRA</small><strong className="modal-price">{money(selectedProduct.price_pyg)}</strong></div><QuantityControl value={detailQuantity} onChange={(change) => setDetailQuantity((current) => Math.max(1, Math.min(999, current + change)))} /><button className="button button-yellow button-block button-large" onClick={() => addToCart(selectedProduct, detailQuantity)}><Icon name="cart" size={18} /> Agregar al carrito</button></div><div className="related-products"><b>También te puede servir</b><div>{relatedProducts.map((product) => <button key={product.id} onClick={() => { setSelectedProduct(product); setDetailQuantity(1); }}>{product.name}</button>)}</div></div></div></section></div>}
+      {selectedProduct && <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelectedProduct(null); }}><section className="product-modal" role="dialog" aria-modal="true" aria-labelledby="product-title"><button className="modal-close" onClick={() => setSelectedProduct(null)} aria-label="Cerrar"><Icon name="close" /></button><ProductVisual product={selectedProduct} large /><div className="modal-copy"><p className="eyebrow">{selectedProduct.category} · {selectedProduct.subcategory}</p><h2 id="product-title">{selectedProduct.name}</h2><p><b>Marca:</b> {selectedProduct.brand}</p><p><b>Código:</b> {selectedProduct.sku}</p><p><b>Presentación:</b> {selectedProduct.presentation}</p><p><b>Disponibilidad:</b> {selectedProduct.availability === "disponible" ? "Disponible" : selectedProduct.availability === "pocas_unidades" ? "Pocas unidades" : "Consultar disponibilidad"}</p><p className="photo-note">{productPhoto(selectedProduct) ? "Foto: " + productPhoto(selectedProduct)?.source : "Foto del producto pendiente de confirmar."}</p>{selectedProduct.availability === "consultar" && <div className="notice-box">Te confirmamos la disponibilidad después de recibir tu pedido.</div>}{selectedProduct.is_bulky && <div className="notice-box">Producto voluminoso: se entrega en camión en tu obra o se retira coordinado en el local.</div>}<div className="modal-buy"><div className="modal-buy-price"><small className="price-label">PRECIO DE MUESTRA</small><strong className="modal-price">{money(selectedProduct.price_pyg)}</strong></div><QuantityControl value={detailQuantity} onChange={(change) => setDetailQuantity((current) => Math.max(1, Math.min(999, current + change)))} /><button className="button button-yellow button-block button-large" onClick={() => addToCart(selectedProduct, detailQuantity)}><Icon name="cart" size={18} /> Agregar al carrito</button></div><div className="related-products"><b>También te puede servir</b><div>{relatedProducts.map((product) => <button key={product.id} onClick={() => { setSelectedProduct(product); setDetailQuantity(1); }}>{product.name}</button>)}</div></div></div></section></div>}
       {toast && <div className="toast" role="status">{toast}<button onClick={() => changeScreen("cart")}>Ir al carrito</button></div>}
     </main>
   );
