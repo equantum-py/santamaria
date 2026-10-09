@@ -37,6 +37,7 @@ export type DemoOrder = {
         landmark: string;
         receiver_name: string;
         receiver_phone: string;
+        map_link: string;
         eta: string;
       }
     | {
