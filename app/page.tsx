@@ -557,7 +557,7 @@ export default function Home() {
               <div className="form-card">
                 <div className="choice-grid">
                   <button className={fulfillmentType === "delivery" ? "choice selected" : "choice"} onClick={() => { setFulfillmentType("delivery"); setFieldError(""); }}><span>🚚</span><b>Entrega en obra</b><small>Te lo llevamos a la dirección que nos indiques.</small></button>
-                  <button className={fulfillmentType === "pickup" ? "choice selected" : "choice"} onClick={() => { setFulfillmentType("pickup"); setFieldError(""); }}><span>⌂</span><b>Retiro en el local</b><small>Pasás a buscar tu pedido en Santa María, Limpio.</small></button>
+                  <button className={fulfillmentType === "pickup" ? "choice selected" : "choice"} onClick={() => { setFulfillmentType("pickup"); setFieldError(""); }}><span>⌂</span><b>Retiro en el local</b><small>Pasás a buscar tu pedido en Santa María, Limpio.{pickup.fee_pyg === 0 ? " Sin costo en esta demostración." : " Costo de retiro de demostración: " + money(pickup.fee_pyg) + "."}</small></button>
                 </div>
                 {fulfillmentType === "delivery" ? (
                   <div className="form-stack">
