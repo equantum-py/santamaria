@@ -310,26 +310,27 @@
     {
       "id": "pintura-latex-interior-blanca",
       "sku": "SM-FER-009",
-      "name": "Pintura látex interior blanca",
+      "name": "Sikacryl Plus Sika · membrana impermeable 5 kg",
       "category_id": "ferreteria",
       "category": "Ferretería",
       "subcategory_id": "pinturas-y-accesorios",
       "subcategory": "Pinturas y accesorios",
-      "brand": "Marca genérica C",
-      "presentation": "Balde de 18 litros",
+      "brand": "Sika",
+      "presentation": "Balde de 5 kg",
       "sale_unit": "balde",
       "price_pyg": 420000,
-      "availability": "disponible",
+      "availability": "consultar",
       "is_bulky": true,
       "search_terms": [
         "pintura",
         "latex"
       ],
-      "image": "images/products/pintura-latex-interior-blanca.jpg",
-      "is_fictitious": true,
-      "is_store_confirmed": false,
+      "image": "https://sika.scene7.com/is/image/sikacs/py-SIKACRYL-PLUS-5KG-04781932",
+      "is_fictitious": false,
+      "is_store_confirmed": true,
       "price_is_fictitious": true,
-      "availability_is_fictitious": true
+      "availability_is_fictitious": true,
+      "image_source": "https://pry.sika.com/es/construccion/impermeabilizacion/impermeabilizaciondefachadas/sikacryl-plus-py.html"
     },
     {
       "id": "rodillo-de-lana-23-cm",
