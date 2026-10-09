@@ -69,7 +69,7 @@ export const categories = [...catalog.categories].sort((a, b) => a.order - b.ord
 export const zones = deliveryData.zones as DeliveryZone[];
 export const pickup = deliveryData.pickup;
 export const fictitiousNotice = catalog._meta.notice;
-export const availabilityLabels = catalog._meta.availability_values;
+export const availabilityLabels: Record<string, string> = catalog._meta.availability_values;
 
 export function money(amount: number): string {
   return `Gs. ${new Intl.NumberFormat("es-PY", { maximumFractionDigits: 0 }).format(amount)}`;
