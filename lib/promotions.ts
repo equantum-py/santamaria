@@ -1,6 +1,6 @@
 // Espacios comerciales de la home. Quedan vacíos a propósito: Santa María todavía
-// no confirmó bancos, cuotas, descuentos, vigencias ni convenios. Cuando lleguen los
-// datos reales se cargan acá y la home deja de mostrar los espacios reservados.
+// no confirmó bancos, cuotas, descuentos, vigencias ni convenios. Mientras las listas
+// estén vacías, la home muestra "Beneficios próximamente" y oculta la sección de aliados.
 
 export type BankPromotion = {
   id: string;
@@ -20,6 +20,3 @@ export type Partner = {
 
 export const bankPromotions: BankPromotion[] = [];
 export const partners: Partner[] = [];
-
-export const BANK_PROMOTION_SLOTS = 3;
-export const PARTNER_SLOTS = 6;

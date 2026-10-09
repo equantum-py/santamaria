@@ -15,7 +15,7 @@ import {
   type OrderStatus,
   zones,
 } from "@/lib/store";
-import { BANK_PROMOTION_SLOTS, type BankPromotion, bankPromotions, PARTNER_SLOTS, partners } from "@/lib/promotions";
+import { bankPromotions, partners } from "@/lib/promotions";
 
 type Screen = "store" | "cart" | "fulfillment" | "customer" | "payment" | "confirmation" | "tracking";
 type SortOrder = "relevance" | "price_asc" | "price_desc" | "name_asc";
@@ -227,17 +227,24 @@ function Header({ itemCount, query, setQuery, setScreen, goHome, selectCategory,
 }
 
 function BankPromotions() {
-  const slots: Array<BankPromotion | { id: string }> = bankPromotions.length ? bankPromotions : Array.from({ length: BANK_PROMOTION_SLOTS }, (_, index) => ({ id: "slot-" + index }));
+  if (!bankPromotions.length) {
+    return (
+      <section className="promo-section wrap" aria-labelledby="promos-title">
+        <div className="promo-soon">
+          <span className="promo-icon"><Icon name="bank" size={26} /></span>
+          <div><p className="eyebrow">PROMOCIONES BANCARIAS</p><h2 id="promos-title">Beneficios próximamente</h2><p>Acá vas a encontrar las promociones con bancos y tarjetas cuando Santa María las confirme.</p></div>
+        </div>
+      </section>
+    );
+  }
   return (
     <section className="promo-section wrap" aria-labelledby="promos-title">
-      <div className="section-heading"><div><p className="eyebrow">PROMOCIONES BANCARIAS</p><h2 id="promos-title">Pagá con beneficios</h2></div><span className="subtle">Se publican cuando Santa María confirme cada convenio</span></div>
+      <div className="section-heading"><div><p className="eyebrow">PROMOCIONES BANCARIAS</p><h2 id="promos-title">Pagá con beneficios</h2></div></div>
       <div className="promo-grid">
-        {slots.map((slot) => "bank" in slot ? (
-          <article className="promo-card" key={slot.id}><span className="promo-icon"><Icon name="bank" /></span><div><strong>{slot.bank}</strong><p>{slot.benefit}</p><small>{slot.conditions} · Vigente hasta {slot.valid_until}</small></div></article>
-        ) : (
-          <article className="promo-card promo-slot" key={slot.id} aria-label="Espacio reservado para promoción bancaria">
-            <span className="promo-icon"><Icon name="bank" /></span>
-            <div><strong>Espacio para promoción bancaria</strong><p>Banco, beneficio y vigencia a confirmar.</p><small>Pendiente de carga</small></div>
+        {bankPromotions.map((promotion) => (
+          <article className="promo-card" key={promotion.id}>
+            <span className="promo-icon">{promotion.logo ? <img src={promotion.logo} alt={promotion.bank} /> : <Icon name="bank" />}</span>
+            <div><strong>{promotion.bank}</strong><p>{promotion.benefit}</p><small>{promotion.conditions} · Vigente hasta {promotion.valid_until}</small></div>
           </article>
         ))}
       </div>
@@ -246,16 +253,17 @@ function BankPromotions() {
 }
 
 function Partners() {
-  const slots = partners.length ? partners : Array.from({ length: PARTNER_SLOTS }, (_, index) => ({ id: "slot-" + index, name: "" }));
+  if (!partners.length) return null;
   return (
     <section className="partners-section wrap" aria-labelledby="partners-title">
       <div className="partners-head"><span className="promo-icon"><Icon name="handshake" /></span><div><p className="eyebrow">ALIANZAS Y MARCAS</p><h2 id="partners-title">Aliados de Santa María</h2></div></div>
       <div className="partner-grid">
-        {slots.map((partner) => partner.name ? (
-          <div className="partner-logo" key={partner.id}>{partner.name}</div>
-        ) : (
-          <div className="partner-logo partner-slot" key={partner.id}>Logo de aliado<small>a confirmar</small></div>
-        ))}
+        {partners.map((partner) => {
+          const content = partner.logo ? <img src={partner.logo} alt={partner.name} loading="lazy" /> : partner.name;
+          return partner.url
+            ? <a className="partner-logo" key={partner.id} href={partner.url} target="_blank" rel="noopener noreferrer">{content}</a>
+            : <div className="partner-logo" key={partner.id}>{content}</div>;
+        })}
       </div>
     </section>
   );
