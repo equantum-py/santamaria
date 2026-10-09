@@ -68,3 +68,30 @@
   .category-card strong{font-size:10px}
   .demo-notice{font-size:7px;min-height:27px}
 }
+
+/* Cantidades editables en ficha y carrito */
+.quantity-control input {
+  width: 58px;
+  height: 32px;
+  padding: 0 4px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+  text-align: center;
+}
+
+.quantity-control input::-webkit-inner-spin-button,
+.quantity-control input::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+@media (max-width: 640px) {
+  .quantity-control input {
+    width: 48px;
+    height: 28px;
+  }
+}
