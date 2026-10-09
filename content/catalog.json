@@ -1,7 +1,7 @@
 {
   "_meta": {
     "is_fictitious": true,
-    "notice": "Demo de catálogo con productos reales de referencia e imágenes públicas. Solo Sikacryl Plus y grifería para baño aparecen en publicaciones/listados públicos de Santa María. El resto son referencias de producto: disponibilidad en Santa María, precios, marcas ofrecidas, SKU y condiciones de entrega deben confirmarse. Los importes son ficticios y solo permiten probar el carrito y el checkout.",
+    "notice": "Demo de catálogo con productos e imágenes reales de referencia. Santa María publica Sikacryl Plus, grifería para baño y pisos/revestimientos. Los demás modelos son referencias visuales: el stock de cada marca y modelo, precios, SKU y condiciones de entrega deben confirmarse con la tienda. Los importes son de muestra para probar el carrito y el checkout.",
     "version": "1.0.0",
     "updated_at": "2026-10-09",
     "currency": "PYG",
@@ -87,6 +87,10 @@
         {
           "id": "hierros",
           "name": "Hierros"
+        },
+        {
+          "id": "pisos-y-revestimientos",
+          "name": "Pisos y revestimientos"
         }
       ]
     },
@@ -327,7 +331,7 @@
       "sale_unit": "balde",
       "price_pyg": 420000,
       "availability": "consultar",
-      "is_bulky": true,
+      "is_bulky": false,
       "search_terms": [
         "pintura",
         "latex"
@@ -659,25 +663,31 @@
     {
       "id": "cal-hidratada",
       "sku": "SM-CON-003",
-      "name": "Cal hidratada",
+      "name": "Cerámica Cejatel Imperial Lux · 50 × 50 cm",
       "category_id": "construccion",
       "category": "Materiales de construcción",
-      "subcategory_id": "cementos-y-cales",
-      "subcategory": "Cementos y cales",
-      "brand": "Consultar marca",
-      "presentation": "Bolsa de 25 kg",
-      "sale_unit": "bolsa",
+      "subcategory_id": "pisos-y-revestimientos",
+      "subcategory": "Pisos y revestimientos",
+      "brand": "Cejatel · referencia de producto",
+      "presentation": "Caja · superficie a confirmar",
+      "sale_unit": "caja",
       "price_pyg": 30000,
-      "availability": "pocas_unidades",
+      "availability": "consultar",
       "is_bulky": true,
       "search_terms": [
-        "cal"
+        "ceramica",
+        "piso",
+        "revestimiento",
+        "cejatel",
+        "imperial lux",
+        "50x50"
       ],
-      "image": "images/products/cal-hidratada.jpg",
-      "is_fictitious": true,
+      "image": "https://casadeco.com.py/384-large_default/cejatel-50x50-imperial-lux.jpg",
+      "is_fictitious": false,
       "is_store_confirmed": false,
       "price_is_fictitious": true,
-      "availability_is_fictitious": true
+      "availability_is_fictitious": true,
+      "image_source": "https://casadeco.com.py/ceramicas/238-cejatel-50x50-imperial-lux.html"
     },
     {
       "id": "pegamento-para-ceramica",
