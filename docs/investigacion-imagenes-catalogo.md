@@ -1,6 +1,6 @@
 # Investigación de imágenes del catálogo Santa María
 
-Fecha: 10 de octubre de 2026  
+Fecha: 10 de octubre de 2026
 Rama: `codex/investigacion-imagenes-productos` · PR #2 (draft)
 
 ## Resultado de esta ronda
@@ -136,4 +136,3 @@ En la pasada final se revisaron también nuevos resultados de Wikimedia Commons 
 | SM-ELE-008 | Interruptor termomagnético Schneider Acti9 · 1 polo, 40 A | A | **CANDIDATO** | Schneider Acti9 1P/40 A candidate; full reference model needs matching and retailer image permission is missing. |
 | SM-ELE-009 | Interruptor diferencial 2 x 25 A | B | **SIN RESULTADO** | Las fotos licenciadas halladas muestran diferenciales con marca/corriente distinta o paneles completos, no un diferencial genérico aislado de 2 × 25 A. |
 | SM-ELE-010 | Tablero para 8 módulos embutido | B | **SIN RESULTADO** | Se encontraron tableros instalados y gabinetes de formatos no verificables; ninguno deja contar con certeza 8 módulos ni confirma montaje embutido. |
-
