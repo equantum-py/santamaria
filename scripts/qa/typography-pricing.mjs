@@ -169,13 +169,14 @@ try {
     const addButton = firstCard.locator("button.add-button");
     assert.ok(await price.isVisible(), `Current price is not visible at ${width}px`);
     assert.ok(await addButton.isVisible(), `Add button is not visible at ${width}px`);
+    const currentPriceText = (await price.innerText()).trim();
     await addButton.click();
     assert.equal((await firstCard.locator(".in-cart-badge").innerText()).trim(), "1", `Add button did not update the cart at ${width}px`);
     const cartButton = page.locator(".cart-button:visible, .mobile-nav button:visible").filter({ hasText: "Carrito" }).first();
     await cartButton.click();
     await page.locator(".cart-line").first().waitFor({ state: "visible", timeout: 10_000 });
     const cartPrice = (await page.locator(".cart-unit-price .price-values strong").first().innerText()).trim();
-    assert.equal(cartPrice, (await price.innerText()).trim(), `Cart price differs from the product price at ${width}px`);
+    assert.equal(cartPrice, currentPriceText, `Cart price differs from the product price at ${width}px`);
     const finalWidth = await page.evaluate(() => document.documentElement.scrollWidth);
     assert.ok(finalWidth <= width, `Horizontal overflow after add/cart at ${width}px: ${finalWidth}px`);
     assert.deepEqual(errors, [], `Browser errors at ${width}px`);
