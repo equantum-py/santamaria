@@ -13,7 +13,7 @@ assert.ok(
   `Unexpected Preview host: ${parsedUrl.hostname}`,
 );
 
-const widths = [430, 390, 375, 360, 320];
+const widths = [1920, 1440, 430, 390, 375, 360, 320];
 const catalog = JSON.parse(
   await readFile(new URL("../../content/catalog.json", import.meta.url), "utf8"),
 );
@@ -40,8 +40,8 @@ try {
     const context = await browser.newContext({
       viewport: { width, height: 900 },
       deviceScaleFactor: 1,
-      isMobile: true,
-      hasTouch: true,
+      isMobile: width <= 680,
+      hasTouch: width <= 680,
     });
     const page = await context.newPage();
     const consoleErrors = [];
@@ -122,6 +122,37 @@ try {
     assert.ok(viewportResult.documentWidth <= width, `Horizontal page overflow at ${width}px: ${viewportResult.documentWidth}px`);
     assert.ok(viewportResult.bodyWidth <= width, `Body overflow at ${width}px: ${viewportResult.bodyWidth}px`);
     assert.ok(viewportResult.cards >= 40, `Expected catalog cards at ${width}px`);
+    const renderedNames = await page.locator("article.product-card").evaluateAll((cards) =>
+      cards.map((card) => card.getAttribute("aria-label") ?? ""),
+    );
+    assert.equal(new Set(renderedNames).size, renderedNames.length, `Duplicate products in Home rows at ${width}px`);
+
+    const categoryPhotoResults = [];
+    for (const category of catalog.categories) {
+      const row = page.locator(`#carrusel-${category.id}`);
+      const firstCard = row.locator("article.product-card").first();
+      const expectedFirst = catalog.products.find(
+        (product) => product.category_id === category.id && activeSkus.includes(product.sku),
+      );
+      if (expectedFirst) {
+        assert.equal(
+          await firstCard.getAttribute("aria-label"),
+          expectedFirst.name,
+          `${category.name}: first Home product should have an approved image at ${width}px`,
+        );
+        const firstImage = firstCard.locator(".product-visual img");
+        assert.equal(await firstImage.count(), 1, `${category.name}: first Home product image is missing at ${width}px`);
+        await firstImage.scrollIntoViewIfNeeded();
+        const firstImageState = await firstImage.evaluate(async (img) => {
+          await img.decode();
+          const style = getComputedStyle(img);
+          return { loaded: img.complete && img.naturalWidth > 0, objectFit: style.objectFit };
+        });
+        assert.ok(firstImageState.loaded, `${category.name}: first Home image failed to load at ${width}px`);
+        assert.equal(firstImageState.objectFit, "contain", `${category.name}: image must remain fully contained at ${width}px`);
+        categoryPhotoResults.push({ category: category.id, firstSku: expectedFirst.sku, ...firstImageState });
+      }
+    }
     assert.ok(viewportResult.firstRowCardRects.length >= 2, `Expected aligned product cards at ${width}px`);
     const firstRow = viewportResult.firstRowCardRects;
     assert.ok(
@@ -185,7 +216,7 @@ try {
     assert.ok(widthAfterAdd <= width, `Horizontal page overflow after adding to cart at ${width}px: ${widthAfterAdd}px`);
     assert.deepEqual(consoleErrors, [], `Browser errors at ${width}px`);
     await page.screenshot({ path: screenshotPath, fullPage: true, animations: "disabled" });
-    results.push({ width, ...viewportResult, skuResults });
+    results.push({ width, ...viewportResult, categoryPhotoResults, skuResults });
     await context.close();
   }
 } finally {
