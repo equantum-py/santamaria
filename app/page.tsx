@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, KeyboardEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
 import {
   calculateDelivery,
   categories,
@@ -11,13 +11,13 @@ import {
   money,
   nextOrderNumber,
   pickup,
-  productMatchesSearch,
   products,
   type OrderStatus,
   zones,
 } from "@/lib/store";
 import { productPhoto } from "@/lib/media";
 import { bankPromotions, partners, promoBanners } from "@/lib/promotions";
+import { searchProducts, suggestCategories } from "@/lib/search";
 
 type Screen = "store" | "cart" | "fulfillment" | "customer" | "payment" | "confirmation" | "tracking";
 type SortOrder = "relevance" | "price_asc" | "price_desc" | "name_asc";
@@ -85,6 +85,42 @@ function categoryIcon(categoryId: string): IconName {
   return (["ferreteria", "sanitarios", "construccion", "electricos"] as const).find((id) => id === categoryId) ?? "grid";
 }
 
+// Ventanas (ficha, menú, filtros): el foco entra al abrir, Tab queda adentro, Esc cierra y el foco vuelve.
+function useDialog(ref: RefObject<HTMLElement | null>, open: boolean, onClose: () => void) {
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const focusable = () => [...(ref.current?.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? [])];
+    focusable()[0]?.focus();
+    const onKey = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape") { event.preventDefault(); closeRef.current(); return; }
+      if (event.key !== "Tab") return;
+      const items = focusable();
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown", onKey);
+    document.body.classList.add("dialog-open");
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.classList.remove("dialog-open");
+      previous?.focus?.();
+    };
+  }, [open, ref]);
+}
+
+// Fotos livianas: las locales pasan por el optimizador de Next y el celular baja la medida que necesita.
+function photoSources(src: string, sizes: string) {
+  if (!src.startsWith("/")) return { src };
+  const url = (width: number) => `/_next/image?url=${encodeURIComponent(src)}&w=${width}&q=75`;
+  return { src: url(640), srcSet: [256, 384, 640, 828].map((width) => `${url(width)} ${width}w`).join(", "), sizes };
+}
+
 function PhotoFallback({ product, large = false }: { product: CatalogProduct; large?: boolean }) {
   return (
     <div className={"image-fallback fallback-" + product.category_id}>
@@ -101,7 +137,7 @@ function ProductVisual({ product, large = false }: { product: CatalogProduct; la
   return (
     <div className={large ? "product-visual product-visual-large" : "product-visual"}>
       {photo && !failed
-        ? <img src={photo.src} alt={product.name} loading="lazy" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
+        ? <img {...photoSources(photo.src, large ? "(max-width: 680px) 100vw, 450px" : "(max-width: 680px) 70vw, 300px")} alt={product.name} width={large ? 640 : 320} height={large ? 640 : 320} loading={large ? "eager" : "lazy"} decoding="async" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
         : <PhotoFallback product={product} large={large} />}
     </div>
   );
@@ -111,18 +147,19 @@ function CartThumb({ product }: { product: CatalogProduct }) {
   const [failed, setFailed] = useState(false);
   const photo = productPhoto(product);
   return photo && !failed
-    ? <img src={photo.src} alt="" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
+    ? <img {...photoSources(photo.src, "96px")} alt="" width={96} height={96} loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
     : <div className={"image-fallback fallback-" + product.category_id}><Icon name={categoryIcon(product.category_id)} size={26} /></div>;
 }
 
-function ProductCard({ product, onOpen, onAdd }: {
+function ProductCard({ product, onOpen, onAdd, inCart = 0 }: {
   product: CatalogProduct;
   onOpen: (product: CatalogProduct) => void;
   onAdd: (product: CatalogProduct) => void;
+  inCart?: number;
 }) {
   return (
-    <article className="product-card">
-      <button className="product-media" onClick={() => onOpen(product)} aria-label={"Ver " + product.name}>
+    <article className="product-card" aria-label={product.name}>
+      <button className="product-media" onClick={() => onOpen(product)} tabIndex={-1} aria-hidden="true">
         <ProductVisual product={product} />
       </button>
       <div className="product-info">
@@ -130,14 +167,14 @@ function ProductCard({ product, onOpen, onAdd }: {
           <span className="product-category">{product.subcategory}</span>
           {product.is_bulky && <span className="product-chip"><Icon name="truck" size={14} /> Voluminoso</span>}
         </div>
-        <button className="product-name" onClick={() => onOpen(product)} title={product.name}>{product.name}</button>
+        <button className="product-name" onClick={() => onOpen(product)} title={product.name} aria-label={"Ver ficha de " + product.name}>{product.name}</button>
         <span className="product-unit">{product.presentation}</span>
         <div className="product-buy">
           <div className="product-price">
             <strong>{money(product.price_pyg)}</strong>
             <small>Precio de muestra · Consultar stock</small>
           </div>
-          <button className="button button-yellow add-button" onClick={() => onAdd(product)} aria-label={"Agregar " + product.name + " al carrito"}><Icon name="cart" size={18} /> Agregar</button>
+          <button className="button button-yellow add-button" onClick={() => onAdd(product)} aria-label={"Agregar " + product.name + " al carrito" + (inCart ? ", ya tenés " + inCart : "")}><Icon name="cart" size={18} /> Agregar{inCart > 0 && <span className="in-cart-badge" aria-hidden="true">{inCart}</span>}</button>
         </div>
       </div>
     </article>
@@ -158,7 +195,53 @@ function TopBar() {
   );
 }
 
-function Header({ itemCount, query, setQuery, setScreen, goHome, selectCategory, selectSubcategory }: {
+function SearchSuggestions({ text, onPick, onAdd, onCategory, onSeeAll, listRef }: {
+  text: string;
+  onPick: (product: CatalogProduct) => void;
+  onAdd: (product: CatalogProduct) => void;
+  onCategory: (categoryId: string, subcategoryId?: string) => void;
+  onSeeAll: () => void;
+  listRef: RefObject<HTMLDivElement | null>;
+}) {
+  const results = useMemo(() => searchProducts(text), [text]);
+  const categoryMatches = useMemo(() => suggestCategories(text), [text]);
+  const shown = results.slice(0, 5);
+  return (
+    <div className="search-suggest" id="search-suggest" ref={listRef} onMouseDown={(event) => event.preventDefault()}>
+      {shown.length ? (
+        <>
+          <p className="suggest-title">{results.length === 1 ? "1 producto" : results.length + " productos"}</p>
+          <ul className="suggest-list">
+            {shown.map(({ product }) => (
+              <li key={product.id}>
+                <button type="button" className="suggest-open" onClick={() => onPick(product)} aria-label={product.name + ", " + money(product.price_pyg) + ". Ver ficha"}>
+                  <span className="suggest-thumb"><CartThumb product={product} /></span>
+                  <span className="suggest-copy"><b>{product.name}</b><small>{product.subcategory} · <strong>{money(product.price_pyg)}</strong></small></span>
+                </button>
+                <button type="button" className="suggest-add" onClick={() => onAdd(product)} aria-label={"Agregar " + product.name + " al carrito"}><Icon name="plus" size={20} /></button>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <div className="suggest-empty">
+          <p><b>No encontramos “{text.trim()}”.</b> Probá con otra palabra o mirá estas categorías:</p>
+          <div className="suggest-chips">{categories.map((category) => <button type="button" key={category.id} className="chip" onClick={() => onCategory(category.id)}>{category.name}</button>)}</div>
+          <a className="button button-brand" href={WHATSAPP_URL + "?text=" + encodeURIComponent("Hola, busco: " + text.trim())}><Icon name="chat" size={18} /> Consultar por WhatsApp</a>
+        </div>
+      )}
+      {categoryMatches.length > 0 && (
+        <div className="suggest-categories">
+          <p className="suggest-title">Categorías</p>
+          <div className="suggest-chips">{categoryMatches.map((item) => <button type="button" key={item.label} className="chip" onClick={() => onCategory(item.categoryId, item.subcategoryId)}>{item.label} <small>{item.detail}</small></button>)}</div>
+        </div>
+      )}
+      {results.length > shown.length && <button type="button" className="suggest-all" onClick={onSeeAll}>Ver los {results.length} resultados <Icon name="arrow" size={18} /></button>}
+    </div>
+  );
+}
+
+function Header({ itemCount, query, setQuery, setScreen, goHome, selectCategory, selectSubcategory, onOpenProduct, onAdd }: {
   itemCount: number;
   query: string;
   setQuery: (value: string) => void;
@@ -166,33 +249,109 @@ function Header({ itemCount, query, setQuery, setScreen, goHome, selectCategory,
   goHome: () => void;
   selectCategory: (id: string) => void;
   selectSubcategory: (categoryId: string, subcategoryId: string) => void;
+  onOpenProduct: (product: CatalogProduct) => void;
+  onAdd: (product: CatalogProduct) => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [draft, setDraft] = useState(query);
+  const [suggestOpen, setSuggestOpen] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const suggestRef = useRef<HTMLDivElement>(null);
+  const drawerRef = useRef<HTMLElement>(null);
+  useDialog(drawerRef, menuOpen, () => setMenuOpen(false));
+
+  useEffect(() => setDraft(query), [query]);
+
+  // Cierra las sugerencias al tocar fuera del buscador (con el dedo no siempre hay un "blur" confiable).
+  useEffect(() => {
+    if (!suggestOpen) return;
+    const onPointerDown = (event: PointerEvent) => { if (!formRef.current?.contains(event.target as Node)) setSuggestOpen(false); };
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [suggestOpen]);
+
+  const showSuggestions = suggestOpen && draft.trim().length >= 2;
+
+  function runSearch(value: string) {
+    setSuggestOpen(false);
+    setQuery(value.trim());
+    if (value.trim()) setScreen("store");
+    inputRef.current?.blur();
+    window.setTimeout(() => document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth" }), 60);
+  }
 
   function submitSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (query.trim()) setScreen("store");
-    window.setTimeout(() => document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth" }), 60);
+    runSearch(draft);
+  }
+
+  function moveFocus(event: KeyboardEvent<HTMLElement>) {
+    const items = [...(suggestRef.current?.querySelectorAll<HTMLElement>("button, a[href]") ?? [])];
+    if (event.key === "Escape") {
+      setSuggestOpen(false);
+      inputRef.current?.focus();
+      return;
+    }
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+    event.preventDefault();
+    const index = items.indexOf(document.activeElement as HTMLElement);
+    if (event.key === "ArrowDown") (items[index + 1] ?? items[0])?.focus();
+    else if (index <= 0) inputRef.current?.focus();
+    else items[index - 1]?.focus();
   }
 
   return (
     <header className="site-header">
       <TopBar />
       <div className="header-main">
-        <button className="menu-button" onClick={() => setMenuOpen(true)} aria-label="Abrir categorías"><Icon name="menu" /></button>
+        <button className="menu-button" onClick={() => setMenuOpen(true)} aria-label="Abrir categorías" aria-expanded={menuOpen}><Icon name="menu" /></button>
         <button className="brand" onClick={goHome} aria-label="Materiales Santa María, inicio">
           <span className="brand-mark" aria-hidden="true"><i /><i /><i /></span>
           <span className="brand-copy"><strong>SANTA MARÍA</strong><small>MATERIALES DE CONSTRUCCIÓN</small></span>
         </button>
-        <form className="search-box" onSubmit={submitSearch} role="search">
+        <form
+          className={showSuggestions ? "search-box suggesting" : "search-box"}
+          onSubmit={submitSearch}
+          role="search"
+          ref={formRef}
+          onKeyDown={moveFocus}
+          onBlur={(event) => { if (event.relatedTarget && !formRef.current?.contains(event.relatedTarget as Node)) setSuggestOpen(false); }}
+        >
           <Icon name="search" size={20} />
-          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="¿Qué necesitás para tu obra?" aria-label="Buscar productos" />
+          <input
+            ref={inputRef}
+            type="search"
+            enterKeyHint="search"
+            autoComplete="off"
+            value={draft}
+            onChange={(event) => { setDraft(event.target.value); setSuggestOpen(true); }}
+            onFocus={() => setSuggestOpen(true)}
+            placeholder="¿Qué necesitás para tu obra?"
+            aria-label="Buscar productos"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded={showSuggestions}
+            aria-controls={showSuggestions ? "search-suggest" : undefined}
+            aria-describedby="search-help"
+          />
+          <span id="search-help" className="sr-only">Escribí al menos dos letras para ver sugerencias. Usá las flechas para recorrerlas.</span>
           <button type="submit">Buscar</button>
+          {showSuggestions && (
+            <SearchSuggestions
+              text={draft}
+              listRef={suggestRef}
+              onPick={(product) => { setSuggestOpen(false); onOpenProduct(product); }}
+              onAdd={onAdd}
+              onCategory={(categoryId, subcategoryId) => { setSuggestOpen(false); setDraft(""); setQuery(""); if (subcategoryId) selectSubcategory(categoryId, subcategoryId); else selectCategory(categoryId); }}
+              onSeeAll={() => runSearch(draft)}
+            />
+          )}
         </form>
         <div className="header-actions">
-          <a className="header-link header-whatsapp" href={WHATSAPP_URL}><Icon name="chat" /><span><small>¿Te asesoramos?</small>WhatsApp</span></a>
-          <button className="header-link" onClick={() => setScreen("tracking")}><Icon name="package" /><span><small>Seguí tu compra</small>Mi pedido</span></button>
-          <button className="cart-button" onClick={() => setScreen("cart")} aria-label={itemCount + " productos en el carrito"}>
+          <a className="header-link header-whatsapp" href={WHATSAPP_URL} aria-label="Consultanos por WhatsApp"><Icon name="chat" /><span><small>¿Te asesoramos?</small>WhatsApp</span></a>
+          <button className="header-link" onClick={() => setScreen("tracking")} aria-label="Mi pedido: seguí tu compra"><Icon name="package" /><span><small>Seguí tu compra</small>Mi pedido</span></button>
+          <button className="cart-button" onClick={() => setScreen("cart")} aria-label={"Carrito, " + itemCount + (itemCount === 1 ? " producto" : " productos")}>
             <Icon name="cart" /><span>Carrito</span><b>{itemCount}</b>
           </button>
         </div>
@@ -208,8 +367,8 @@ function Header({ itemCount, query, setQuery, setScreen, goHome, selectCategory,
       </nav>
       {menuOpen && (
         <div className="menu-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setMenuOpen(false); }}>
-          <aside className="menu-drawer" aria-label="Todas las categorías">
-            <div className="drawer-head"><h2>Categorías</h2><button className="icon-button" onClick={() => setMenuOpen(false)} aria-label="Cerrar"><Icon name="close" /></button></div>
+          <aside className="menu-drawer" role="dialog" aria-modal="true" aria-labelledby="menu-title" ref={drawerRef}>
+            <div className="drawer-head"><h2 id="menu-title">Categorías</h2><button className="icon-button" onClick={() => setMenuOpen(false)} aria-label="Cerrar categorías"><Icon name="close" /></button></div>
             {categories.map((category) => (
               <div className="menu-group" key={category.id}>
                 <button className="menu-category" onClick={() => { setMenuOpen(false); setQuery(""); selectCategory(category.id); }}><span className={"menu-icon tone-" + category.id}><Icon name={categoryIcon(category.id)} /></span>{category.name}<Icon name="arrow" size={18} /></button>
@@ -319,17 +478,23 @@ function SiteFooter({ goHome, selectCategory, setScreen }: { goHome: () => void;
 function MobileNav({ screen, itemCount, goHome, openSearch, setScreen }: { screen: Screen; itemCount: number; goHome: () => void; openSearch: () => void; setScreen: (screen: Screen) => void }) {
   return (
     <nav className="mobile-nav" aria-label="Navegación rápida">
-      <button className={screen === "store" ? "active" : ""} onClick={goHome}><Icon name="home" /><span>Inicio</span></button>
+      <button className={screen === "store" ? "active" : ""} aria-current={screen === "store" ? "page" : undefined} onClick={goHome}><Icon name="home" /><span>Inicio</span></button>
       <button onClick={openSearch}><Icon name="search" /><span>Buscar</span></button>
       <a href={WHATSAPP_URL}><Icon name="chat" /><span>WhatsApp</span></a>
-      <button className={screen === "tracking" ? "active" : ""} onClick={() => setScreen("tracking")}><Icon name="package" /><span>Mi pedido</span></button>
-      <button className={screen === "cart" ? "active" : ""} onClick={() => setScreen("cart")}><span className="mobile-cart"><Icon name="cart" />{itemCount > 0 && <b>{itemCount}</b>}</span><span>Carrito</span></button>
+      <button className={screen === "tracking" ? "active" : ""} aria-current={screen === "tracking" ? "page" : undefined} onClick={() => setScreen("tracking")}><Icon name="package" /><span>Mi pedido</span></button>
+      <button className={screen === "cart" ? "active" : ""} aria-current={screen === "cart" ? "page" : undefined} aria-label={"Carrito, " + itemCount + (itemCount === 1 ? " producto" : " productos")} onClick={() => setScreen("cart")}><span className="mobile-cart"><Icon name="cart" />{itemCount > 0 && <b>{itemCount}</b>}</span><span>Carrito</span></button>
     </nav>
   );
 }
 
-function ProductRow({ category, items, onOpen, onAdd, onSeeAll, onSubcategory }: { category: ProductCategory; items: CatalogProduct[]; onOpen: (product: CatalogProduct) => void; onAdd: (product: CatalogProduct) => void; onSeeAll: () => void; onSubcategory: (id: string) => void }) {
+function ProductRow({ category, items, cart, onOpen, onAdd, onSeeAll, onSubcategory }: { category: ProductCategory; items: CatalogProduct[]; cart: CartState; onOpen: (product: CatalogProduct) => void; onAdd: (product: CatalogProduct) => void; onSeeAll: () => void; onSubcategory: (id: string) => void }) {
   const rowRef = useRef<HTMLDivElement>(null);
+  const [edges, setEdges] = useState({ start: true, end: false });
+  const updateEdges = () => {
+    const row = rowRef.current;
+    if (row) setEdges({ start: row.scrollLeft < 8, end: row.scrollLeft + row.clientWidth >= row.scrollWidth - 8 });
+  };
+  useEffect(updateEdges, []);
   const scroll = (direction: number) => {
     const row = rowRef.current;
     if (row) row.scrollBy({ left: direction * row.clientWidth * 0.9, behavior: "smooth" });
@@ -337,19 +502,19 @@ function ProductRow({ category, items, onOpen, onAdd, onSeeAll, onSubcategory }:
   return (
     <section className={"product-row-section wrap tone-" + category.id} id={"fila-" + category.id} aria-labelledby={"fila-title-" + category.id}>
       <div className="row-heading">
-        <span className="category-icon"><Icon name={categoryIcon(category.id)} size={24} /></span>
+        <span className="category-icon" aria-hidden="true"><Icon name={categoryIcon(category.id)} size={24} /></span>
         <div className="row-title"><h2 id={"fila-title-" + category.id}>{category.name}</h2><small>{items.length} productos</small></div>
         <div className="row-controls">
-          <button className="row-arrow" aria-label={"Ver productos anteriores de " + category.name} onClick={() => scroll(-1)}><Icon name="arrow" size={18} /></button>
-          <button className="row-arrow" aria-label={"Ver más productos de " + category.name} onClick={() => scroll(1)}><Icon name="arrow" size={18} /></button>
+          <button className="row-arrow" aria-label={"Ver productos anteriores de " + category.name} aria-controls={"carrusel-" + category.id} disabled={edges.start} onClick={() => scroll(-1)}><Icon name="arrow" size={18} /></button>
+          <button className="row-arrow" aria-label={"Ver más productos de " + category.name} aria-controls={"carrusel-" + category.id} disabled={edges.end} onClick={() => scroll(1)}><Icon name="arrow" size={18} /></button>
         </div>
-        <button className="link-button" onClick={onSeeAll}>Ver todo <Icon name="arrow" size={18} /></button>
+        <button className="link-button" onClick={onSeeAll} aria-label={"Ver todo " + category.name}>Ver todo <Icon name="arrow" size={18} /></button>
       </div>
-      <div className="row-subcategories" aria-label={"Subcategorías de " + category.name}>
+      <div className="row-subcategories" role="group" aria-label={"Subcategorías de " + category.name}>
         {category.subcategories.map((subcategory) => <button key={subcategory.id} className="chip" onClick={() => onSubcategory(subcategory.id)}>{subcategory.name}</button>)}
       </div>
-      <div className="product-row" ref={rowRef}>
-        {items.map((product) => <ProductCard key={product.id} product={product} onOpen={onOpen} onAdd={onAdd} />)}
+      <div className="product-row" id={"carrusel-" + category.id} ref={rowRef} onScroll={updateEdges} role="region" aria-roledescription="carrusel" aria-label={"Productos de " + category.name + ". Deslizá para ver más."} tabIndex={0}>
+        {items.map((product) => <ProductCard key={product.id} product={product} onOpen={onOpen} onAdd={onAdd} inCart={cart[product.id] ?? 0} />)}
       </div>
     </section>
   );
@@ -369,6 +534,9 @@ export default function Home() {
   const [selectedProduct, setSelectedProduct] = useState<CatalogProduct | null>(null);
   const [detailQuantity, setDetailQuantity] = useState(1);
   const [toast, setToast] = useState("");
+  const [announcement, setAnnouncement] = useState("");
+  const modalRef = useRef<HTMLElement>(null);
+  const filterRef = useRef<HTMLDivElement>(null);
   const [hydrated, setHydrated] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [filters, setFilters] = useState({ brand: "", availability: "", minimum: "", maximum: "", smallOnly: false });
@@ -382,6 +550,8 @@ export default function Home() {
   const [fieldError, setFieldError] = useState("");
   const [processing, setProcessing] = useState(false);
   const processingRef = useRef(false);
+  useDialog(modalRef, Boolean(selectedProduct), () => setSelectedProduct(null));
+  useDialog(filterRef, filtersOpen, () => setFiltersOpen(false));
 
   useEffect(() => {
     try {
@@ -416,24 +586,25 @@ export default function Home() {
   const fulfillmentFee = fulfillmentType === "pickup" ? pickup.fee_pyg : deliveryCalculation.fee;
   const orderTotal = subtotal + fulfillmentFee;
 
+  const searchRanking = useMemo(() => (query.trim() ? searchProducts(query).map((result) => result.product) : products), [query]);
+
   const filteredProducts = useMemo(() => {
     const minimum = filters.minimum ? Number(filters.minimum) : 0;
     const maximum = filters.maximum ? Number(filters.maximum) : Number.POSITIVE_INFINITY;
-    let list = products.filter((product) => {
+    let list = searchRanking.filter((product) => {
       const correctCategory = !categoryId || product.category_id === categoryId;
       const correctSubcategory = !subcategoryId || product.subcategory_id === subcategoryId;
-      const correctSearch = productMatchesSearch(product, query);
       const correctBrand = !filters.brand || product.brand === filters.brand;
       const correctAvailability = !filters.availability || product.availability === filters.availability;
       const correctSize = !filters.smallOnly || !product.is_bulky;
       const correctPrice = product.price_pyg >= minimum && product.price_pyg <= maximum;
-      return correctCategory && correctSubcategory && correctSearch && correctBrand && correctAvailability && correctSize && correctPrice;
+      return correctCategory && correctSubcategory && correctBrand && correctAvailability && correctSize && correctPrice;
     });
     if (sortOrder === "price_asc") list = [...list].sort((a, b) => a.price_pyg - b.price_pyg);
     if (sortOrder === "price_desc") list = [...list].sort((a, b) => b.price_pyg - a.price_pyg);
     if (sortOrder === "name_asc") list = [...list].sort((a, b) => a.name.localeCompare(b.name, "es"));
     return list;
-  }, [categoryId, subcategoryId, query, sortOrder, filters]);
+  }, [categoryId, subcategoryId, searchRanking, sortOrder, filters]);
 
   const selectedCategory = categories.find((category) => category.id === categoryId);
   const brands = [...new Set(products.filter((product) => !categoryId || product.category_id === categoryId).map((product) => product.brand))].sort();
@@ -485,10 +656,13 @@ export default function Home() {
     setCart((current) => ({ ...current, [product.id]: Math.min(999, (current[product.id] ?? 0) + quantity) }));
     setSelectedProduct(null);
     setDetailQuantity(1);
-    showToast("Agregaste " + quantity + " × " + product.name + " al carrito.");
+    showToast("Agregaste " + quantity + " × " + product.name + " al carrito. Tenés " + (itemCount + quantity) + (itemCount + quantity === 1 ? " producto." : " productos."));
   }
 
   function updateQuantity(productId: string, amount: number) {
+    const product = products.find((item) => item.id === productId);
+    const nextQuantity = Math.max(0, Math.min(999, (cart[productId] ?? 0) + amount));
+    if (product) setAnnouncement(nextQuantity ? product.name + ": " + nextQuantity + " en el carrito." : product.name + " se quitó del carrito.");
     setCart((current) => {
       const next = { ...current };
       const quantity = (next[productId] ?? 0) + amount;
@@ -674,7 +848,9 @@ export default function Home() {
 
   return (
     <main className="app-shell">
-      <Header itemCount={itemCount} query={query} setQuery={setQuery} setScreen={changeScreen} goHome={goHome} selectCategory={selectCategory} selectSubcategory={selectSubcategory} />
+      <a className="skip-link" href="#contenido">Saltar al contenido</a>
+      <Header itemCount={itemCount} query={query} setQuery={setQuery} setScreen={changeScreen} goHome={goHome} selectCategory={selectCategory} selectSubcategory={selectSubcategory} onOpenProduct={openProduct} onAdd={(product) => addToCart(product)} />
+      <div id="contenido" tabIndex={-1} />
 
       {screen === "store" && (
         <>
@@ -718,11 +894,11 @@ export default function Home() {
                 ))}
               </nav>
 
-              <ProductRow category={categories.find((category) => category.id === "ferreteria")!} items={products.filter((product) => product.category_id === "ferreteria")} onOpen={openProduct} onAdd={addToCart} onSeeAll={() => selectCategory("ferreteria")} onSubcategory={(id) => selectSubcategory("ferreteria", id)} />
-              <ProductRow category={categories.find((category) => category.id === "sanitarios")!} items={products.filter((product) => product.category_id === "sanitarios")} onOpen={openProduct} onAdd={addToCart} onSeeAll={() => selectCategory("sanitarios")} onSubcategory={(id) => selectSubcategory("sanitarios", id)} />
+              <ProductRow category={categories.find((category) => category.id === "ferreteria")!} items={products.filter((product) => product.category_id === "ferreteria")} cart={cart} onOpen={openProduct} onAdd={addToCart} onSeeAll={() => selectCategory("ferreteria")} onSubcategory={(id) => selectSubcategory("ferreteria", id)} />
+              <ProductRow category={categories.find((category) => category.id === "sanitarios")!} items={products.filter((product) => product.category_id === "sanitarios")} cart={cart} onOpen={openProduct} onAdd={addToCart} onSeeAll={() => selectCategory("sanitarios")} onSubcategory={(id) => selectSubcategory("sanitarios", id)} />
               <BankPromotions />
-              <ProductRow category={categories.find((category) => category.id === "construccion")!} items={products.filter((product) => product.category_id === "construccion")} onOpen={openProduct} onAdd={addToCart} onSeeAll={() => selectCategory("construccion")} onSubcategory={(id) => selectSubcategory("construccion", id)} />
-              <ProductRow category={categories.find((category) => category.id === "electricos")!} items={products.filter((product) => product.category_id === "electricos")} onOpen={openProduct} onAdd={addToCart} onSeeAll={() => selectCategory("electricos")} onSubcategory={(id) => selectSubcategory("electricos", id)} />
+              <ProductRow category={categories.find((category) => category.id === "construccion")!} items={products.filter((product) => product.category_id === "construccion")} cart={cart} onOpen={openProduct} onAdd={addToCart} onSeeAll={() => selectCategory("construccion")} onSubcategory={(id) => selectSubcategory("construccion", id)} />
+              <ProductRow category={categories.find((category) => category.id === "electricos")!} items={products.filter((product) => product.category_id === "electricos")} cart={cart} onOpen={openProduct} onAdd={addToCart} onSeeAll={() => selectCategory("electricos")} onSubcategory={(id) => selectSubcategory("electricos", id)} />
               <PromoBanners selectCategory={selectCategory} />
             </>
           )}
@@ -740,10 +916,10 @@ export default function Home() {
               </div>
             )}
             <div className="catalog-tools">
-              <span>{storefrontProducts.length} productos{query ? " encontrados" : ""}</span>
-              <button className="filter-toggle" onClick={() => setFiltersOpen(true)}><Icon name="grid" size={16} /> Filtrar</button>
+              <span role="status">{storefrontProducts.length} productos{query ? " encontrados" : ""}</span>
+              <button className="filter-toggle" onClick={() => setFiltersOpen(true)} aria-haspopup="dialog"><Icon name="grid" size={16} /> Filtrar</button>
               <label className="sort-control"><span>Ordenar por</span>
-                <select value={sortOrder} onChange={(event) => setSortOrder(event.target.value as SortOrder)}>
+                <select aria-label="Ordenar productos" value={sortOrder} onChange={(event) => setSortOrder(event.target.value as SortOrder)}>
                   <option value="relevance">Más relevantes</option><option value="price_asc">Menor precio</option><option value="price_desc">Mayor precio</option><option value="name_asc">Nombre (A–Z)</option>
                 </select>
               </label>
@@ -757,8 +933,8 @@ export default function Home() {
                 <label>Disponibilidad<select value={filters.availability} onChange={(event) => setFilters({ ...filters, availability: event.target.value })}><option value="">Todas</option><option value="disponible">Disponible</option><option value="pocas_unidades">Pocas unidades</option><option value="consultar">Consultar disponibilidad</option></select></label>
                 <label className="checkbox-line"><input type="checkbox" checked={filters.smallOnly} onChange={(event) => setFilters({ ...filters, smallOnly: event.target.checked })} /> Solo productos chicos</label>
               </aside>
-              {storefrontProducts.length ? <div className="product-grid">{storefrontProducts.map((product) => <ProductCard key={product.id} product={product} onOpen={openProduct} onAdd={addToCart} />)}</div> : (
-                <div className="empty-results"><Icon name="search" size={34} /><h3>{query ? "No encontramos “" + query + "”" : "No hay productos con estos filtros."}</h3><p>{query ? "Revisá cómo lo escribiste o buscá por categoría. Si no está en la web, preguntanos: capaz lo tenemos en el local." : "Probá quitando alguno."}</p><div className="empty-categories">{categories.map((category) => <button key={category.id} onClick={() => selectCategory(category.id)}>{category.name}</button>)}</div>{query && <a className="button button-brand" href={WHATSAPP_URL}><Icon name="chat" size={18} /> Consultar por WhatsApp</a>}</div>
+              {storefrontProducts.length ? <div className="product-grid">{storefrontProducts.map((product) => <ProductCard key={product.id} product={product} onOpen={openProduct} onAdd={addToCart} inCart={cart[product.id] ?? 0} />)}</div> : (
+                <div className="empty-results"><Icon name="search" size={34} /><h3>{query ? "No encontramos “" + query + "”" : "No hay productos con estos filtros."}</h3><p>{query ? "Revisá cómo lo escribiste o buscá por categoría. Si no está en la web, preguntanos: capaz lo tenemos en el local." : "Probá quitando alguno."}</p><div className="empty-categories">{categories.map((category) => <button key={category.id} onClick={() => selectCategory(category.id)}>{category.name}</button>)}</div>{query && <a className="button button-brand" href={WHATSAPP_URL + "?text=" + encodeURIComponent("Hola, busco: " + query.trim())}><Icon name="chat" size={18} /> Consultar por WhatsApp</a>}</div>
               )}
             </div>
           </section>}
@@ -789,8 +965,8 @@ export default function Home() {
                 {cartProducts.map((product) => <div className="cart-line" key={product.id}>
                   <div className="cart-thumb"><CartThumb product={product} /></div>
                   <div className="cart-product"><span>{product.subcategory}{product.is_bulky ? " · Voluminoso" : ""}</span><strong>{product.name}</strong><small>{product.presentation} · {money(product.price_pyg)} c/u</small></div>
-                  <QuantityControl value={cart[product.id]} onChange={(change) => updateQuantity(product.id, change)} />
-                  <div className="line-total">{money(product.price_pyg * cart[product.id])}<button onClick={() => setCart((current) => { const next = { ...current }; delete next[product.id]; return next; })}>Quitar</button></div>
+                  <QuantityControl label={product.name} value={cart[product.id]} onChange={(change) => updateQuantity(product.id, change)} />
+                  <div className="line-total">{money(product.price_pyg * cart[product.id])}<button aria-label={"Quitar " + product.name + " del carrito"} onClick={() => { setAnnouncement(product.name + " se quitó del carrito."); setCart((current) => { const next = { ...current }; delete next[product.id]; return next; }); }}>Quitar</button></div>
                 </div>)}
                 {hasBulky && <div className="notice-box">Tu carrito tiene productos voluminosos. La entrega se hace en camión y puede tardar un poco más (plazos de demostración).</div>}
                 <button className="back-link" onClick={goHome}>← Seguir comprando</button>
@@ -810,16 +986,16 @@ export default function Home() {
             <div className="form-column">
               <div className="form-card">
                 <div className="choice-grid">
-                  <button className={fulfillmentType === "delivery" ? "choice selected" : "choice"} onClick={() => { setFulfillmentType("delivery"); setFieldError(""); }}><span>🚚</span><b>Entrega en obra</b><small>Te lo llevamos a la dirección que nos indiques.</small></button>
-                  <button className={fulfillmentType === "pickup" ? "choice selected" : "choice"} onClick={() => { setFulfillmentType("pickup"); setFieldError(""); }}><span>⌂</span><b>Retiro en el local</b><small>Pasás a buscar tu pedido en Santa María, Limpio.{pickup.fee_pyg === 0 ? " Sin costo en esta demostración." : " Costo de retiro de demostración: " + money(pickup.fee_pyg) + "."}</small></button>
+                  <button className={fulfillmentType === "delivery" ? "choice selected" : "choice"} aria-pressed={fulfillmentType === "delivery"} onClick={() => { setFulfillmentType("delivery"); setFieldError(""); }}><span aria-hidden="true">🚚</span><b>Entrega en obra</b><small>Te lo llevamos a la dirección que nos indiques.</small></button>
+                  <button className={fulfillmentType === "pickup" ? "choice selected" : "choice"} aria-pressed={fulfillmentType === "pickup"} onClick={() => { setFulfillmentType("pickup"); setFieldError(""); }}><span aria-hidden="true">⌂</span><b>Retiro en el local</b><small>Pasás a buscar tu pedido en Santa María, Limpio.{pickup.fee_pyg === 0 ? " Sin costo en esta demostración." : " Costo de retiro de demostración: " + money(pickup.fee_pyg) + "."}</small></button>
                 </div>
                 {fulfillmentType === "delivery" ? (
                   <div className="form-stack">
                     <label className="form-field">Zona o ciudad<select value={zoneId} onChange={(event) => setZoneId(event.target.value)}><option value="">Elegí tu zona</option>{zones.map((zone) => <option key={zone.id} value={zone.id} disabled={!zone.available}>{zone.name}{zone.available ? "" : " · " + zone.unavailable_message}</option>)}</select></label>
-                    <div className="form-grid"><label className="form-field">Calle<input required value={address.street} onChange={(event) => setAddress({ ...address, street: event.target.value })} placeholder="Nombre de la calle" /></label><label className="form-field">Número o referencia<input required value={address.number} onChange={(event) => setAddress({ ...address, number: event.target.value })} placeholder="N.º de casa o entre calles" /></label></div>
-                    <div className="form-grid"><label className="form-field">Barrio<input value={address.neighborhood} onChange={(event) => setAddress({ ...address, neighborhood: event.target.value })} placeholder="Tu barrio" /></label><label className="form-field">Punto de referencia<input value={address.landmark} onChange={(event) => setAddress({ ...address, landmark: event.target.value })} placeholder="Ej.: portón verde, frente a la escuela" /></label></div>
+                    <div className="form-grid"><label className="form-field">Calle<input required autoComplete="address-line1" enterKeyHint="next" value={address.street} onChange={(event) => setAddress({ ...address, street: event.target.value })} placeholder="Nombre de la calle" /></label><label className="form-field">Número o referencia<input required autoComplete="address-line2" enterKeyHint="next" value={address.number} onChange={(event) => setAddress({ ...address, number: event.target.value })} placeholder="N.º de casa o entre calles" /></label></div>
+                    <div className="form-grid"><label className="form-field">Barrio<input autoComplete="address-level3" enterKeyHint="next" value={address.neighborhood} onChange={(event) => setAddress({ ...address, neighborhood: event.target.value })} placeholder="Tu barrio" /></label><label className="form-field">Punto de referencia<input enterKeyHint="next" value={address.landmark} onChange={(event) => setAddress({ ...address, landmark: event.target.value })} placeholder="Ej.: portón verde, frente a la escuela" /></label></div>
                     <label className="form-field">Ubicación (opcional)<input type="url" value={address.mapLink} onChange={(event) => setAddress({ ...address, mapLink: event.target.value })} placeholder="Pegá el enlace del mapa" /></label>
-                    <div className="form-grid"><label className="form-field">Nombre de quien recibe (opcional)<input value={address.receiverName} onChange={(event) => setAddress({ ...address, receiverName: event.target.value })} placeholder={customer.name || "Si recibe otra persona"} /></label><label className="form-field">Teléfono de quien recibe (opcional)<input value={address.receiverPhone} onChange={(event) => setAddress({ ...address, receiverPhone: event.target.value })} placeholder={customer.phone || "Teléfono"} /></label></div>
+                    <div className="form-grid"><label className="form-field">Nombre de quien recibe (opcional)<input autoComplete="off" value={address.receiverName} onChange={(event) => setAddress({ ...address, receiverName: event.target.value })} placeholder={customer.name || "Si recibe otra persona"} /></label><label className="form-field">Teléfono de quien recibe (opcional)<input inputMode="tel" autoComplete="off" value={address.receiverPhone} onChange={(event) => setAddress({ ...address, receiverPhone: event.target.value })} placeholder={customer.phone || "Teléfono"} /></label></div>
                     {selectedZoneDetails && selectedZoneDetails.available && <div className="delivery-estimate"><div><span>{deliveryCalculation.isFree ? "¡Entrega sin costo!" : "Costo de entrega"}</span><strong>{money(deliveryCalculation.fee)}</strong></div><div><span>Plazo estimado</span><strong>{deliveryCalculation.eta}</strong></div><small>Costo y plazo de demostración (ficticios).</small></div>}
                   </div>
                 ) : (
@@ -845,10 +1021,10 @@ export default function Home() {
           <div className="checkout-layout">
             <div className="form-column">
               <div className="form-card form-stack">
-                <div className="form-grid"><label className="form-field">Nombre y apellido<input autoComplete="name" value={customer.name} onChange={(event) => setCustomer({ ...customer, name: event.target.value })} placeholder="Cómo te llamás" /></label><label className="form-field">Teléfono o WhatsApp<input autoComplete="tel" inputMode="tel" value={customer.phone} onChange={(event) => setCustomer({ ...customer, phone: event.target.value })} placeholder="0981 123 456" /></label></div>
+                <div className="form-grid"><label className="form-field">Nombre y apellido<input autoComplete="name" enterKeyHint="next" value={customer.name} onChange={(event) => setCustomer({ ...customer, name: event.target.value })} placeholder="Cómo te llamás" /></label><label className="form-field">Teléfono o WhatsApp<input autoComplete="tel" inputMode="tel" value={customer.phone} onChange={(event) => setCustomer({ ...customer, phone: event.target.value })} placeholder="0981 123 456" /></label></div>
                 <label className="form-field">Correo electrónico (opcional)<input type="email" autoComplete="email" value={customer.email} onChange={(event) => setCustomer({ ...customer, email: event.target.value })} placeholder="tu@correo.com" /></label>
                 <label className="checkbox-line"><input type="checkbox" checked={customer.wantsInvoice} onChange={(event) => setCustomer({ ...customer, wantsInvoice: event.target.checked })} /> Necesito factura con RUC</label>
-                {customer.wantsInvoice && <div className="form-grid"><label className="form-field">RUC o cédula<input value={customer.ruc} onChange={(event) => setCustomer({ ...customer, ruc: event.target.value })} /></label><label className="form-field">Razón social<input value={customer.businessName} onChange={(event) => setCustomer({ ...customer, businessName: event.target.value })} /></label></div>}
+                {customer.wantsInvoice && <div className="form-grid"><label className="form-field">RUC o cédula<input inputMode="numeric" value={customer.ruc} onChange={(event) => setCustomer({ ...customer, ruc: event.target.value })} /></label><label className="form-field">Razón social<input value={customer.businessName} onChange={(event) => setCustomer({ ...customer, businessName: event.target.value })} /></label></div>}
                 <label className="checkbox-line"><input type="checkbox" checked={customer.whatsappUpdates} onChange={(event) => setCustomer({ ...customer, whatsappUpdates: event.target.checked })} /> Quiero recibir novedades del pedido por WhatsApp (en la demo no se envían mensajes).</label>
                 {fieldError && <p className="field-error" role="alert">{fieldError}</p>}
               </div>
@@ -899,7 +1075,7 @@ export default function Home() {
         <section className="flow-page wrap tracking-page">
           <Breadcrumbs items={["Inicio", "Mi pedido"]} goHome={goHome} />
           <div className="tracking-card"><p className="eyebrow">SEGUIMIENTO DE DEMOSTRACIÓN</p><h1>Seguí tu pedido</h1>
-            <form className="tracking-search" onSubmit={searchOrder}><label>Número de pedido<input value={trackingQuery} onChange={(event) => setTrackingQuery(event.target.value)} placeholder="Ej.: SM-00001" /></label><button className="button button-yellow">Buscar pedido</button></form>
+            <form className="tracking-search" onSubmit={searchOrder}><label>Número de pedido<input autoCapitalize="characters" value={trackingQuery} onChange={(event) => setTrackingQuery(event.target.value)} placeholder="Ej.: SM-00001" /></label><button className="button button-yellow">Buscar pedido</button></form>
             {fieldError && <p className="field-error" role="alert">{fieldError}</p>}
             {trackingOrder && <div className="tracking-result">
               <div className="tracking-order"><span>Pedido</span><b>{trackingOrder.order_number}</b><small>{statusLabels[trackingOrder.status]}</small></div>
@@ -921,17 +1097,18 @@ export default function Home() {
       )}
 
       <SiteFooter goHome={goHome} selectCategory={selectCategory} setScreen={changeScreen} />
-      <MobileNav screen={screen} itemCount={itemCount} goHome={goHome} openSearch={openSearch} setScreen={changeScreen} />
+      {!["fulfillment", "customer", "payment"].includes(screen) && <MobileNav screen={screen} itemCount={itemCount} goHome={goHome} openSearch={openSearch} setScreen={changeScreen} />}
 
-      {filtersOpen && <div className="filter-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setFiltersOpen(false); }}><div className="mobile-filter-sheet"><div className="drawer-head"><h2>Filtros</h2><button className="icon-button" onClick={() => setFiltersOpen(false)} aria-label="Cerrar"><Icon name="close" /></button></div><label>Subcategoría<select value={subcategoryId} onChange={(event) => setSubcategoryId(event.target.value)}><option value="">Todas</option>{(selectedCategory?.subcategories || categories.flatMap((category) => category.subcategories)).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label>Marca<select value={filters.brand} onChange={(event) => setFilters({ ...filters, brand: event.target.value })}><option value="">Todas</option>{brands.map((brand) => <option key={brand}>{brand}</option>)}</select></label><fieldset><legend>Precio</legend><div className="price-fields"><input inputMode="numeric" aria-label="Precio mínimo" placeholder="Desde Gs." value={filters.minimum} onChange={(event) => setFilters({ ...filters, minimum: event.target.value.replace(/\D/g, "") })} /><input inputMode="numeric" aria-label="Precio máximo" placeholder="Hasta Gs." value={filters.maximum} onChange={(event) => setFilters({ ...filters, maximum: event.target.value.replace(/\D/g, "") })} /></div></fieldset><label>Disponibilidad<select value={filters.availability} onChange={(event) => setFilters({ ...filters, availability: event.target.value })}><option value="">Todas</option><option value="disponible">Disponible</option><option value="pocas_unidades">Pocas unidades</option><option value="consultar">Consultar disponibilidad</option></select></label><label className="checkbox-line"><input type="checkbox" checked={filters.smallOnly} onChange={(event) => setFilters({ ...filters, smallOnly: event.target.checked })} /> Solo productos chicos</label><button className="text-link" onClick={resetFilters}>Limpiar filtros</button><button className="button button-brand button-block" onClick={() => setFiltersOpen(false)}>Ver resultados</button></div></div>}
+      {filtersOpen && <div className="filter-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setFiltersOpen(false); }}><div className="mobile-filter-sheet" role="dialog" aria-modal="true" aria-labelledby="filters-title" ref={filterRef}><div className="drawer-head"><h2 id="filters-title">Filtros</h2><button className="icon-button" onClick={() => setFiltersOpen(false)} aria-label="Cerrar filtros"><Icon name="close" /></button></div><label>Subcategoría<select value={subcategoryId} onChange={(event) => setSubcategoryId(event.target.value)}><option value="">Todas</option>{(selectedCategory?.subcategories || categories.flatMap((category) => category.subcategories)).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label>Marca<select value={filters.brand} onChange={(event) => setFilters({ ...filters, brand: event.target.value })}><option value="">Todas</option>{brands.map((brand) => <option key={brand}>{brand}</option>)}</select></label><fieldset><legend>Precio</legend><div className="price-fields"><input inputMode="numeric" aria-label="Precio mínimo" placeholder="Desde Gs." value={filters.minimum} onChange={(event) => setFilters({ ...filters, minimum: event.target.value.replace(/\D/g, "") })} /><input inputMode="numeric" aria-label="Precio máximo" placeholder="Hasta Gs." value={filters.maximum} onChange={(event) => setFilters({ ...filters, maximum: event.target.value.replace(/\D/g, "") })} /></div></fieldset><label>Disponibilidad<select value={filters.availability} onChange={(event) => setFilters({ ...filters, availability: event.target.value })}><option value="">Todas</option><option value="disponible">Disponible</option><option value="pocas_unidades">Pocas unidades</option><option value="consultar">Consultar disponibilidad</option></select></label><label className="checkbox-line"><input type="checkbox" checked={filters.smallOnly} onChange={(event) => setFilters({ ...filters, smallOnly: event.target.checked })} /> Solo productos chicos</label><button className="text-link" onClick={resetFilters}>Limpiar filtros</button><button className="button button-brand button-block" onClick={() => setFiltersOpen(false)}>Ver {storefrontProducts.length} resultados</button></div></div>}
 
-      {selectedProduct && <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelectedProduct(null); }}><section className="product-modal" role="dialog" aria-modal="true" aria-labelledby="product-title"><button className="modal-close" onClick={() => setSelectedProduct(null)} aria-label="Cerrar"><Icon name="close" /></button><ProductVisual product={selectedProduct} large /><div className="modal-copy"><p className="eyebrow">{selectedProduct.category} · {selectedProduct.subcategory}</p><h2 id="product-title">{selectedProduct.name}</h2><p><b>Marca:</b> {selectedProduct.brand}</p><p><b>Código:</b> {selectedProduct.sku}</p><p><b>Presentación:</b> {selectedProduct.presentation}</p><p><b>Disponibilidad:</b> {selectedProduct.availability === "disponible" ? "Disponible" : selectedProduct.availability === "pocas_unidades" ? "Pocas unidades" : "Consultar disponibilidad"}</p><p className="photo-note">{productPhoto(selectedProduct) ? "Foto: " + productPhoto(selectedProduct)?.source : "Foto del producto pendiente de confirmar."}</p>{selectedProduct.availability === "consultar" && <div className="notice-box">Te confirmamos la disponibilidad después de recibir tu pedido.</div>}{selectedProduct.is_bulky && <div className="notice-box">Producto voluminoso: se entrega en camión en tu obra o se retira coordinado en el local.</div>}<div className="modal-buy"><div className="modal-buy-price"><small className="price-label">PRECIO DE MUESTRA</small><strong className="modal-price">{money(selectedProduct.price_pyg)}</strong></div><QuantityControl value={detailQuantity} onChange={(change) => setDetailQuantity((current) => Math.max(1, Math.min(999, current + change)))} /><button className="button button-yellow button-block button-large" onClick={() => addToCart(selectedProduct, detailQuantity)}><Icon name="cart" size={18} /> Agregar al carrito</button></div><div className="related-products"><b>También te puede servir</b><div>{relatedProducts.map((product) => <button key={product.id} onClick={() => { setSelectedProduct(product); setDetailQuantity(1); }}>{product.name}</button>)}</div></div></div></section></div>}
-      {toast && <div className="toast" role="status">{toast}<button onClick={() => changeScreen("cart")}>Ir al carrito</button></div>}
+      {selectedProduct && <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelectedProduct(null); }}><section className="product-modal" role="dialog" aria-modal="true" aria-labelledby="product-title" ref={modalRef}><button className="modal-close" onClick={() => setSelectedProduct(null)} aria-label="Cerrar ficha"><Icon name="close" /></button><ProductVisual product={selectedProduct} large /><div className="modal-copy"><p className="eyebrow">{selectedProduct.category} · {selectedProduct.subcategory}</p><h2 id="product-title">{selectedProduct.name}</h2><p><b>Marca:</b> {selectedProduct.brand}</p><p><b>Código:</b> {selectedProduct.sku}</p><p><b>Presentación:</b> {selectedProduct.presentation}</p><p><b>Disponibilidad:</b> {selectedProduct.availability === "disponible" ? "Disponible" : selectedProduct.availability === "pocas_unidades" ? "Pocas unidades" : "Consultar disponibilidad"}</p><p className="photo-note">{productPhoto(selectedProduct) ? "Foto: " + productPhoto(selectedProduct)?.source : "Foto del producto pendiente de confirmar."}</p>{selectedProduct.availability === "consultar" && <div className="notice-box">Te confirmamos la disponibilidad después de recibir tu pedido.</div>}{selectedProduct.is_bulky && <div className="notice-box">Producto voluminoso: se entrega en camión en tu obra o se retira coordinado en el local.</div>}<div className="modal-buy"><div className="modal-buy-price"><small className="price-label">PRECIO DE MUESTRA</small><strong className="modal-price">{money(selectedProduct.price_pyg)}</strong></div><QuantityControl label={selectedProduct.name} value={detailQuantity} onChange={(change) => setDetailQuantity((current) => Math.max(1, Math.min(999, current + change)))} /><button className="button button-yellow button-block button-large" onClick={() => addToCart(selectedProduct, detailQuantity)} aria-label={"Agregar " + detailQuantity + " al carrito"}><Icon name="cart" size={18} /> Agregar<span className="hide-narrow"> al carrito</span></button></div><div className="related-products"><b id="related-title">También te puede servir</b><div role="group" aria-labelledby="related-title">{relatedProducts.map((product) => <button key={product.id} onClick={() => { setSelectedProduct(product); setDetailQuantity(1); }}>{product.name}</button>)}</div></div></div></section></div>}
+      <div className="toast-region" role="status" aria-live="polite">{toast && <div className="toast"><span>{toast}</span><button onClick={() => changeScreen("cart")}>Ir al carrito</button></div>}</div>
+      <p className="sr-only" aria-live="polite">{announcement}</p>
     </main>
   );
 }
 
-function QuantityControl({ value, onChange }: { value: number; onChange: (amount: number) => void }) {
+function QuantityControl({ value, onChange, label }: { value: number; onChange: (amount: number) => void; label: string }) {
   const [draft, setDraft] = useState(String(value));
 
   useEffect(() => setDraft(String(value)), [value]);
@@ -944,15 +1121,15 @@ function QuantityControl({ value, onChange }: { value: number; onChange: (amount
   }
 
   return (
-    <div className="quantity-control">
-      <button onClick={() => onChange(-1)} aria-label="Quitar una unidad">−</button>
+    <div className="quantity-control" role="group" aria-label={"Cantidad de " + label}>
+      <button type="button" onClick={() => onChange(-1)} aria-label={"Quitar una unidad de " + label}>−</button>
       <input
         type="number"
         inputMode="numeric"
         min="1"
         max="999"
         step="1"
-        aria-label="Cantidad"
+        aria-label={"Cantidad de " + label}
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
         onBlur={commitQuantity}
@@ -963,7 +1140,7 @@ function QuantityControl({ value, onChange }: { value: number; onChange: (amount
           }
         }}
       />
-      <button onClick={() => onChange(1)} aria-label="Agregar una unidad">+</button>
+      <button type="button" onClick={() => onChange(1)} aria-label={"Sumar una unidad de " + label}>+</button>
     </div>
   );
 }
