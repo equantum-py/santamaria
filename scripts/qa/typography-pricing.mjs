@@ -93,11 +93,11 @@ try {
     if (!pageState.cardCount) {
       const diagnosticPath = `${outputDir}/preview-access-${width}.png`;
       await page.screenshot({ path: diagnosticPath, fullPage: true, animations: "disabled" });
-      const bodyText = (await page.locator("body").innerText()).replace(/\\s+/g, " ").slice(0, 600);
+      const bodyText = (await page.locator("body").innerText()).replace(/\s+/g, " ").slice(0, 600);
       throw new Error(`Preview did not render the ecommerce at ${width}px (HTTP ${response.status()}, URL ${page.url()}, title "${title}"). Page text: ${bodyText}. Diagnostic screenshot: ${diagnosticPath}`);
     }
     assert.match(title, /Santa María/i, `Preview is not Santa María at ${width}px: ${title}`);
-    assert.ok(!/vercel\\.com\\/login/i.test(page.url()) && !/login\\s*[–-]\\s*vercel/i.test(title),
+    assert.ok(!page.url().includes("vercel.com/login") && !/login\s*[–-]\s*vercel/i.test(title),
       `Vercel login appeared instead of the store at ${width}px: ${page.url()} ${title}`);
     assert.ok(!/Manrope|DM Sans/i.test(pageState.bodyFont), `Legacy font remains at ${width}px: ${pageState.bodyFont}`);
     assert.ok(pageState.fontLoaded, `Inter font did not load at ${width}px: ${pageState.bodyFont}`);
@@ -115,7 +115,7 @@ try {
       const promotion = validPromotion(product);
       const card = page.getByRole("article", { name: product.name, exact: true }).first();
       if (await card.count()) {
-        const currentPriceText = (await card.locator(".product-price .price-values strong").innerText()).replace(/\\D/g, "");
+        const currentPriceText = (await card.locator(".product-price .price-values strong").innerText()).replace(/\D/g, "");
         assert.equal(currentPriceText, String(product.price_pyg), `${product.sku}: current card price differs from price_pyg`);
         if (promotion) {
           await card.locator(".product-discount-badge").filter({ hasText: `-${promotion.percent}% OFF` }).waitFor({ state: "visible" });
