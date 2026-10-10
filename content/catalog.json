@@ -265,7 +265,7 @@
         "amoladora",
         "pulidora"
       ],
-      "image": "/images/products/amoladora-angular-115-mm-850-w.jpg",
+      "image": "",
       "is_fictitious": true,
       "is_store_confirmed": false,
       "price_is_fictitious": true,
@@ -288,7 +288,7 @@
       "search_terms": [
         "tornillo"
       ],
-      "image": "/images/products/tornillos-para-madera-8-x-1-1-2-pulgadas.jpg",
+      "image": "",
       "is_fictitious": true,
       "is_store_confirmed": false,
       "price_is_fictitious": true,
@@ -360,7 +360,7 @@
       "search_terms": [
         "rodillo"
       ],
-      "image": "/images/products/rodillo-de-lana-23-cm.jpg",
+      "image": "",
       "is_fictitious": true,
       "is_store_confirmed": false,
       "price_is_fictitious": true,
@@ -803,7 +803,7 @@
         "ladrillo hueco",
         "ladrillo"
       ],
-      "image": "/images/products/ladrillo-hueco-12-x-18-x-33-cm.jpg",
+      "image": "",
       "is_fictitious": true,
       "is_store_confirmed": false,
       "price_is_fictitious": true,

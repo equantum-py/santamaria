@@ -7,12 +7,12 @@ Rama: `codex/investigacion-imagenes-productos` · PR #2 (draft)
 
 Se revisaron los 40 SKU bajo la regla nueva: **A — producto de marca/modelo**, que exige coincidencia específica; y **B — producto genérico**, que acepta una foto representativa correctamente identificada y con permiso comercial verificable.
 
-- **14 LISTO**: 12 SKU genéricos con imagen local más las 2 imágenes ya habilitadas (Sika y grifería publicada por Santa María).
+- **10 LISTO**: 8 SKU genéricos con imagen local más las 2 imágenes ya habilitadas (Sika y grifería publicada por Santa María).
 - **7 CANDIDATO**: todos de marca/modelo; no se publicaron fotos de tiendas sin permiso verificable.
 - **0 NECESITA CONFIRMACIÓN**: los productos genéricos no se bloquean por falta de marca. Los detalles de variante que la foto no puede probar quedan señalados dentro de la revisión.
-- **19 SIN RESULTADO**: las fotografías candidatas consultadas no representaron el producto con suficiente fidelidad.
+- **23 SIN RESULTADO**: 19 pendientes previos más 4 fotos retiradas en QA visual por baja calidad comercial o por representar mezclas/tamaños distintos.
 
-El grupo B suma 31 SKU: 12 LISTO y 19 SIN RESULTADO. El grupo A suma 9 SKU: 2 LISTO y 7 CANDIDATO. Hay **14 de 40 productos con imagen habilitada**; 11 archivos de imagen locales cubren esos 12 SKU genéricos. Dos SKU de varillas comparten una foto genérica de hierro corrugado. La fotografía no permite verificar diámetro, color, presentación ni marca; no atribuir esos detalles al producto desde la imagen.
+El grupo B suma 31 SKU: 8 LISTO y 23 SIN RESULTADO. El grupo A suma 9 SKU: 2 LISTO y 7 CANDIDATO. Hay **10 de 40 productos con imagen habilitada**; 7 archivos locales cubren los 8 SKU genéricos. Dos SKU de varillas comparten una foto genérica de hierro corrugado. La fotografía no permite verificar diámetro, color, presentación ni marca; no atribuir esos detalles al producto desde la imagen.
 
 ## Fuentes y licencia de los archivos integrados
 
@@ -23,13 +23,9 @@ La foto de la cuchara procede de Wikimedia Commons bajo CC BY-SA 3.0. Se conserv
 | SKU | Archivo local | Fuente / autor | Licencia y coincidencia |
 |---|---|---|---|
 | SM-FER-003 | `public/images/products/cuchara-de-albanil-8-pulgadas.jpg` | [Wikimedia Commons — Truelle pour maçonnerie](https://commons.wikimedia.org/wiki/File:Truelle_pour_ma%C3%A7onnerie.jpg), Habib M’henni (Dyolf77) | CC BY-SA 3.0; cuchara de albañil genérica. La página identifica que una versión anterior fue tratada para quitar marca de agua; se descargó la imagen actual y no se quitó marca adicional. |
-| SM-FER-006 | `public/images/products/amoladora-angular-115-mm-850-w.jpg` | [Pixabay — Angle grinder](https://pixabay.com/photos/angle-grinder-grind-tool-grinder-3761838/), knipsling | Pixabay Content License; amoladora genérica en uso. |
-| SM-FER-007 | `public/images/products/tornillos-para-madera-8-x-1-1-2-pulgadas.jpg` | [Pixabay — Screws, wood screws](https://pixabay.com/photos/screws-wood-screws-tool-1255940/), maria-anne | Pixabay Content License; surtido de tornillos genéricos para madera; la foto no prueba la longitud. |
 | SM-FER-008 | `public/images/products/tarugos-plasticos-8-mm.jpg` | [Pixabay — Anchor / dowel](https://pixabay.com/photos/anchor-background-construction-83067/), PublicDomainPictures | Pixabay Content License; tarugos plásticos genéricos; la foto no prueba el diámetro. |
-| SM-FER-010 | `public/images/products/rodillo-de-lana-23-cm.jpg` | [Pixabay — Paint roller](https://pixabay.com/photos/paint-roller-paint-paint-tray-6099595/) | Pixabay Content License; rodillo genérico. La foto no confirma ancho exacto ni material de lana. |
 | SM-CON-006 | `public/images/products/piedra-triturada-6ta.jpg` | [Pixabay — Gravel / stones](https://pixabay.com/photos/gravel-stones-dirt-road-fixed-3354839/), anaterate | Pixabay Content License; árido triturado genérico; la foto no permite certificar granulometría local “6ta”. |
 | SM-CON-007 | `public/images/products/ladrillo-comun.jpg` | [Pixabay — Bricks heap](https://pixabay.com/photos/bricks-heap-pile-stack-material-1345327/), terimakasih0 | Pixabay Content License; ladrillos comunes genéricos. Sustituye la foto recortada por una versión de proporción original. |
-| SM-CON-008 | `public/images/products/ladrillo-hueco-12-x-18-x-33-cm.jpg` | [Pixabay — Hollow brick](https://pixabay.com/photos/brick-hollow-hole-brick-facade-3512435/) | Pixabay Content License; tipo hueco representado; las dimensiones exactas no son distinguibles en la foto. |
 | SM-CON-009, SM-CON-010 | `public/images/products/varillas-corrugadas.jpg` | [Pixabay — Construction steel / rebar](https://pixabay.com/photos/construction-steel-steel-bar-1733848/) | Pixabay Content License; varilla corrugada genérica. Un solo archivo para ambos SKU; no acredita diámetro ni longitud. |
 | SM-ELE-003 | `public/images/products/cano-corrugado-3-4-pulgada.jpg` | [Pixabay — Cable sheath / conduit](https://pixabay.com/photos/cable-sheath-wire-tubing-conduit-6488030/), richardfoulon | Pixabay Content License; tubo corrugado eléctrico genérico. La imagen encontrada es roja y el color no se declara en el título del SKU. |
 | SM-ELE-004 | `public/images/products/llave-de-luz-simple-con-placa.jpg` | [Pixabay — Light switch](https://pixabay.com/photos/light-switch-light-switch-power-1519735/), joffi | Pixabay Content License; interruptor simple blanco con placa. |
@@ -76,7 +72,25 @@ No se detuvo la búsqueda por falta de marca. Se buscaron y compararon fotograf�
 
 ## Alcance y límites
 
-Se incorporaron o actualizaron imágenes locales para 12 SKU mediante 11 archivos. Cambiaron las rutas de imagen de 11 productos; para el ladrillo común se reemplazó el archivo bajo una ruta ya existente. También se agregaron atribuciones e informe. No se tocaron nombres, precios, categorías, inventario, promociones, diseño, componentes, tarjetas, botones, buscador, carrito ni checkout. Las fotos genéricas representan la clase de producto; no demuestran las medidas exactas, el stock, la marca, el acabado ni la presentación que comercializa Santa María.
+Se incorporaron imágenes locales para 8 SKU mediante 7 archivos. Cambiaron las rutas de imagen de los SKU aprobados y se retiraron 4 imágenes que no superaron el control visual. También se agregaron atribuciones e informe. No se tocaron nombres, precios, categorías, inventario, promociones, diseño, componentes, tarjetas, botones, buscador, carrito ni checkout. Las fotos genéricas representan la clase de producto; no demuestran las medidas exactas, el stock, la marca, el acabado ni la presentación que comercializa Santa María.
+
+## Última pasada visual para los SIN RESULTADO
+
+Se amplió la consulta en español, portugués e inglés, incluyendo búsquedas dirigidas en Pixabay, Pexels, Openverse y Wikimedia Commons (CC BY, CC BY-SA y CC0), además de términos de producto y forma física. La licencia abierta por sí sola no bastó; se descartó lo que no funciona en una tarjeta comercial o sugiere otra variante.
+
+| Familia / SKU | Variantes consultadas en la última pasada | Hallazgo visual y decisión |
+|---|---|---|
+| SM-FER-004 Nivel 60 cm | nivel burbuja aluminio 600 mm; aluminum spirit level; nível bolha 60 cm | Pixabay devolvió un nivel rojo pequeño tipo cordel; Pexels/Commons, herramientas en uso o detalle de burbuja. Ninguno representa claramente un nivel de aluminio de 60 cm. |
+| SM-SAN-002, 003, 005 | lavatório com coluna; pedestal sink; plastic toilet seat; chuveiro elétrico; electric shower | Se encontró asiento aislado de Commons con fondo negro y la marca visible “BEMIS”; el de fondo claro muestra el asiento puesto en un inodoro completo. La ducha brasileña CC BY-SA aparece instalada en un baño, oscura y distante. No se publicó ninguna. |
+| SM-SAN-006–009 | PVC pressure pipe, tubo PVC soldável, drain pipe 100 mm; cotovelo/codo PVC 90°; brass ball valve; válvula esfera latón | Las tuberías CC muestran diámetros/escenarios de obra distintos; el codo CC BY-SA presenta dos diámetros sobre fondo marrón y no una pieza limpia. Las válvulas Pixabay halladas eran grifos o válvulas industriales/calefacción. |
+| SM-SAN-010 Tanque 1000 L | plastic water tank, polytank, reservatório plástico 1000 litros | Fotografías abiertas de tanques de otras aplicaciones o sin capacidad verificable; no coincide claramente con tanque doméstico de polietileno 1000 L. |
+| SM-CON-002 y 004 | generic cement bag, saco cimento sem marca, tile adhesive bag, argamassa colante | Los sacos con licencia que se identifican como cemento/mortero muestran marca o certificación ajena; no se encontró un envase genérico limpio de pegamento para cerámica. |
+| SM-CON-005 Arena lavada | construction sand pile; fine construction sand; areia lavada | Se encontró una pila CC0 descrita como arena fina de construcción, pero la foto tiene hojas/escombros y no permite acreditar arena lavada; no cumple el estándar visual. |
+| SM-ELE-002, 005–007, 009–010 | single-core wire; tomada dupla; LED E27 9W; LED floodlight 50W; RCCB 2 pole 25A; quadro embutido 8 módulos | Commons devolvió cable fotografiado en sección transversal; las tomas abiertas tenían formato australiano/Schuko, distinto del catálogo no especificado; las lámparas eran spot/downlight o tenían marca; los diferenciales mostraban amperaje o marca distintos; los tableros eran paneles instalados o formatos no verificables. |
+
+Se registraron y descartaron explícitamente estos candidatos con licencia abierta tras inspección: Wikimedia Commons `PvcElbows.JPG` (CC BY-SA 3.0), dos codos de distinto tamaño sobre fondo marrón; `Heap of Fine Construction Sand.jpg` (CC0), textura de arena con hojas y residuos; `Single-core-insulated-cable-for-electrical-power-transmission.jpg` (CC BY 4.0), una sección transversal en contexto de artículo; `9W LED lamp E27.JPG` (CC BY-SA 3.0), una lámpara lineal estrecha que no coincide con una bombilla común; y `Toilet seat 600x980.jpg` (CC BY-SA/GFDL), asiento con marca Bemis visible sobre fondo negro. Las páginas de esas fuentes quedaron documentadas en el historial de investigación mediante enlaces: [codo PVC](https://commons.wikimedia.org/wiki/File:PvcElbows.JPG), [arena fina](https://commons.wikimedia.org/wiki/File:Heap_of_Fine_Construction_Sand.jpg), [cable unipolar](https://commons.wikimedia.org/wiki/File:Single-core-insulated-cable-for-electrical-power-transmission.jpg), [lámpara LED](https://commons.wikimedia.org/wiki/File:9W_LED_lamp_E27.JPG), [asiento](https://commons.wikimedia.org/wiki/File:Toilet_seat_600x980.jpg), [ducha eléctrica](https://commons.wikimedia.org/wiki/File:Chuveiro_eletrico_brasileiro.jpg).
+
+En la pasada final se revisaron también nuevos resultados de Wikimedia Commons en varios idiomas. El nivel de aluminio de 60 cm [MEMO](https://commons.wikimedia.org/wiki/File:Mid_20th_century_spirit_level_by_MEMO_Metallmodeller_AB_Eskilstuna_Sweden.jpg) (CC BY 4.0) coincide en forma y medida, pero muestra de manera identificable una marca que el SKU genérico no declara y tiene una proporción panorámica extrema; no se publicó. [Pipe elbow.png](https://commons.wikimedia.org/wiki/File:Pipe_elbow.png) (CC BY-SA 3.0) es un esquema/render, no una foto limpia de codo PVC de 25 mm; [PVC plumbing fittings in Awka](https://commons.wikimedia.org/wiki/File:PVC_plumbing_fittings_in_Awka.jpg) (CC BY-SA 4.0) muestra un surtido de accesorios en una escena de clasificación. [Dual light switch.jpg](https://commons.wikimedia.org/wiki/File:Dual_light_switch.jpg) (CC BY-SA 4.0) es un interruptor doble, no el tomacorriente doble del catálogo. No se agregaron imágenes nuevas en esta última pasada.
 
 **Estado final por SKU**
 
@@ -87,39 +101,39 @@ Se incorporaron o actualizaron imágenes locales para 12 SKU mediante 11 archivo
 | SM-FER-003 | Cuchara de albañil 8 pulgadas | B | **LISTO** | Photo generic correct type; CC BY-SA 3.0 verified. |
 | SM-FER-004 | Nivel de aluminio 60 cm | B | **SIN RESULTADO** | Licensed photos found were a macro bubble close-up or a short torpedo level; neither represents 60 cm aluminum level. |
 | SM-FER-005 | Taladro percutor 650 W | B | **SIN RESULTADO** | Photos showed visible brand or cordless/rechargeable models; no clean corded 650 W generic match. |
-| SM-FER-006 | Amoladora angular 115 mm 850 W | B | **LISTO** | Generic angle grinder photo; no visible maker/logo; Pixabay Content License. |
-| SM-FER-007 | Tornillos para madera 8 x 1 1/2 pulgadas | B | **LISTO** | Unbranded screws in assortment; Pixabay identifies wood screws; Pixabay Content License. |
+| SM-FER-006 | Amoladora angular 115 mm 850 W | B | **SIN RESULTADO** | La foto Pixabay de una persona soldando/rectificando dejaba la herramienta pequeña en un fondo cargado; retirada en QA. |
+| SM-FER-007 | Tornillos para madera 8 x 1 1/2 pulgadas | B | **SIN RESULTADO** | El surtido de bandejas mezcla tamaños y tipos; no corresponde a la presentación listada. Foto retirada en QA. |
 | SM-FER-008 | Tarugos plásticos 8 mm | B | **LISTO** | Plastic wall plugs, unbranded; Pixabay tags include dowel/plug; license verified. |
 | SM-FER-009 | Sikacryl Plus Sika · membrana impermeable 5 kg | A | **LISTO** | Sika manufacturer photo already enabled in the catalog. |
-| SM-FER-010 | Rodillo de lana 23 cm | B | **LISTO** | Generic paint roller/nap photo; Pixabay Content License. |
+| SM-FER-010 | Rodillo de lana 23 cm | B | **SIN RESULTADO** | Fondo verde muy saturado y bandeja distraen; foto retirada en QA. |
 | SM-SAN-001 | Inodoro Deca Quadra con mochila · blanco | A | **CANDIDATO** | Deca Quadra candidate listing; variant correspondence and reuse permission not confirmed. |
 | SM-SAN-002 | Lavatorio con columna blanco | B | **SIN RESULTADO** | Found interiors and sink images, but no clear isolated washbasin with pedestal matching the product. |
-| SM-SAN-003 | Asiento para inodoro plástico | B | **SIN RESULTADO** | Found full toilets, illustrations and bathroom scenes; no isolated generic plastic toilet seat photo. |
+| SM-SAN-003 | Asiento para inodoro plástico | B | **SIN RESULTADO** | Una búsqueda abierta encontró un asiento separado de Commons, pero tenía la marca BEMIS visible y fondo negro; otra mostraba el asiento montado en un inodoro. Ninguna queda publicada. |
 | SM-SAN-004 | Grifería para baño · referencia publicada por Santa María | A | **LISTO** | Photo published by Santa María already enabled. |
-| SM-SAN-005 | Ducha eléctrica 5500 W | B | **SIN RESULTADO** | Results were ordinary shower heads/enclosures, not an electric shower heater. |
-| SM-SAN-006 | Caño PVC soldable 25 mm | B | **SIN RESULTADO** | No clean retail PVC 25 mm pipe image; results included clay pipe or a leaking, used connection. |
-| SM-SAN-007 | Caño PVC desagüe 100 mm | B | **SIN RESULTADO** | No usable image of clean 100 mm PVC drain pipe; size/type could not be verified from candidates. |
-| SM-SAN-008 | Codo PVC soldable 25 mm 90° | B | **SIN RESULTADO** | Found metal or non-PVC elbows; no commercially licensed exact PVC 25 mm 90° fitting photo. |
+| SM-SAN-005 | Ducha eléctrica 5500 W | B | **SIN RESULTADO** | Commons mostró un chuveiro elétrico brasileño instalado en un baño y en sombra; no es una foto de producto limpia para esta tarjeta. |
+| SM-SAN-006 | Caño PVC soldable 25 mm | B | **SIN RESULTADO** | Las imágenes CC encontradas son de tubería PVC en instalación/almacenamiento; no muestran un caño soldable nuevo con claridad comercial. |
+| SM-SAN-007 | Caño PVC desagüe 100 mm | B | **SIN RESULTADO** | Las fotos abiertas de tubería PVC corresponden a instalaciones/almacenamiento y no permiten distinguir caño sanitario de 100 mm con presentación limpia. |
+| SM-SAN-008 | Codo PVC soldable 25 mm 90° | B | **SIN RESULTADO** | Se encontró un par de codos PVC CC BY-SA en fondo marrón, de dos diámetros; no coincide de forma limpia con 25 mm ni con el estándar visual. |
 | SM-SAN-009 | Llave de paso esférica 3/4 pulgada | B | **SIN RESULTADO** | Closest result was a 3D render, not a product photograph. |
 | SM-SAN-010 | Tanque de agua 1000 litros | B | **SIN RESULTADO** | Results were water towers/steel tanks, not a generic 1000 L domestic plastic tank. |
 | SM-CON-001 | Cemento Yguazú Portland compuesto CPII-C32 · 50 kg | A | **CANDIDATO** | Yguazú 50 kg/CPII-C32 candidate; shop image reuse permission missing. |
 | SM-CON-002 | Cemento de albañilería | B | **SIN RESULTADO** | Licensed cement-bag photos visibly show other brands or no suitable generic retail sack. |
 | SM-CON-003 | Cerámica Cejatel Imperial Lux · 50 × 50 cm | A | **CANDIDATO** | Cejatel Imperial Lux 50 × 50 candidate listing; Casa Deco reuse permission/authorized asset missing. |
 | SM-CON-004 | Pegamento para cerámica | B | **SIN RESULTADO** | Candidate adhesive bags visibly carried competing brands; no clean generic package photo. |
-| SM-CON-005 | Arena lavada | B | **SIN RESULTADO** | Found sand piles/quarry images, but could not verify washed sand or a product presentation suitable for this listing. |
+| SM-CON-005 | Arena lavada | B | **SIN RESULTADO** | Commons CC0 ofrece arena de construcción, pero la foto tiene hojas/residuos y no acredita arena lavada; se descartó visualmente. |
 | SM-CON-006 | Piedra triturada 6ta | B | **LISTO** | Generic fine crushed aggregate photo; Pixabay Content License. |
 | SM-CON-007 | Ladrillo común | B | **LISTO** | Generic common-brick photo, uncropped original proportions; Pixabay Content License. |
-| SM-CON-008 | Ladrillo hueco 12 x 18 x 33 cm | B | **LISTO** | Photo clearly shows hollow brick; exact dimensions are not visually verifiable; Pixabay Content License. |
+| SM-CON-008 | Ladrillo hueco 12 x 18 x 33 cm | B | **SIN RESULTADO** | La foto muestra un ladrillo viejo entre hojas y escombros; retirada por su presentación sucia y poco comercial. |
 | SM-CON-009 | Varilla corrugada de construcción · 8 mm x 12 m | B | **LISTO** | Generic ribbed construction rebar; shared with 10 mm generic rebar SKU; Pixabay Content License. |
 | SM-CON-010 | Varilla de hierro 10 mm | B | **LISTO** | Generic ribbed construction rebar; exact diameter is not visually distinguishable; Pixabay Content License. |
 | SM-ELE-001 | Cable unipolar Argenplas 2,5 mm² · rollo 100 m | A | **CANDIDATO** | Argenplas 2.5 mm²/100 m candidate listing; retailer image permission missing. |
-| SM-ELE-002 | Cable unipolar 1,5 mm² | B | **SIN RESULTADO** | Found wiring/coils and branded products, not a clear unbranded 1.5 mm² conductor roll. |
+| SM-ELE-002 | Cable unipolar 1,5 mm² | B | **SIN RESULTADO** | Se encontró una imagen CC BY de cable unipolar, pero muestra una sección transversal ilustrativa, no un rollo comercial identificable. |
 | SM-ELE-003 | Caño corrugado 3/4 pulgada | B | **LISTO** | Generic electrical corrugated conduit photo; red color is incidental, Pixabay Content License. |
 | SM-ELE-004 | Llave de luz simple con placa | B | **LISTO** | Generic single wall switch with plate; Pixabay Content License. |
-| SM-ELE-005 | Tomacorriente doble con placa | B | **SIN RESULTADO** | Closest results were an extension strip, single outlet or illustration; no photo of double outlet with plate. |
-| SM-ELE-006 | Lámpara LED 9 W luz fría | B | **SIN RESULTADO** | Candidate bulbs were decorative/incandescent or did not verify LED 9 W cool-white. |
+| SM-ELE-005 | Tomacorriente doble con placa | B | **SIN RESULTADO** | Commons aporta tomas dobles, pero las variantes observadas son Australianas/Schuko y difieren del formato local no especificado. |
+| SM-ELE-006 | Lámpara LED 9 W luz fría | B | **SIN RESULTADO** | El candidato abierto etiquetado como 9 W resultó una lámpara lineal, y la otra imagen de 9 W era un downlight; no representan la bombilla común del SKU. |
 | SM-ELE-007 | Reflector LED 50 W exterior | B | **SIN RESULTADO** | Licensed results showed distant stadium floodlights rather than a standalone 50 W LED product. |
 | SM-ELE-008 | Interruptor termomagnético Schneider Acti9 · 1 polo, 40 A | A | **CANDIDATO** | Schneider Acti9 1P/40 A candidate; full reference model needs matching and retailer image permission is missing. |
-| SM-ELE-009 | Interruptor diferencial 2 x 25 A | B | **SIN RESULTADO** | No licensed isolated 2-pole/25 A differential switch photo; results were panels/boards. |
-| SM-ELE-010 | Tablero para 8 módulos embutido | B | **SIN RESULTADO** | No sufficiently specific photo of an 8-module flush-mount distribution box. |
+| SM-ELE-009 | Interruptor diferencial 2 x 25 A | B | **SIN RESULTADO** | Las fotos licenciadas halladas muestran diferenciales con marca/corriente distinta o paneles completos, no un diferencial genérico aislado de 2 × 25 A. |
+| SM-ELE-010 | Tablero para 8 módulos embutido | B | **SIN RESULTADO** | Se encontraron tableros instalados y gabinetes de formatos no verificables; ninguno deja contar con certeza 8 módulos ni confirma montaje embutido. |
 
