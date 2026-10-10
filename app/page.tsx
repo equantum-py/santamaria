@@ -185,7 +185,7 @@ function ProductCard({ product, onOpen, onAdd, inCart = 0 }: {
         <span className="product-unit">{product.presentation}</span>
         <div className="product-buy">
           <div className="product-price">
-            <strong>{money(product.price_pyg)}</strong>
+            <ProductPrice product={product} />
             <small>Precio de muestra · Consultar stock</small>
           </div>
           <button className="button button-yellow add-button" onClick={() => onAdd(product)} aria-label={"Agregar " + product.name + " al carrito" + (inCart ? ", ya tenés " + inCart : "")}><Icon name="cart" size={18} /> Agregar{inCart > 0 && <span className="in-cart-badge" aria-hidden="true">{inCart}</span>}</button>
