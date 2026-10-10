@@ -45,10 +45,24 @@ try {
     const consoleErrors = [];
     page.on("pageerror", (error) => consoleErrors.push(error.message));
 
-    await page.goto(previewUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
-    await page.locator("article.product-card").first().waitFor({ state: "visible", timeout: 30_000 });
+    const response = await page.goto(previewUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
     const screenshotPath = `${outputDir}/preview-${width}px.png`;
     await page.screenshot({ path: screenshotPath, fullPage: true, animations: "disabled" });
+    try {
+      await page.locator("article.product-card").first().waitFor({ state: "visible", timeout: 30_000 });
+    } catch (error) {
+      const diagnostics = {
+        width,
+        responseStatus: response?.status(),
+        pageUrl: page.url(),
+        title: await page.title(),
+        bodyText: (await page.locator("body").innerText().catch(() => "")).slice(0, 4000),
+        cardCount: await page.locator("article.product-card").count(),
+        pageErrors: consoleErrors,
+      };
+      console.error(`Preview page diagnostic: ${JSON.stringify(diagnostics, null, 2)}`);
+      throw error;
+    }
 
     const viewportResult = await page.evaluate(() => ({
       viewportWidth: window.innerWidth,
