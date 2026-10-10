@@ -8,6 +8,7 @@ import {
   type ProductCategory,
   type DemoOrder,
   formatDateTime,
+  getProductPricing,
   money,
   nextOrderNumber,
   pickup,
@@ -131,6 +132,17 @@ function PhotoFallback({ product, large = false }: { product: CatalogProduct; la
   );
 }
 
+function ProductPrice({ product, compact = false }: { product: CatalogProduct; compact?: boolean }) {
+  const pricing = getProductPricing(product);
+  return (
+    <span className={compact ? "price-values price-values-compact" : "price-values"} aria-label={pricing.discountPercent === null ? money(pricing.currentPrice) : `${money(pricing.currentPrice)}, ${pricing.discountPercent}% de descuento`}>
+      {pricing.previousPrice !== null && <s>{money(pricing.previousPrice)}</s>}
+      <strong>{money(pricing.currentPrice)}</strong>
+      {pricing.discountPercent !== null && <span className="price-discount">-{pricing.discountPercent}% OFF</span>}
+    </span>
+  );
+}
+
 function ProductVisual({ product, large = false }: { product: CatalogProduct; large?: boolean }) {
   const [failed, setFailed] = useState(false);
   const photo = productPhoto(product);
@@ -139,6 +151,7 @@ function ProductVisual({ product, large = false }: { product: CatalogProduct; la
       {photo && !failed
         ? <img {...photoSources(photo.src, large ? "(max-width: 680px) 100vw, 450px" : "(max-width: 680px) 70vw, 300px")} alt={product.name} width={large ? 640 : 320} height={large ? 640 : 320} loading={large ? "eager" : "lazy"} decoding="async" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
         : <PhotoFallback product={product} large={large} />}
+      {promotion.discountPercent !== null && <span className="discount-badge product-discount-badge">-{promotion.discountPercent}% OFF</span>}
     </div>
   );
 }
@@ -216,7 +229,7 @@ function SearchSuggestions({ text, onPick, onAdd, onCategory, onSeeAll, listRef 
               <li key={product.id}>
                 <button type="button" className="suggest-open" onClick={() => onPick(product)} aria-label={product.name + ", " + money(product.price_pyg) + ". Ver ficha"}>
                   <span className="suggest-thumb"><CartThumb product={product} /></span>
-                  <span className="suggest-copy"><b>{product.name}</b><small>{product.subcategory} · <strong>{money(product.price_pyg)}</strong></small></span>
+                  <span className="suggest-copy"><b>{product.name}</b><small>{product.subcategory}</small><ProductPrice product={product} compact /></span>
                 </button>
                 <button type="button" className="suggest-add" onClick={() => onAdd(product)} aria-label={"Agregar " + product.name + " al carrito"}><Icon name="plus" size={20} /></button>
               </li>
@@ -972,7 +985,7 @@ export default function Home() {
               <div className="cart-lines">
                 {cartProducts.map((product) => <div className="cart-line" key={product.id}>
                   <div className="cart-thumb"><CartThumb product={product} /></div>
-                  <div className="cart-product"><span>{product.subcategory}{product.is_bulky ? " · Voluminoso" : ""}</span><strong>{product.name}</strong><small>{product.presentation} · {money(product.price_pyg)} c/u</small></div>
+                  <div className="cart-product"><span>{product.subcategory}{product.is_bulky ? " · Voluminoso" : ""}</span><strong>{product.name}</strong><div className="cart-unit-price"><span>{product.presentation} ·</span><ProductPrice product={product} compact /><span>c/u</span></div></div>
                   <QuantityControl label={product.name} value={cart[product.id]} onChange={(change) => updateQuantity(product.id, change)} />
                   <div className="line-total">{money(product.price_pyg * cart[product.id])}<button aria-label={"Quitar " + product.name + " del carrito"} onClick={() => { setAnnouncement(product.name + " se quitó del carrito."); setCart((current) => { const next = { ...current }; delete next[product.id]; return next; }); }}>Quitar</button></div>
                 </div>)}
@@ -1109,7 +1122,7 @@ export default function Home() {
 
       {filtersOpen && <div className="filter-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setFiltersOpen(false); }}><div className="mobile-filter-sheet" role="dialog" aria-modal="true" aria-labelledby="filters-title" ref={filterRef}><div className="drawer-head"><h2 id="filters-title">Filtros</h2><button className="icon-button" onClick={() => setFiltersOpen(false)} aria-label="Cerrar filtros"><Icon name="close" /></button></div><label>Subcategoría<select value={subcategoryId} onChange={(event) => setSubcategoryId(event.target.value)}><option value="">Todas</option>{(selectedCategory?.subcategories || categories.flatMap((category) => category.subcategories)).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label>Marca<select value={filters.brand} onChange={(event) => setFilters({ ...filters, brand: event.target.value })}><option value="">Todas</option>{brands.map((brand) => <option key={brand}>{brand}</option>)}</select></label><fieldset><legend>Precio</legend><div className="price-fields"><input inputMode="numeric" aria-label="Precio mínimo" placeholder="Desde Gs." value={filters.minimum} onChange={(event) => setFilters({ ...filters, minimum: event.target.value.replace(/\D/g, "") })} /><input inputMode="numeric" aria-label="Precio máximo" placeholder="Hasta Gs." value={filters.maximum} onChange={(event) => setFilters({ ...filters, maximum: event.target.value.replace(/\D/g, "") })} /></div></fieldset><label>Disponibilidad<select value={filters.availability} onChange={(event) => setFilters({ ...filters, availability: event.target.value })}><option value="">Todas</option><option value="disponible">Disponible</option><option value="pocas_unidades">Pocas unidades</option><option value="consultar">Consultar disponibilidad</option></select></label><label className="checkbox-line"><input type="checkbox" checked={filters.smallOnly} onChange={(event) => setFilters({ ...filters, smallOnly: event.target.checked })} /> Solo productos chicos</label><button className="text-link" onClick={resetFilters}>Limpiar filtros</button><button className="button button-brand button-block" onClick={() => setFiltersOpen(false)}>Ver {storefrontProducts.length} resultados</button></div></div>}
 
-      {selectedProduct && <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelectedProduct(null); }}><section className="product-modal" role="dialog" aria-modal="true" aria-labelledby="product-title" ref={modalRef}><button className="modal-close" onClick={() => setSelectedProduct(null)} aria-label="Cerrar ficha"><Icon name="close" /></button><ProductVisual product={selectedProduct} large /><div className="modal-copy"><p className="eyebrow">{selectedProduct.category} · {selectedProduct.subcategory}</p><h2 id="product-title">{selectedProduct.name}</h2><p><b>Marca:</b> {selectedProduct.brand}</p><p><b>Código:</b> {selectedProduct.sku}</p><p><b>Presentación:</b> {selectedProduct.presentation}</p><p><b>Disponibilidad:</b> {selectedProduct.availability === "disponible" ? "Disponible" : selectedProduct.availability === "pocas_unidades" ? "Pocas unidades" : "Consultar disponibilidad"}</p><p className="photo-note">{productPhoto(selectedProduct) ? "Foto: " + productPhoto(selectedProduct)?.source : "Foto del producto pendiente de confirmar."}</p>{selectedProduct.availability === "consultar" && <div className="notice-box">Te confirmamos la disponibilidad después de recibir tu pedido.</div>}{selectedProduct.is_bulky && <div className="notice-box">Producto voluminoso: se entrega en camión en tu obra o se retira coordinado en el local.</div>}<div className="modal-buy"><div className="modal-buy-price"><small className="price-label">PRECIO DE MUESTRA</small><strong className="modal-price">{money(selectedProduct.price_pyg)}</strong></div><QuantityControl label={selectedProduct.name} value={detailQuantity} onChange={(change) => setDetailQuantity((current) => Math.max(1, Math.min(999, current + change)))} /><button className="button button-yellow button-block button-large" onClick={() => addToCart(selectedProduct, detailQuantity)} aria-label={"Agregar " + detailQuantity + " al carrito"}><Icon name="cart" size={18} /> Agregar<span className="hide-narrow"> al carrito</span></button></div><div className="related-products"><b id="related-title">También te puede servir</b><div role="group" aria-labelledby="related-title">{relatedProducts.map((product) => <button key={product.id} onClick={() => { setSelectedProduct(product); setDetailQuantity(1); }}>{product.name}</button>)}</div></div></div></section></div>}
+      {selectedProduct && <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelectedProduct(null); }}><section className="product-modal" role="dialog" aria-modal="true" aria-labelledby="product-title" ref={modalRef}><button className="modal-close" onClick={() => setSelectedProduct(null)} aria-label="Cerrar ficha"><Icon name="close" /></button><ProductVisual product={selectedProduct} large /><div className="modal-copy"><p className="eyebrow">{selectedProduct.category} · {selectedProduct.subcategory}</p><h2 id="product-title">{selectedProduct.name}</h2><p><b>Marca:</b> {selectedProduct.brand}</p><p><b>Código:</b> {selectedProduct.sku}</p><p><b>Presentación:</b> {selectedProduct.presentation}</p><p><b>Disponibilidad:</b> {selectedProduct.availability === "disponible" ? "Disponible" : selectedProduct.availability === "pocas_unidades" ? "Pocas unidades" : "Consultar disponibilidad"}</p><p className="photo-note">{productPhoto(selectedProduct) ? "Foto: " + productPhoto(selectedProduct)?.source : "Foto del producto pendiente de confirmar."}</p>{selectedProduct.availability === "consultar" && <div className="notice-box">Te confirmamos la disponibilidad después de recibir tu pedido.</div>}{selectedProduct.is_bulky && <div className="notice-box">Producto voluminoso: se entrega en camión en tu obra o se retira coordinado en el local.</div>}<div className="modal-buy"><div className="modal-buy-price"><small className="price-label">PRECIO DE MUESTRA</small><ProductPrice product={selectedProduct} /></div><QuantityControl label={selectedProduct.name} value={detailQuantity} onChange={(change) => setDetailQuantity((current) => Math.max(1, Math.min(999, current + change)))} /><button className="button button-yellow button-block button-large" onClick={() => addToCart(selectedProduct, detailQuantity)} aria-label={"Agregar " + detailQuantity + " al carrito"}><Icon name="cart" size={18} /> Agregar<span className="hide-narrow"> al carrito</span></button></div><div className="related-products"><b id="related-title">También te puede servir</b><div role="group" aria-labelledby="related-title">{relatedProducts.map((product) => <button key={product.id} onClick={() => { setSelectedProduct(product); setDetailQuantity(1); }}>{product.name}</button>)}</div></div></div></section></div>}
       <div className="toast-region" role="status" aria-live="polite">{toast && <div className="toast"><span>{toast}</span><button onClick={() => changeScreen("cart")}>Ir al carrito</button></div>}</div>
       <p className="sr-only" aria-live="polite">{announcement}</p>
     </main>
