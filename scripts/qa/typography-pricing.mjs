@@ -31,22 +31,23 @@ try {
       hasTouch: width <= 680,
     });
     const page = await context.newPage();
-    await context.route("**/*", (route) => {
+    await page.route("**/*", async (route) => {
       const requestUrl = new URL(route.request().url());
       if (requestUrl.hostname === previewHost) {
-        return route.continue({
+        await route.continue({
           headers: {
             ...route.request().headers(),
             "x-vercel-trusted-oidc-idp-token": vercelOidcToken,
           },
         });
+      } else {
+        await route.continue();
       }
-      return route.continue();
     });
     const errors = [];
     page.on("pageerror", (error) => errors.push(error.message));
 
-    const response = await page.goto(previewUrl, { waitUntil: "networkidle", timeout: 90_000 });
+    const response = await page.goto(previewUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
     assert.ok(response && response.ok(), `Preview returned ${response?.status()} at ${width}px`);
     await page.waitForTimeout(1500);
     const initialTitle = await page.title();
@@ -54,7 +55,11 @@ try {
       const diagnosticPath = `${outputDir}/preview-access-${width}.png`;
       await page.screenshot({ path: diagnosticPath, fullPage: true, animations: "disabled" });
       const bodyText = (await page.locator("body").innerText()).replace(/\s+/g, " ").slice(0, 600);
-      throw new Error(`Preview did not render Santa María at ${width}px (URL ${page.url()}, title "${initialTitle}"). Page text: ${bodyText}. Diagnostic screenshot: ${diagnosticPath}`);
+      const responseHeaders = await response.allHeaders();
+      const protectionHeaders = Object.fromEntries(
+        ["x-vercel-protection-reason", "x-vercel-error", "location"].filter((key) => responseHeaders[key]).map((key) => [key, responseHeaders[key]]),
+      );
+      throw new Error(`Preview did not render Santa María at ${width}px (HTTP ${response.status()}, URL ${page.url()}, title "${initialTitle}"). Page text: ${bodyText}. Protection response: ${JSON.stringify(protectionHeaders)}. Diagnostic screenshot: ${diagnosticPath}`);
     }
     await page.evaluate(() => document.fonts.ready);
     await page.evaluate(async () => {
