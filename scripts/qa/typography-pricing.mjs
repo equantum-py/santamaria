@@ -107,6 +107,32 @@ try {
       const bodyText = (await page.locator("body").innerText()).replace(/\s+/g, " ").slice(0, 600);
       throw new Error(`Preview did not render the ecommerce at ${width}px (HTTP ${response.status()}, URL ${page.url()}, title "${title}"). Page text: ${bodyText}. Diagnostic screenshot: ${diagnosticPath}`);
     }
+    const screenshotPath = `${outputDir}/home-${width}.png`;
+    await page.screenshot({ path: screenshotPath, fullPage: true, animations: "disabled" });
+    const typographyDetails = await page.evaluate(() => {
+      const inspect = (selector) => {
+        const element = document.querySelector(selector);
+        if (!element) return null;
+        const style = getComputedStyle(element);
+        return {
+          selector,
+          text: element.textContent?.trim().slice(0, 100),
+          className: typeof element.className === "string" ? element.className : "",
+          fontFamily: style.fontFamily,
+          fontWeight: style.fontWeight,
+          fontSize: style.fontSize,
+          matchedStylesheets: [...document.styleSheets].map((sheet) => sheet.href).filter(Boolean),
+        };
+      };
+      return [
+        inspect(".hero h1"),
+        inspect(".nav-inner > button"),
+        inspect(".product-name"),
+        inspect(".add-button"),
+        inspect(".product-price .price-values strong"),
+      ];
+    });
+    console.log(`Rendered typography at ${width}px: ${JSON.stringify(typographyDetails)}`);
     assert.match(title, /Santa María/i, `Preview is not Santa María at ${width}px: ${title}`);
     assert.ok(!page.url().includes("vercel.com/login") && !/login\s*[–-]\s*vercel/i.test(title),
       `Vercel login appeared instead of the store at ${width}px: ${page.url()} ${title}`);
@@ -143,9 +169,6 @@ try {
     const addButton = firstCard.locator("button.add-button");
     assert.ok(await price.isVisible(), `Current price is not visible at ${width}px`);
     assert.ok(await addButton.isVisible(), `Add button is not visible at ${width}px`);
-    const screenshotPath = `${outputDir}/home-${width}.png`;
-    await page.screenshot({ path: screenshotPath, fullPage: true, animations: "disabled" });
-
     await addButton.click();
     assert.equal((await firstCard.locator(".in-cart-badge").innerText()).trim(), "1", `Add button did not update the cart at ${width}px`);
     const cartButton = page.locator(".cart-button:visible, .mobile-nav button:visible").filter({ hasText: "Carrito" }).first();
