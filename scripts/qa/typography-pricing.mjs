@@ -33,11 +33,10 @@ try {
 
     const response = await page.goto(previewUrl, { waitUntil: "networkidle", timeout: 90_000 });
     assert.ok(response && response.ok(), `Preview returned ${response?.status()} at ${width}px`);
-    await page.locator(".product-card").first().waitFor({ state: "visible", timeout: 30_000 });
+    await page.waitForTimeout(1500);
     await page.evaluate(() => document.fonts.ready);
 
     const title = await page.title();
-    assert.match(title, /Santa María/i, `Preview is not Santa María at ${width}px: ${title}`);
     const pageState = await page.evaluate(() => {
       const bodyFont = getComputedStyle(document.body).fontFamily;
       return {
@@ -48,6 +47,13 @@ try {
         fontLoaded: document.fonts.check(`400 16px ${bodyFont.split(",")[0].trim()}`),
       };
     });
+    if (!pageState.cardCount) {
+      const diagnosticPath = `${outputDir}/preview-access-${width}.png`;
+      await page.screenshot({ path: diagnosticPath, fullPage: true, animations: "disabled" });
+      const bodyText = (await page.locator("body").innerText()).replace(/\\s+/g, " ").slice(0, 600);
+      throw new Error(`Preview did not render the ecommerce at ${width}px (HTTP ${response.status()}, URL ${page.url()}, title "${title}"). Page text: ${bodyText}. Diagnostic screenshot: ${diagnosticPath}`);
+    }
+    assert.match(title, /Santa María/i, `Preview is not Santa María at ${width}px: ${title}`);
     assert.ok(!/Manrope|DM Sans/i.test(pageState.bodyFont), `Legacy font remains at ${width}px: ${pageState.bodyFont}`);
     assert.ok(pageState.fontLoaded, `Inter font did not load at ${width}px: ${pageState.bodyFont}`);
     assert.ok(pageState.documentWidth <= pageState.viewportWidth, `Horizontal overflow at ${width}px: ${pageState.documentWidth}px`);
