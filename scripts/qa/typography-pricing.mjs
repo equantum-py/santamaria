@@ -49,8 +49,14 @@ try {
     const response = await page.goto(previewUrl, { waitUntil: "networkidle", timeout: 90_000 });
     assert.ok(response && response.ok(), `Preview returned ${response?.status()} at ${width}px`);
     await page.waitForTimeout(1500);
+    const initialTitle = await page.title();
+    if (await page.locator(".product-card").count() === 0) {
+      const diagnosticPath = `${outputDir}/preview-access-${width}.png`;
+      await page.screenshot({ path: diagnosticPath, fullPage: true, animations: "disabled" });
+      const bodyText = (await page.locator("body").innerText()).replace(/\s+/g, " ").slice(0, 600);
+      throw new Error(`Preview did not render Santa María at ${width}px (URL ${page.url()}, title "${initialTitle}"). Page text: ${bodyText}. Diagnostic screenshot: ${diagnosticPath}`);
+    }
     await page.evaluate(() => document.fonts.ready);
-    await page.locator(".product-card").first().waitFor({ state: "visible" });
     await page.evaluate(async () => {
       const images = [...document.querySelectorAll(".product-visual img")];
       images.forEach((image) => { image.loading = "eager"; });
