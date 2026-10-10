@@ -23,6 +23,22 @@ jobs:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install project dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Verify production build
+        run: npm run build
+
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --no-save --no-package-lock --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+
       - name: Check whitespace errors
         run: git diff --check origin/main...HEAD
 
@@ -44,6 +60,10 @@ jobs:
                 const { data: statuses } = await github.rest.repos.listDeploymentStatuses({
                   owner, repo, deployment_id: deployment.id, per_page: 20,
                 });
+                const failed = statuses.find((status) => ['failure', 'error'].includes(status.state));
+                if (failed) {
+                  throw new Error(`Vercel Preview failed: ${failed.description || failed.state} ${failed.target_url || ''}`);
+                }
                 const ready = statuses.find((status) =>
                   status.state === 'success' &&
                   status.environment_url &&
@@ -59,22 +79,6 @@ jobs:
               await new Promise((resolve) => setTimeout(resolve, 10000));
             }
             throw new Error(`No successful Vercel Preview found for commit ${sha}`);
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Install project dependencies
-        run: npm install --no-audit --no-fund
-
-      - name: Verify production build
-        run: npm run build
-
-      - name: Install Playwright and Chromium
-        run: |
-          npm install --no-save --no-package-lock --no-audit --no-fund playwright@1.56.1
-          npx playwright install --with-deps chromium
 
       - name: Capture and validate desktop and mobile Preview
         env:
