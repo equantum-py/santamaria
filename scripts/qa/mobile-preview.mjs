@@ -3,7 +3,9 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { chromium } from "playwright";
 
 const previewUrl = process.env.PREVIEW_URL;
+const vercelOidcToken = process.env.VERCEL_OIDC_TOKEN;
 assert.ok(previewUrl, "PREVIEW_URL is required");
+assert.ok(vercelOidcToken, "VERCEL_OIDC_TOKEN is required");
 const parsedUrl = new URL(previewUrl);
 assert.equal(parsedUrl.protocol, "https:", "Preview URL must use HTTPS");
 assert.ok(
@@ -44,10 +46,22 @@ try {
     const page = await context.newPage();
     const consoleErrors = [];
     page.on("pageerror", (error) => consoleErrors.push(error.message));
+    await page.route("**/*", async (route) => {
+      const requestUrl = new URL(route.request().url());
+      if (requestUrl.hostname === parsedUrl.hostname) {
+        await route.continue({
+          headers: {
+            ...route.request().headers(),
+            "x-vercel-trusted-oidc-idp-token": vercelOidcToken,
+          },
+        });
+      } else {
+        await route.continue();
+      }
+    });
 
     const response = await page.goto(previewUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
     const screenshotPath = `${outputDir}/preview-${width}px.png`;
-    await page.screenshot({ path: screenshotPath, fullPage: true, animations: "disabled" });
     try {
       await page.locator("article.product-card").first().waitFor({ state: "visible", timeout: 30_000 });
     } catch (error) {
@@ -63,6 +77,9 @@ try {
       console.error(`Preview page diagnostic: ${JSON.stringify(diagnostics, null, 2)}`);
       throw error;
     }
+
+    assert.equal(response?.status(), 200, `Preview did not return HTTP 200 at ${width}px`);
+    assert.equal(new URL(page.url()).hostname, parsedUrl.hostname, `Preview redirected away from Santa María at ${width}px`);
 
     const viewportResult = await page.evaluate(() => ({
       viewportWidth: window.innerWidth,
@@ -120,6 +137,15 @@ try {
       skuResults.push({ sku, ...image, priceVisible: true, addVisible: true });
     }
 
+    const firstProduct = catalog.products.find((item) => item.sku === activeSkus[0]);
+    const firstCard = page.getByRole("article", { name: firstProduct.name, exact: true });
+    await firstCard.locator("button.add-button").click();
+    const cartBadge = firstCard.locator(".in-cart-badge");
+    await cartBadge.waitFor({ state: "visible", timeout: 5_000 });
+    assert.equal((await cartBadge.innerText()).trim(), "1", `Add button did not add ${activeSkus[0]} at ${width}px`);
+
+    const widthAfterAdd = await page.evaluate(() => document.documentElement.scrollWidth);
+    assert.ok(widthAfterAdd <= width, `Horizontal page overflow after adding to cart at ${width}px: ${widthAfterAdd}px`);
     assert.deepEqual(consoleErrors, [], `Browser errors at ${width}px`);
     await page.screenshot({ path: screenshotPath, fullPage: true, animations: "disabled" });
     results.push({ width, ...viewportResult, skuResults });
