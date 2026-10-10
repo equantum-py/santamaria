@@ -8,7 +8,7 @@ Se configuró `experimental.useTypeScriptCli: false` en `next.config.ts`. Next u
 
 ## QA mobile del Preview
 
-`.github/workflows/mobile-preview-qa.yml` ejecuta primero el build estándar y luego Playwright en GitHub Actions cuando Vercel informa un deployment exitoso de la rama `codex/investigacion-imagenes-productos`. También admite ejecución manual con una URL de Preview. El job usa la URL exacta del deployment reportado por Vercel.
+`.github/workflows/mobile-preview-qa.yml` ejecuta primero el build estándar y luego Playwright en GitHub Actions cuando Vercel informa un deployment exitoso de Santa María. También admite ejecución manual con una URL de Preview. El job usa la URL exacta del deployment reportado por Vercel y el script verifica que pertenezca al dominio Preview de Santa María.
 
 El script `scripts/qa/mobile-preview.mjs` abre el Preview a 430, 390, 375, 360 y 320 px, guarda capturas y un reporte JSON como artefacto `santamaria-mobile-preview-qa`, y valida overflow horizontal, al menos 40 tarjetas, precio y botón Agregar de los 10 SKU activos, carga de sus imágenes, `object-fit: contain`, límites del contenedor y tamaño mínimo de representación.
 

@@ -17,7 +17,6 @@ jobs:
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (github.event.deployment_status.state == 'success' &&
-      github.event.deployment.ref == 'codex/investigacion-imagenes-productos' &&
       contains(github.event.deployment_status.environment_url, 'santamaria'))
     runs-on: ubuntu-latest
     timeout-minutes: 20
