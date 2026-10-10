@@ -91,6 +91,29 @@ try {
       cards: document.querySelectorAll("article.product-card").length,
     }));
     assert.equal(page.viewportSize()?.width, width, `Playwright viewport was not configured to ${width}px`);
+    if (viewportResult.documentWidth > width || viewportResult.bodyWidth > width) {
+      const overflow = await page.evaluate(() => ({
+        viewport: window.innerWidth,
+        document: document.documentElement.scrollWidth,
+        body: document.body.scrollWidth,
+        elements: [...document.querySelectorAll("body *")]
+          .map((element) => {
+            const rect = element.getBoundingClientRect();
+            return {
+              tag: element.tagName,
+              id: element.id,
+              className: typeof element.className === "string" ? element.className : "",
+              left: Math.round(rect.left * 10) / 10,
+              right: Math.round(rect.right * 10) / 10,
+              width: Math.round(rect.width * 10) / 10,
+              scrollWidth: element.scrollWidth,
+            };
+          })
+          .filter((item) => item.left < -1 || item.right > window.innerWidth + 1 || item.scrollWidth > item.width + 1)
+          .slice(0, 30),
+      }));
+      console.error(`Horizontal overflow diagnostics at ${width}px: ${JSON.stringify(overflow)}`);
+    }
     assert.ok(viewportResult.documentWidth <= width, `Horizontal page overflow at ${width}px: ${viewportResult.documentWidth}px`);
     assert.ok(viewportResult.bodyWidth <= width, `Body overflow at ${width}px: ${viewportResult.bodyWidth}px`);
     assert.ok(viewportResult.cards >= 40, `Expected catalog cards at ${width}px`);
