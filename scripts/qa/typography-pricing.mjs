@@ -5,6 +5,9 @@ import { chromium } from "playwright";
 const previewUrl = process.env.PREVIEW_URL;
 assert.ok(previewUrl, "PREVIEW_URL is required");
 const catalog = JSON.parse(await readFile("content/catalog.json", "utf8"));
+const vercelOidcToken = process.env.VERCEL_OIDC_TOKEN;
+assert.ok(vercelOidcToken, "VERCEL_OIDC_TOKEN is required for the protected Preview");
+const previewHost = new URL(previewUrl).hostname;
 const outputDir = "artifacts/typography-pricing";
 await mkdir(outputDir, { recursive: true });
 
@@ -28,6 +31,18 @@ try {
       hasTouch: width <= 680,
     });
     const page = await context.newPage();
+    await context.route("**/*", (route) => {
+      const requestUrl = new URL(route.request().url());
+      if (requestUrl.hostname === previewHost) {
+        return route.continue({
+          headers: {
+            ...route.request().headers(),
+            "x-vercel-trusted-oidc-idp-token": vercelOidcToken,
+          },
+        });
+      }
+      return route.continue();
+    });
     const errors = [];
     page.on("pageerror", (error) => errors.push(error.message));
 
@@ -35,6 +50,12 @@ try {
     assert.ok(response && response.ok(), `Preview returned ${response?.status()} at ${width}px`);
     await page.waitForTimeout(1500);
     await page.evaluate(() => document.fonts.ready);
+    await page.locator(".product-card").first().waitFor({ state: "visible" });
+    await page.evaluate(async () => {
+      const images = [...document.querySelectorAll(".product-visual img")];
+      images.forEach((image) => { image.loading = "eager"; });
+      await Promise.all(images.map((image) => image.decode().catch(() => undefined)));
+    });
 
     const title = await page.title();
     const pageState = await page.evaluate(() => {
@@ -45,6 +66,28 @@ try {
         viewportWidth: window.innerWidth,
         cardCount: document.querySelectorAll(".product-card").length,
         fontLoaded: document.fonts.check(`400 16px ${bodyFont.split(",")[0].trim()}`),
+        weights: {
+          heading: getComputedStyle(document.querySelector("h1")).fontWeight,
+          navigation: getComputedStyle(document.querySelector(".nav-inner > button")).fontWeight,
+          productName: getComputedStyle(document.querySelector(".product-name")).fontWeight,
+          addButton: getComputedStyle(document.querySelector(".add-button")).fontWeight,
+          currentPrice: getComputedStyle(document.querySelector(".product-price .price-values strong")).fontWeight,
+        },
+        rows: [...document.querySelectorAll(".product-row")].map((row) => {
+          const cards = [...row.querySelectorAll(".product-card")];
+          const firstImage = cards[0]?.querySelector(".product-visual img");
+          const loadedImages = cards.filter((card) => {
+            const image = card.querySelector(".product-visual img");
+            return image && image.complete && image.naturalWidth > 0 &&
+              getComputedStyle(image).objectFit === "contain";
+          }).length;
+          return {
+            category: row.getAttribute("aria-label"),
+            firstCardHasLoadedImage: Boolean(firstImage && firstImage.complete && firstImage.naturalWidth > 0 &&
+              getComputedStyle(firstImage).objectFit === "contain"),
+            loadedImages,
+          };
+        }),
       };
     });
     if (!pageState.cardCount) {
@@ -54,8 +97,17 @@ try {
       throw new Error(`Preview did not render the ecommerce at ${width}px (HTTP ${response.status()}, URL ${page.url()}, title "${title}"). Page text: ${bodyText}. Diagnostic screenshot: ${diagnosticPath}`);
     }
     assert.match(title, /Santa María/i, `Preview is not Santa María at ${width}px: ${title}`);
+    assert.ok(!/vercel\\.com\\/login/i.test(page.url()) && !/login\\s*[–-]\\s*vercel/i.test(title),
+      `Vercel login appeared instead of the store at ${width}px: ${page.url()} ${title}`);
     assert.ok(!/Manrope|DM Sans/i.test(pageState.bodyFont), `Legacy font remains at ${width}px: ${pageState.bodyFont}`);
     assert.ok(pageState.fontLoaded, `Inter font did not load at ${width}px: ${pageState.bodyFont}`);
+    assert.deepEqual(pageState.weights, { heading: "600", navigation: "500", productName: "500", addButton: "500", currentPrice: "600" },
+      `Unexpected typography weights at ${width}px`);
+    for (const row of pageState.rows) {
+      const rowHasPhotos = row.loadedImages > 0;
+      assert.ok(!rowHasPhotos || row.firstCardHasLoadedImage,
+        `Products with photos are not prioritized in this Home section at ${width}px: ${row.category}`);
+    }
     assert.ok(pageState.documentWidth <= pageState.viewportWidth, `Horizontal overflow at ${width}px: ${pageState.documentWidth}px`);
     assert.ok(pageState.cardCount > 0, `No ecommerce product cards rendered at ${width}px`);
 
@@ -63,11 +115,14 @@ try {
       const promotion = validPromotion(product);
       const card = page.getByRole("article", { name: product.name, exact: true }).first();
       if (await card.count()) {
+        const currentPriceText = (await card.locator(".product-price .price-values strong").innerText()).replace(/\\D/g, "");
+        assert.equal(currentPriceText, String(product.price_pyg), `${product.sku}: current card price differs from price_pyg`);
         if (promotion) {
           await card.locator(".product-discount-badge").filter({ hasText: `-${promotion.percent}% OFF` }).waitFor({ state: "visible" });
-          assert.ok(await card.locator(".price-values s").count(), `${product.sku}: previous price missing`);
-        } else if (product.compare_at_price_pyg !== undefined) {
-          assert.equal(await card.locator(".product-discount-badge").count(), 0, `${product.sku}: invalid promotion must stay hidden`);
+          assert.ok(await card.locator(".product-price .price-values s").count(), `${product.sku}: previous price missing from card`);
+        } else {
+          assert.equal(await card.locator(".product-discount-badge").count(), 0, `${product.sku}: invalid or absent promotion must stay hidden`);
+          assert.equal(await card.locator(".product-price .price-values s").count(), 0, `${product.sku}: invalid or absent previous price must stay hidden`);
         }
       }
     }
