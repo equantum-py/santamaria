@@ -12,7 +12,7 @@ Se revisaron los 40 SKU bajo la regla nueva: **A — producto de marca/modelo**,
 - **0 NECESITA CONFIRMACIÓN**: los productos genéricos no se bloquean por falta de marca. Los detalles de variante que la foto no puede probar quedan señalados dentro de la revisión.
 - **19 SIN RESULTADO**: las fotografías candidatas consultadas no representaron el producto con suficiente fidelidad.
 
-El grupo B suma 31 SKU: 12 LISTO y 19 SIN RESULTADO. El grupo A suma 9 SKU: 2 LISTO y 7 CANDIDATO. Hay **14 de 40 productos con imagen habilitada**; 12 imágenes nuevas están almacenadas localmente. Dos SKU de varillas comparten una foto genérica de hierro corrugado. La fotografía no permite verificar diámetro, color, presentación ni marca; no atribuir esos detalles al producto desde la imagen.
+El grupo B suma 31 SKU: 12 LISTO y 19 SIN RESULTADO. El grupo A suma 9 SKU: 2 LISTO y 7 CANDIDATO. Hay **14 de 40 productos con imagen habilitada**; 11 archivos de imagen locales cubren esos 12 SKU genéricos. Dos SKU de varillas comparten una foto genérica de hierro corrugado. La fotografía no permite verificar diámetro, color, presentación ni marca; no atribuir esos detalles al producto desde la imagen.
 
 ## Fuentes y licencia de los archivos integrados
 
@@ -76,7 +76,7 @@ No se detuvo la búsqueda por falta de marca. Se buscaron y compararon fotograf�
 
 ## Alcance y límites
 
-Se modificaron únicamente 12 rutas de imagen en `content/catalog.json` y se agregaron fotos locales/atribuciones e informe. No se tocaron nombres, precios, categorías, inventario, promociones, diseño, componentes, tarjetas, botones, buscador, carrito ni checkout. Las fotos genéricas representan la clase de producto; no demuestran las medidas exactas, el stock, la marca, el acabado ni la presentación que comercializa Santa María.
+Se incorporaron o actualizaron imágenes locales para 12 SKU mediante 11 archivos. Cambiaron las rutas de imagen de 11 productos; para el ladrillo común se reemplazó el archivo bajo una ruta ya existente. También se agregaron atribuciones e informe. No se tocaron nombres, precios, categorías, inventario, promociones, diseño, componentes, tarjetas, botones, buscador, carrito ni checkout. Las fotos genéricas representan la clase de producto; no demuestran las medidas exactas, el stock, la marca, el acabado ni la presentación que comercializa Santa María.
 
 **Estado final por SKU**
 
