@@ -1,7 +1,7 @@
 import catalog from "@/content/catalog.json";
 import deliveryData from "@/content/delivery-zones.json";
 
-export type CatalogProduct = (typeof catalog.products)[number];
+export type CatalogProduct = (typeof catalog.products)[number] & { compare_at_price_pyg?: number };
 export type ProductCategory = (typeof catalog.categories)[number];
 export type DeliveryZone = (typeof deliveryData.zones)[number];
 export type PickupInfo = typeof deliveryData.pickup;
@@ -70,6 +70,30 @@ export const zones = deliveryData.zones as DeliveryZone[];
 export const pickup = deliveryData.pickup;
 export const fictitiousNotice = catalog._meta.notice;
 export const availabilityLabels: Record<string, string> = catalog._meta.availability_values;
+
+export type ProductPricing = {
+  currentPrice: number;
+  previousPrice: number | null;
+  discountPercent: number | null;
+};
+
+/** Validates optional comparison pricing without changing the current checkout price. */
+export function getProductPricing(product: { price_pyg: number; compare_at_price_pyg?: unknown }): ProductPricing {
+  const currentPrice = product.price_pyg;
+  const previousCandidate = product.compare_at_price_pyg;
+  if (!Number.isSafeInteger(currentPrice) || currentPrice <= 0 ||
+      typeof previousCandidate !== "number" || !Number.isSafeInteger(previousCandidate) ||
+      previousCandidate <= currentPrice) {
+    return { currentPrice, previousPrice: null, discountPercent: null };
+  }
+
+  const discountPercent = Math.round(((previousCandidate - currentPrice) / previousCandidate) * 100);
+  if (discountPercent < 1 || discountPercent > 100) {
+    return { currentPrice, previousPrice: null, discountPercent: null };
+  }
+
+  return { currentPrice, previousPrice: previousCandidate, discountPercent };
+}
 
 export function money(amount: number): string {
   return `Gs. ${new Intl.NumberFormat("es-PY", { maximumFractionDigits: 0 }).format(amount)}`;
