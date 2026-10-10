@@ -10,10 +10,20 @@ const VERIFIED_IMAGE_SOURCES: Record<string, string> = {
   "SM-SAN-004": "Publicada por Santa María en su exhibidor de Construex",
 };
 
+const VERIFIED_LOCAL_IMAGES = new Set([
+  "/images/products/cuchara-de-albanil-8-pulgadas.jpg",
+  "/images/products/tarugos-plasticos-8-mm.jpg",
+  "/images/products/piedra-triturada-6ta.jpg",
+  "/images/products/ladrillo-comun.jpg",
+  "/images/products/varillas-corrugadas.jpg",
+  "/images/products/cano-corrugado-3-4-pulgada.jpg",
+  "/images/products/llave-de-luz-simple-con-placa.jpg",
+]);
+
 export type ProductPhoto = { src: string; source: string } | null;
 
 export function productPhoto(product: CatalogProduct): ProductPhoto {
-  if (product.image.startsWith("/")) return { src: product.image, source: "Archivo de Santa María" };
+  if (VERIFIED_LOCAL_IMAGES.has(product.image)) return { src: product.image, source: "Archivo de Santa María" };
   const source = VERIFIED_IMAGE_SOURCES[product.sku];
   return source && product.image.startsWith("http") ? { src: product.image, source } : null;
 }
