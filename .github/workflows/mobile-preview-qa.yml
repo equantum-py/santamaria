@@ -1,0 +1,58 @@
+name: Mobile Preview QA
+
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      preview_url:
+        description: Vercel Preview URL for Santa María
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  mobile-preview:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.deployment_status.state == 'success' &&
+      github.event.deployment.ref == 'codex/investigacion-imagenes-productos' &&
+      contains(github.event.deployment_status.environment_url, 'santamaria'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out deployed commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.sha || github.event.deployment.sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install project dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Verify standard production build
+        run: npm run build
+
+      - name: Install pinned Playwright and Chromium
+        run: |
+          npm install --no-save --no-package-lock --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+
+      - name: Test and capture Preview at mobile widths
+        env:
+          PREVIEW_URL: ${{ inputs.preview_url || github.event.deployment_status.environment_url }}
+        run: node scripts/qa/mobile-preview.mjs
+
+      - name: Upload mobile screenshots and report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: santamaria-mobile-preview-qa
+          path: artifacts/mobile/
+          if-no-files-found: warn
+          retention-days: 30
