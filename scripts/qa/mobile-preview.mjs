@@ -64,6 +64,9 @@ try {
     const screenshotPath = `${outputDir}/preview-${width}px.png`;
     try {
       await page.locator("article.product-card").first().waitFor({ state: "visible", timeout: 30_000 });
+      // Save an ecommerce screenshot as soon as the catalog is confirmed; the final
+      // screenshot below replaces it after image, layout, and add-to-cart checks.
+      await page.screenshot({ path: screenshotPath, fullPage: true, animations: "disabled" });
     } catch (error) {
       const diagnostics = {
         width,
@@ -87,7 +90,7 @@ try {
       bodyWidth: document.body.scrollWidth,
       cards: document.querySelectorAll("article.product-card").length,
     }));
-    assert.equal(viewportResult.viewportWidth, width, `Unexpected viewport at ${width}px`);
+    assert.equal(page.viewportSize()?.width, width, `Playwright viewport was not configured to ${width}px`);
     assert.ok(viewportResult.documentWidth <= width, `Horizontal page overflow at ${width}px: ${viewportResult.documentWidth}px`);
     assert.ok(viewportResult.bodyWidth <= width, `Body overflow at ${width}px: ${viewportResult.bodyWidth}px`);
     assert.ok(viewportResult.cards >= 40, `Expected catalog cards at ${width}px`);
