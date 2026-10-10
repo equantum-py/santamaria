@@ -520,6 +520,14 @@ function ProductRow({ category, items, cart, onOpen, onAdd, onSeeAll, onSubcateg
   );
 }
 
+function homeProductsForCategory(categoryId: string): CatalogProduct[] {
+  return products
+    .filter((product) => product.category_id === categoryId)
+    .map((product, index) => ({ product, index, hasImage: productPhoto(product) !== null }))
+    .sort((a, b) => Number(b.hasImage) - Number(a.hasImage) || a.index - b.index)
+    .map(({ product }) => product);
+}
+
 export default function Home() {
   const [screen, setScreen] = useState<Screen>("store");
   const [categoryId, setCategoryId] = useState("");
@@ -894,11 +902,11 @@ export default function Home() {
                 ))}
               </nav>
 
-              <ProductRow category={categories.find((category) => category.id === "ferreteria")!} items={products.filter((product) => product.category_id === "ferreteria")} cart={cart} onOpen={openProduct} onAdd={addToCart} onSeeAll={() => selectCategory("ferreteria")} onSubcategory={(id) => selectSubcategory("ferreteria", id)} />
-              <ProductRow category={categories.find((category) => category.id === "sanitarios")!} items={products.filter((product) => product.category_id === "sanitarios")} cart={cart} onOpen={openProduct} onAdd={addToCart} onSeeAll={() => selectCategory("sanitarios")} onSubcategory={(id) => selectSubcategory("sanitarios", id)} />
+              <ProductRow category={categories.find((category) => category.id === "ferreteria")!} items={homeProductsForCategory("ferreteria")} cart={cart} onOpen={openProduct} onAdd={addToCart} onSeeAll={() => selectCategory("ferreteria")} onSubcategory={(id) => selectSubcategory("ferreteria", id)} />
+              <ProductRow category={categories.find((category) => category.id === "sanitarios")!} items={homeProductsForCategory("sanitarios")} cart={cart} onOpen={openProduct} onAdd={addToCart} onSeeAll={() => selectCategory("sanitarios")} onSubcategory={(id) => selectSubcategory("sanitarios", id)} />
               <BankPromotions />
-              <ProductRow category={categories.find((category) => category.id === "construccion")!} items={products.filter((product) => product.category_id === "construccion")} cart={cart} onOpen={openProduct} onAdd={addToCart} onSeeAll={() => selectCategory("construccion")} onSubcategory={(id) => selectSubcategory("construccion", id)} />
-              <ProductRow category={categories.find((category) => category.id === "electricos")!} items={products.filter((product) => product.category_id === "electricos")} cart={cart} onOpen={openProduct} onAdd={addToCart} onSeeAll={() => selectCategory("electricos")} onSubcategory={(id) => selectSubcategory("electricos", id)} />
+              <ProductRow category={categories.find((category) => category.id === "construccion")!} items={homeProductsForCategory("construccion")} cart={cart} onOpen={openProduct} onAdd={addToCart} onSeeAll={() => selectCategory("construccion")} onSubcategory={(id) => selectSubcategory("construccion", id)} />
+              <ProductRow category={categories.find((category) => category.id === "electricos")!} items={homeProductsForCategory("electricos")} cart={cart} onOpen={openProduct} onAdd={addToCart} onSeeAll={() => selectCategory("electricos")} onSubcategory={(id) => selectSubcategory("electricos", id)} />
               <PromoBanners selectCategory={selectCategory} />
             </>
           )}
