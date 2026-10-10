@@ -146,6 +146,7 @@ function ProductPrice({ product, compact = false }: { product: CatalogProduct; c
 function ProductVisual({ product, large = false }: { product: CatalogProduct; large?: boolean }) {
   const [failed, setFailed] = useState(false);
   const photo = productPhoto(product);
+  const promotion = getProductPricing(product);
   return (
     <div className={large ? "product-visual product-visual-large" : "product-visual"}>
       {photo && !failed
