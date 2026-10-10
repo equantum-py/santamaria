@@ -23,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es-PY">
-      <body className={inter.className}>{children}</body>
+      <body className={`${inter.className} ${inter.variable}`}>{children}</body>
     </html>
   );
 }
