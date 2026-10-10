@@ -89,6 +89,11 @@ try {
       documentWidth: document.documentElement.scrollWidth,
       bodyWidth: document.body.scrollWidth,
       cards: document.querySelectorAll("article.product-card").length,
+      firstRowCardRects: [...(document.querySelector(".product-row")?.querySelectorAll("article.product-card") ?? [])]
+        .map((card) => {
+          const rect = card.getBoundingClientRect();
+          return { top: rect.top, width: rect.width, height: rect.height };
+        }),
     }));
     assert.equal(page.viewportSize()?.width, width, `Playwright viewport was not configured to ${width}px`);
     if (viewportResult.documentWidth > width || viewportResult.bodyWidth > width) {
@@ -117,6 +122,12 @@ try {
     assert.ok(viewportResult.documentWidth <= width, `Horizontal page overflow at ${width}px: ${viewportResult.documentWidth}px`);
     assert.ok(viewportResult.bodyWidth <= width, `Body overflow at ${width}px: ${viewportResult.bodyWidth}px`);
     assert.ok(viewportResult.cards >= 40, `Expected catalog cards at ${width}px`);
+    assert.ok(viewportResult.firstRowCardRects.length >= 2, `Expected aligned product cards at ${width}px`);
+    const firstRow = viewportResult.firstRowCardRects;
+    assert.ok(
+      firstRow.every((card) => Math.abs(card.top - firstRow[0].top) <= 1 && Math.abs(card.width - firstRow[0].width) <= 1),
+      `Product cards are not aligned in the first mobile carousel at ${width}px`,
+    );
 
     const skuResults = [];
     for (const sku of activeSkus) {
