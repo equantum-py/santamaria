@@ -779,7 +779,7 @@
       "search_terms": [
         "ladrillo"
       ],
-      "image": "images/products/ladrillo-comun.jpg",
+      "image": "/images/products/ladrillo-comun.jpg",
       "is_fictitious": true,
       "is_store_confirmed": false,
       "price_is_fictitious": true,
