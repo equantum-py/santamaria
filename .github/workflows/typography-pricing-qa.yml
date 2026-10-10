@@ -93,6 +93,7 @@ jobs:
       - name: Capture and validate desktop and mobile Preview
         env:
           PREVIEW_URL: ${{ steps.preview.outputs.url }}
+          VERCEL_OIDC_TOKEN: ${{ steps.vercel_oidc.outputs.token }}
         run: node scripts/qa/typography-pricing.mjs
 
       - name: Upload screenshots and report
