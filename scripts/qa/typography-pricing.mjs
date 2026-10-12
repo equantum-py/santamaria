@@ -167,7 +167,7 @@ try {
         assert.equal(currentPriceText, String(product.price_pyg), `${product.sku}: current card price differs from price_pyg`);
         if (promotion) {
           await card.locator(".product-discount-badge").filter({ hasText: `-${promotion.percent}% OFF` }).waitFor({ state: "visible" });
-          const previousText = (await card.locator(".product-price .price-values s").innerText()).replace(/\\D/g, "");
+          const previousText = (await card.locator(".product-price .price-values s").innerText()).replace(/\D/g, "");
           assert.equal(previousText, String(promotion.previous), `${product.sku}: previous price differs from the demo data`);
           assert.equal(
             (await card.locator(".product-discount-badge").innerText()).trim(),
