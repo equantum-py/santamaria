@@ -1,0 +1,76 @@
+name: Santa Maria Admin E02-C Orders and Quotes QA
+
+on:
+  push:
+    branches:
+      - codex/santamaria-admin-e02c
+  pull_request:
+    branches:
+      - codex/santamaria-admin-e02b
+
+permissions:
+  contents: read
+
+jobs:
+  orders-and-quotes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install project dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Run E02-C domain tests
+        run: npm run test:admin-e02c
+
+      - name: Run shared admin domain tests
+        run: npm run test:admin-domain
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Production build
+        run: npm run build
+
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --no-save --no-package-lock --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+
+      - name: Start production server
+        run: npm run start -- --hostname 127.0.0.1 --port 4173 > /tmp/santamaria-admin-e02c.log 2>&1 &
+
+      - name: Wait for production server
+        run: |
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4173/admin/pedidos > /dev/null; then exit 0; fi
+            sleep 2
+          done
+          cat /tmp/santamaria-admin-e02c.log
+          exit 1
+
+      - name: Run orders, quotes, conversion, and responsive flows
+        env:
+          ADMIN_BASE_URL: http://127.0.0.1:4173
+        run: node scripts/qa/admin-e02c.mjs
+
+      - name: Check patch whitespace
+        run: git diff --check origin/codex/santamaria-admin-e02b...HEAD
+
+      - name: Upload screenshots and report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: santamaria-admin-e02c-qa
+          path: artifacts/admin-e02c/
+          if-no-files-found: warn
+          retention-days: 30
