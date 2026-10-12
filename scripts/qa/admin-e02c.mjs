@@ -35,11 +35,11 @@ try {
       await page.getByLabel("Cantidad del producto").fill("2");
       await page.getByRole("button", { name: "Agregar línea" }).click();
       await page.getByRole("button", { name: "Crear presupuesto demo" }).click();
-      await page.getByRole("status").filter({ hasText: "creado en la demo" }).waitFor({ state: "visible" });
+      await page.locator(".quote-editor-panel").getByRole("status").filter({ hasText: "creado en la demo" }).waitFor({ state: "visible" });
       await page.getByRole("button", { name: "Marcar enviado" }).click();
       await page.getByRole("button", { name: "Aceptar" }).click();
       await page.getByRole("button", { name: "Convertir una vez a pedido" }).click();
-      await page.getByRole("status").filter({ hasText: "convertido al pedido" }).waitFor({ state: "visible" });
+      await page.locator(".quote-detail-panel").getByRole("status").filter({ hasText: "convertido al pedido" }).waitFor({ state: "visible" });
       assert.match(await page.locator(".quote-detail-panel").innerText(), /no puede repetirse/i);
       const orderNumber = (await page.locator(".quote-detail-panel").innerText()).match(/DEM-PED-\d+/)?.[0];
       assert.ok(orderNumber, "Quote conversion exposes the created order number");
@@ -54,7 +54,7 @@ try {
       await page.getByText(orderNumber, { exact: true }).first().click();
       await page.getByLabel("Nuevo estado").selectOption("confirmed");
       await page.getByRole("button", { name: "Guardar estado" }).click();
-      await page.getByRole("status").filter({ hasText: "Confirmado" }).waitFor({ state: "visible" });
+      await page.locator(".order-detail-panel").getByRole("status").filter({ hasText: "Confirmado" }).waitFor({ state: "visible" });
       await page.getByPlaceholder("La observación quedará en el historial.").fill("Coordinar retiro de demostración");
       await page.getByRole("button", { name: "Guardar observación" }).click();
       await page.getByText("Coordinar retiro de demostración").waitFor({ state: "visible" });
