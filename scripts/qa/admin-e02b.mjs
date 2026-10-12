@@ -85,7 +85,7 @@ try {
     if ([1440, 390].includes(width)) await page.screenshot({ path: `${output}/cash-arqueo-${width}.png`, fullPage: true });
     await page.getByRole("button", { name: "Confirmar cierre de caja" }).click();
     await page.getByRole("status").filter({ hasText: "Caja cerrada" }).waitFor({ state: "visible" });
-    assert.ok(await page.locator(".cash-history").getByText("Cerrada").isVisible());
+    assert.ok(await page.locator(".cash-history").getByRole("cell", { name: "Cerrada", exact: true }).isVisible());
     if ([1440, 390].includes(width)) await page.screenshot({ path: `${output}/cash-closed-${width}.png`, fullPage: true });
     await page.goto(`${baseUrl}/admin/pos`, { waitUntil: "networkidle" });
     assert.equal(await page.getByRole("button", { name: "Confirmar venta" }).isDisabled(), true, "Closed register blocks POS sales");
