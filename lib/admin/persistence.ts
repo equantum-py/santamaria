@@ -1,4 +1,5 @@
 import { createInitialDemoState } from "./demo-state.ts";
+import type { AdminProductRecord, DemoOrder } from "./types";
 import type { DemoProduct, DemoState } from "./types";
 
 export const DEMO_STORAGE_KEY = "santamaria-admin-demo:v1";
@@ -34,7 +35,8 @@ export function loadDemoState(storage: StorageLike | null, now = new Date().toIS
     const parsed: unknown = JSON.parse(raw);
     if (isDemoState(parsed)) return { state: parsed, source: "saved" };
     if (isLegacyDemoState(parsed)) {
-      const migrated: DemoState = { ...parsed, schemaVersion: 2, inventory: createInitialDemoState(now, catalog).inventory, inventoryMovements: [], counters: { ...parsed.counters, inventoryMovement: 0 } };
+      const inventory = migrateLegacyInventory(createInitialDemoState(now, catalog).inventory, parsed.orders);
+      const migrated: DemoState = { ...parsed, schemaVersion: 2, inventory, inventoryMovements: [], counters: { ...parsed.counters, inventoryMovement: 0 } };
       return { state: migrated, source: "migrated" };
     }
     return { state: createInitialDemoState(now, catalog), source: "recovered" };
@@ -130,4 +132,24 @@ function isLegacyDemoState(value: unknown): value is Omit<DemoState, "schemaVers
     && Array.isArray(state.orders) && Array.isArray(state.quotes) && Array.isArray(state.activities)
     && Array.isArray(state.processedOperationIds) && Boolean(counters)
     && [counters?.cash, counters?.sale, counters?.order, counters?.quote, counters?.movement].every((n) => typeof n === "number" && Number.isSafeInteger(n) && n >= 0);
+}
+
+// The demo seed represents an opening stock snapshot at migration time. Legacy completed
+// sales/deliveries are preserved as history, NOT replayed against that new snapshot.
+// Outstanding confirmed orders must, however, keep their stock reservations.
+function migrateLegacyInventory(seed: AdminProductRecord[], orders: DemoOrder[]): AdminProductRecord[] {
+  const reservations = new Map<string, number>();
+  for (const order of orders) {
+    if (!["confirmed", "preparing", "ready", "en_route"].includes(order.status)) continue;
+    for (const line of order.lines) {
+      if (!Number.isSafeInteger(line.quantity) || line.quantity <= 0) throw new DemoPersistenceError("El pedido anterior contiene cantidades inválidas.");
+      reservations.set(line.productId, (reservations.get(line.productId) ?? 0) + line.quantity);
+    }
+  }
+  const ids = new Set(seed.map((product) => product.productId));
+  for (const id of reservations.keys()) if (!ids.has(id)) throw new DemoPersistenceError("No se puede migrar un pedido reservado cuyo producto no existe en el catálogo demo.");
+  return seed.map((product) => {
+    const reserved = reservations.get(product.productId) ?? 0;
+    return { ...product, stockReserved: reserved, stockOnHand: Math.max(product.stockOnHand, reserved) };
+  });
 }
