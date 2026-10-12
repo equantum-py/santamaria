@@ -1,0 +1,55 @@
+name: Santa Maria Admin Stage 01 QA
+
+on:
+  push:
+    branches:
+      - codex/santamaria-admin-demo
+
+permissions:
+  contents: read
+
+jobs:
+  admin-stage-01:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install project dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build
+        run: npm run build
+
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --no-save --no-package-lock --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+
+      - name: Start local production build
+        run: npm run start -- --hostname 127.0.0.1 --port 4173 > /tmp/santamaria-admin.log 2>&1 &
+
+      - name: Capture and verify admin desktop and mobile
+        env:
+          ADMIN_BASE_URL: http://127.0.0.1:4173
+        run: node scripts/qa/admin-stage01.mjs
+
+      - name: Check whitespace errors
+        run: git diff --check origin/main...HEAD
+
+      - name: Upload screenshots and report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: santamaria-admin-stage01-qa
+          path: artifacts/admin-stage01/
+          if-no-files-found: warn
+          retention-days: 30
