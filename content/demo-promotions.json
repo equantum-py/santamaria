@@ -6,8 +6,32 @@
   },
   "products": [
     {
+      "sku": "SM-FER-001",
+      "compare_at_price_pyg": 50000
+    },
+    {
+      "sku": "SM-FER-002",
+      "compare_at_price_pyg": 32941
+    },
+    {
       "sku": "SM-FER-003",
       "compare_at_price_pyg": 38889
+    },
+    {
+      "sku": "SM-FER-004",
+      "compare_at_price_pyg": 77500
+    },
+    {
+      "sku": "SM-FER-005",
+      "compare_at_price_pyg": 520000
+    },
+    {
+      "sku": "SM-FER-006",
+      "compare_at_price_pyg": 492857
+    },
+    {
+      "sku": "SM-FER-007",
+      "compare_at_price_pyg": 27778
     },
     {
       "sku": "SM-FER-008",
@@ -18,8 +42,68 @@
       "compare_at_price_pyg": 525000
     },
     {
+      "sku": "SM-FER-010",
+      "compare_at_price_pyg": 37647
+    },
+    {
+      "sku": "SM-SAN-001",
+      "compare_at_price_pyg": 1112500
+    },
+    {
+      "sku": "SM-SAN-002",
+      "compare_at_price_pyg": 693333
+    },
+    {
+      "sku": "SM-SAN-003",
+      "compare_at_price_pyg": 107143
+    },
+    {
       "sku": "SM-SAN-004",
       "compare_at_price_pyg": 346667
+    },
+    {
+      "sku": "SM-SAN-005",
+      "compare_at_price_pyg": 205556
+    },
+    {
+      "sku": "SM-SAN-006",
+      "compare_at_price_pyg": 44706
+    },
+    {
+      "sku": "SM-SAN-007",
+      "compare_at_price_pyg": 156250
+    },
+    {
+      "sku": "SM-SAN-008",
+      "compare_at_price_pyg": 5333
+    },
+    {
+      "sku": "SM-SAN-009",
+      "compare_at_price_pyg": 68571
+    },
+    {
+      "sku": "SM-SAN-010",
+      "compare_at_price_pyg": 1277778
+    },
+    {
+      "sku": "SM-CON-001",
+      "compare_at_price_pyg": 72941
+    },
+    {
+      "sku": "SM-CON-002",
+      "compare_at_price_pyg": 60000
+    },
+    {
+      "sku": "SM-CON-003",
+      "compare_at_price_pyg": 40000
+    },
+    {
+      "sku": "SM-CON-004",
+      "compare_at_price_pyg": 78571
+    },
+    {
+      "sku": "SM-CON-005",
+      "compare_at_price_pyg": 177778
     },
     {
       "sku": "SM-CON-006",
@@ -30,6 +114,10 @@
       "compare_at_price_pyg": 1000000
     },
     {
+      "sku": "SM-CON-008",
+      "compare_at_price_pyg": 2176471
+    },
+    {
       "sku": "SM-CON-009",
       "compare_at_price_pyg": 61176
     },
@@ -38,12 +126,44 @@
       "compare_at_price_pyg": 100000
     },
     {
+      "sku": "SM-ELE-001",
+      "compare_at_price_pyg": 512500
+    },
+    {
+      "sku": "SM-ELE-002",
+      "compare_at_price_pyg": 353333
+    },
+    {
       "sku": "SM-ELE-003",
       "compare_at_price_pyg": 86667
     },
     {
       "sku": "SM-ELE-004",
       "compare_at_price_pyg": 31429
+    },
+    {
+      "sku": "SM-ELE-005",
+      "compare_at_price_pyg": 40000
+    },
+    {
+      "sku": "SM-ELE-006",
+      "compare_at_price_pyg": 50000
+    },
+    {
+      "sku": "SM-ELE-007",
+      "compare_at_price_pyg": 141176
+    },
+    {
+      "sku": "SM-ELE-008",
+      "compare_at_price_pyg": 85000
+    },
+    {
+      "sku": "SM-ELE-009",
+      "compare_at_price_pyg": 286667
+    },
+    {
+      "sku": "SM-ELE-010",
+      "compare_at_price_pyg": 135714
     }
   ]
 }

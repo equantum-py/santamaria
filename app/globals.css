@@ -490,13 +490,17 @@ a.partner-logo:hover{border-color:var(--terra)}
 .product-price{display:grid;gap:6px;padding-top:14px;border-top:1px solid var(--line)}
 .price-values{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 8px;min-width:0}
 .price-values s{color:var(--muted);font:400 13px/1.2 var(--body);text-decoration-thickness:1px}
-.price-values strong{font:600 24px/1.1 var(--head);color:var(--brown);letter-spacing:-.01em}
+.price-values strong{font:600 24px/1.1 var(--head);color:#E60012;letter-spacing:-.01em}
 .price-values-compact{gap:3px 6px}
 .price-values-compact s{font-size:12px}
 .price-values-compact strong{font-size:14px}
 .price-discount{color:var(--terra);font-size:12px;font-weight:600;white-space:nowrap}
-.discount-badge{display:inline-flex;align-items:center;justify-content:center;padding:5px 8px;border-radius:6px;background:var(--yellow);color:var(--brown-deep);font-size:12px;line-height:1;font-weight:600;letter-spacing:.01em}
-.product-discount-badge{position:absolute;z-index:2;top:12px;left:12px;box-shadow:0 1px 2px rgba(40,28,22,.08)}
+.discount-badge{display:inline-flex;align-items:center;justify-content:center;padding:5px 8px;border-radius:6px;background:#E60012;color:#fff;font:700 12px/1 var(--body);letter-spacing:.01em;white-space:nowrap}
+.product-discount-badge{position:absolute;z-index:2;top:12px;left:12px;pointer-events:none;transform:rotate(-5deg);transform-origin:center;box-shadow:0 1px 2px rgba(40,28,22,.08);transition:scale 180ms ease;animation:discount-enter 400ms cubic-bezier(.2,.8,.25,1.15) both,discount-pulse 3s ease-in-out var(--discount-delay,.6s) infinite}
+@keyframes discount-enter{0%{opacity:0;transform:scale(.85) rotate(-5deg)}70%{opacity:1;transform:scale(1.05) rotate(-5deg)}100%{opacity:1;transform:scale(1) rotate(-5deg)}}
+@keyframes discount-pulse{0%,100%{transform:scale(1) rotate(-5deg)}50%{transform:scale(1.025) rotate(-5deg)}}
+.product-card:hover .product-discount-badge{scale:1.06}
+@media(prefers-reduced-motion:reduce){.product-discount-badge{animation:none!important;scale:none!important;transition:none!important}}
 .cart-unit-price{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px;color:var(--muted);font-size:13px}
 .cart-unit-price .price-values strong{font-size:14px}
 .modal-buy-price .price-values strong{font-size:32px}

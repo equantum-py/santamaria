@@ -9,7 +9,10 @@ const demoPricing = JSON.parse(await readFile("content/demo-promotions.json", "u
 assert.equal(demoPricing._meta.is_fictitious, true, "Demo price file must stay marked fictitious");
 assert.equal(demoPricing._meta.scope, "preview-only", "Demo price file must be Preview only");
 const demoPreviousPrices = new Map(demoPricing.products.map((item) => [item.sku, item.compare_at_price_pyg]));
-assert.equal(demoPreviousPrices.size, 10, "Expected 10 demonstrative discount entries");
+assert.equal(demoPreviousPrices.size, 40, "Expected 40 demonstrative discount entries");
+assert.deepEqual([...demoPreviousPrices.keys()].sort(), catalog.products.map((product) => product.sku).sort(),
+  "Every catalog product must have exactly one demonstrative discount");
+const expectedDiscounts = new Set([10, 15, 20, 25, 30]);
 const vercelOidcToken = process.env.VERCEL_OIDC_TOKEN;
 assert.ok(vercelOidcToken, "VERCEL_OIDC_TOKEN is required for the protected Preview");
 const previewHost = new URL(previewUrl).hostname;
@@ -155,7 +158,9 @@ try {
         `Products with photos are not prioritized in this Home section at ${width}px: ${row.category}`);
     }
     assert.ok(pageState.documentWidth <= pageState.viewportWidth, `Horizontal overflow at ${width}px: ${pageState.documentWidth}px`);
-    assert.ok(pageState.cardCount > 0, `No ecommerce product cards rendered at ${width}px`);
+    assert.equal(pageState.cardCount, 40, `Expected all 40 catalog cards at ${width}px`);
+    assert.equal(await page.locator(".product-discount-badge").count(), 40, `Expected 40 red stickers at ${width}px`);
+    assert.equal(await page.locator(".product-price .price-values s").count(), 40, `Expected 40 previous prices at ${width}px`);
 
     for (const product of catalog.products) {
       const previousPrice = demoPreviousPrices.get(product.sku);
@@ -165,18 +170,37 @@ try {
       if (await card.count()) {
         const currentPriceText = (await card.locator(".product-price .price-values strong").innerText()).replace(/\D/g, "");
         assert.equal(currentPriceText, String(product.price_pyg), `${product.sku}: current card price differs from price_pyg`);
-        if (promotion) {
+        assert.ok(promotion, `${product.sku}: every SKU must have a valid demo discount`);
+        assert.ok(expectedDiscounts.has(promotion.percent), `${product.sku}: unexpected discount ${promotion.percent}%`);
+        {
           await card.locator(".product-discount-badge").filter({ hasText: `-${promotion.percent}% OFF` }).waitFor({ state: "visible" });
           const previousText = (await card.locator(".product-price .price-values s").innerText()).replace(/\D/g, "");
           assert.equal(previousText, String(promotion.previous), `${product.sku}: previous price differs from the demo data`);
-          assert.equal(
-            (await card.locator(".product-discount-badge").innerText()).trim(),
-            `-${promotion.percent}% OFF`,
-            `${product.sku}: discount sticker percent is incorrect`,
-          );
-        } else {
-          assert.equal(await card.locator(".product-discount-badge").count(), 0, `${product.sku}: invalid or absent promotion must stay hidden`);
-          assert.equal(await card.locator(".product-price .price-values s").count(), 0, `${product.sku}: invalid or absent previous price must stay hidden`);
+          const sticker = card.locator(".product-discount-badge");
+          assert.equal((await sticker.innerText()).trim(), `-${promotion.percent}% OFF`,
+            `${product.sku}: discount sticker percent is incorrect`);
+          const stickerStyle = await sticker.evaluate((element) => {
+            const style = getComputedStyle(element);
+            const result = {
+              background: style.backgroundColor,
+              color: style.color,
+              weight: style.fontWeight,
+              animationName: style.animationName,
+              animationDuration: style.animationDuration,
+            };
+            element.style.animation = "none";
+            const matrix = new DOMMatrixReadOnly(getComputedStyle(element).transform);
+            result.tiltDegrees = Math.round(Math.atan2(matrix.b, matrix.a) * 180 / Math.PI);
+            return result;
+          });
+          assert.equal(stickerStyle.background, "rgb(230, 0, 18)", `${product.sku}: sticker must be Santa María promotion red`);
+          assert.equal(stickerStyle.color, "rgb(255, 255, 255)", `${product.sku}: sticker text must be white`);
+          assert.equal(stickerStyle.weight, "700", `${product.sku}: sticker text must use weight 700`);
+          assert.ok(stickerStyle.animationName.includes("discount-enter") && stickerStyle.animationName.includes("discount-pulse"),
+            `${product.sku}: entry and pulse animations are missing`);
+          assert.ok(stickerStyle.animationDuration.includes("0.4s") && stickerStyle.animationDuration.includes("3s"),
+            `${product.sku}: sticker animation durations are incorrect`);
+          assert.equal(stickerStyle.tiltDegrees, -5, `${product.sku}: sticker must tilt by -5 degrees`);
         }
       }
     }
@@ -201,6 +225,31 @@ try {
     results.push({ width, ...pageState, screenshot: screenshotPath, addToCart: "passed", cartPrice });
     await context.close();
   }
+
+  const reducedContext = await browser.newContext({ viewport: { width: 390, height: 900 }, reducedMotion: "reduce" });
+  const reducedPage = await reducedContext.newPage();
+  await reducedPage.route("**/*", async (route) => {
+    const requestUrl = new URL(route.request().url());
+    if (requestUrl.hostname === previewHost) {
+      await route.continue({ headers: { ...route.request().headers(), "x-vercel-trusted-oidc-idp-token": vercelOidcToken } });
+    } else {
+      await route.continue();
+    }
+  });
+  const reducedErrors = [];
+  reducedPage.on("pageerror", (error) => reducedErrors.push(error.message));
+  const reducedResponse = await reducedPage.goto(previewUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
+  assert.ok(reducedResponse && reducedResponse.ok(), "Reduced-motion Preview navigation failed");
+  assert.match(await reducedPage.title(), /Santa María/i, "Reduced-motion Preview is not Santa María");
+  const reducedSticker = reducedPage.locator(".product-discount-badge").first();
+  await reducedSticker.waitFor({ state: "visible" });
+  assert.equal(await reducedSticker.evaluate((element) => getComputedStyle(element).animationName), "none",
+    "prefers-reduced-motion must disable sticker animations");
+  assert.ok(await reducedSticker.isVisible(), "Reduced motion must not hide the discount sticker");
+  await reducedPage.screenshot({ path: `${outputDir}/home-390-reduced-motion.png`, fullPage: true, animations: "disabled" });
+  assert.deepEqual(reducedErrors, [], "Browser errors in reduced-motion mode");
+  results.push({ width: 390, reducedMotion: "passed", stickerVisible: true, animation: "disabled" });
+  await reducedContext.close();
 } finally {
   await browser.close();
 }

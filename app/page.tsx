@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, KeyboardEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
+import { type CSSProperties, FormEvent, KeyboardEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
 import {
   calculateDelivery,
   demoDiscountsEnabled,
@@ -153,7 +153,7 @@ function ProductVisual({ product, large = false }: { product: CatalogProduct; la
       {photo && !failed
         ? <img {...photoSources(photo.src, large ? "(max-width: 680px) 100vw, 450px" : "(max-width: 680px) 70vw, 300px")} alt={product.name} width={large ? 640 : 320} height={large ? 640 : 320} loading={large ? "eager" : "lazy"} decoding="async" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
         : <PhotoFallback product={product} large={large} />}
-      {promotion.discountPercent !== null && <span className="discount-badge product-discount-badge">-{promotion.discountPercent}% OFF</span>}
+      {promotion.discountPercent !== null && <span className="discount-badge product-discount-badge" style={{ "--discount-delay": `${0.6 + [...product.sku].reduce((hash, character) => hash + character.charCodeAt(0), 0) % 24 * 0.1}s` } as CSSProperties}>-{promotion.discountPercent}% OFF</span>}
     </div>
   );
 }
