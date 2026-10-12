@@ -30,7 +30,7 @@ try {
     assert.ok(dimensions.document <= width && dimensions.body <= width, `Horizontal overflow on orders at ${width}px: ${JSON.stringify(dimensions)}`);
     if ([1440, 390].includes(width)) await page.screenshot({ path: `${output}/orders-${width}.png`, fullPage: true });
 
-    if (width === 1440) {
+    if ([1440, 390].includes(width)) {
       await page.goto(`${baseUrl}/admin/presupuestos`, { waitUntil: "networkidle" });
       await page.getByLabel("Cantidad del producto").fill("2");
       await page.getByRole("button", { name: "Agregar línea" }).click();
@@ -61,6 +61,8 @@ try {
       await page.reload({ waitUntil: "networkidle" });
       await page.getByText(orderNumber, { exact: true }).first().click();
       assert.ok(await page.getByText("Coordinar retiro de demostración").isVisible(), "Order state and observations persist after reload");
+      dimensions = await page.evaluate(() => ({ viewport: innerWidth, document: document.documentElement.scrollWidth, body: document.body.scrollWidth }));
+      assert.ok(dimensions.document <= width && dimensions.body <= width, `Horizontal overflow in order details at ${width}px: ${JSON.stringify(dimensions)}`);
       if ([1440, 390].includes(width)) await page.screenshot({ path: `${output}/order-flow-${width}.png`, fullPage: true });
 
       await page.goto(`${baseUrl}/admin`, { waitUntil: "networkidle" });
