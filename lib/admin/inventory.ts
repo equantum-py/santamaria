@@ -63,6 +63,10 @@ export function applyInventoryMovement(
   const isReservation = input.kind === "reservation" || input.kind === "reservation_release";
   const onHandDelta = isReservation ? 0 : input.quantity;
   const reservedDelta = input.kind === "reservation" ? input.quantity : input.kind === "reservation_release" ? -input.quantity : input.kind === "fulfillment" ? input.quantity : 0;
+  // Unreserved stock is the only quantity POS and manual reductions may consume.
+  if ((input.kind === "sale" || input.kind === "adjustment") && input.quantity < 0 && -input.quantity > availableStock(product)) {
+    throw new DomainError(`No hay suficiente stock disponible de ${product.name}.`, "INSUFFICIENT_STOCK");
+  }
   const stockOnHand = product.stockOnHand + onHandDelta;
   const stockReserved = product.stockReserved + reservedDelta;
   if (stockOnHand < 0) throw new DomainError(`No hay suficiente existencia de ${product.name}.`, "INSUFFICIENT_STOCK");
