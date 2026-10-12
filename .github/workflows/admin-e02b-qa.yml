@@ -1,0 +1,73 @@
+name: Santa Maria Admin E02-B POS and Cash QA
+
+on:
+  push:
+    branches:
+      - codex/santamaria-admin-e02b
+  pull_request:
+    branches:
+      - codex/santamaria-admin-etapa02
+
+permissions:
+  contents: read
+
+jobs:
+  e02-b-pos-cash:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install project dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Run admin domain tests
+        run: npm run test:admin-domain
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Production build
+        run: npm run build
+
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --no-save --no-package-lock --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+
+      - name: Start production server
+        run: npm run start -- --hostname 127.0.0.1 --port 4173 > /tmp/santamaria-admin-e02b.log 2>&1 &
+
+      - name: Wait for production server
+        run: |
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4173/admin/pos > /dev/null; then exit 0; fi
+            sleep 2
+          done
+          cat /tmp/santamaria-admin-e02b.log
+          exit 1
+
+      - name: Run POS, cash, persistence, and responsive browser flows
+        env:
+          ADMIN_BASE_URL: http://127.0.0.1:4173
+        run: node scripts/qa/admin-e02b.mjs
+
+      - name: Check patch whitespace
+        run: git diff --check origin/codex/santamaria-admin-etapa02...HEAD
+
+      - name: Upload screenshots and report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: santamaria-admin-e02b-qa
+          path: artifacts/admin-e02b/
+          if-no-files-found: warn
+          retention-days: 30

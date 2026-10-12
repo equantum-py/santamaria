@@ -16,8 +16,8 @@ export type AdminModule = {
 
 export const demoProfiles: DemoProfile[] = [
   { id: "admin", name: "Laura Benítez", role: "Administradora general", initials: "LB", allowedModules: ["dashboard", "pos", "caja", "pedidos", "presupuestos", "productos", "inventario", "deposito", "compras", "proveedores", "facturacion", "clientes", "reportes", "usuarios", "promociones", "marketing", "configuracion"] },
-  { id: "gerencia", name: "Carlos Vera", role: "Gerencia", initials: "CV", allowedModules: ["dashboard", "pedidos", "productos", "inventario", "presupuestos", "reportes"] },
-  { id: "cajero", name: "Marta González", role: "Cajera", initials: "MG", allowedModules: ["dashboard", "pos", "caja", "pedidos"] },
+  { id: "gerencia", name: "Carlos Vera", role: "Gerencia", initials: "CV", allowedModules: ["dashboard", "pos", "caja", "pedidos", "productos", "inventario", "presupuestos", "reportes"] },
+  { id: "cajero", name: "Marta González", role: "Cajera", initials: "MG", allowedModules: ["pos", "caja"] },
   { id: "ventas", name: "Diego Acosta", role: "Ventas", initials: "DA", allowedModules: ["dashboard", "pedidos", "presupuestos", "clientes"] },
   { id: "deposito", name: "Rubén Rojas", role: "Depósito", initials: "RR", allowedModules: ["dashboard", "pedidos", "inventario", "deposito", "compras", "proveedores"] },
   { id: "marketing", name: "Sofía Duarte", role: "Marketing", initials: "SD", allowedModules: ["dashboard", "promociones", "marketing", "reportes"] },

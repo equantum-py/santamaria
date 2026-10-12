@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { useDemoProfile, useDemoState } from "@/lib/admin/client-state";
 import {
   adminModules,
   bestSellingProducts,
   dashboardMetrics,
   dashboardTasks,
   demoProfiles,
-  paymentSummary,
-  recentActivity,
   salesSeries,
 } from "./demo-data";
 
@@ -66,7 +65,8 @@ function formatDate() {
 }
 
 export default function AdminDashboard() {
-  const [profileId, setProfileId] = useState("admin");
+  const [profileId, setProfileId] = useDemoProfile();
+  const state = useDemoState();
   const [period, setPeriod] = useState<"week" | "month">("week");
   const [menuOpen, setMenuOpen] = useState(false);
   const profile = demoProfiles.find((item) => item.id === profileId) ?? demoProfiles[0];
@@ -77,6 +77,18 @@ export default function AdminDashboard() {
     [series.points],
   );
   const groups = [...new Set(visibleModules.map((item) => item.group))];
+  const liveSalesTotal = state.sales.reduce((sum, sale) => sum + sale.totalPyg, 0);
+  const livePaymentSummary = (["cash", "card", "transfer", "qr"] as const).map((method) => {
+    const amount = state.sales.filter((sale) => sale.paymentMethod === method).reduce((sum, sale) => sum + sale.totalPyg, 0);
+    const labels = { cash: "Efectivo", card: "Tarjeta", transfer: "Transferencia", qr: "QR" };
+    const colors = { cash: "brown", card: "yellow", transfer: "terra", qr: "terra" };
+    return { name: labels[method], amount: `Gs. ${amount.toLocaleString("es-PY")}`, percent: liveSalesTotal ? Math.round((amount / liveSalesTotal) * 100) : 0, color: colors[method] };
+  });
+  const liveRecentActivity = state.activities.slice().reverse().slice(0, 4).map((item) => ({ id: item.id, title: item.title, detail: item.detail, time: new Date(item.createdAt).toLocaleTimeString("es-PY", { hour: "2-digit", minute: "2-digit" }), tone: item.kind === "sale" ? "green" : "amber", icon: item.kind === "sale" ? "cash" : "clock" }));
+
+  if (!profile.allowedModules.includes("dashboard")) {
+    return <div className="sm-admin"><header className="admin-topbar admin-module-topbar"><div className="admin-breadcrumb"><span>Santa María</span><strong>Perfil de demostración</strong></div><label className="sr-only" htmlFor="admin-demo-profile">Cambiar perfil de demostración</label><select id="admin-demo-profile" className="admin-profile-select" value={profileId} onChange={(event) => setProfileId(event.target.value)}>{demoProfiles.map((item) => <option value={item.id} key={item.id}>{item.role}</option>)}</select></header><main className="admin-content"><section className="admin-panel admin-access-note"><h1>Este perfil no tiene el resumen habilitado</h1><p>El perfil Cajera puede operar desde Punto de venta y Caja.</p><div className="admin-module-links"><Link href="/admin/pos">Punto de venta</Link><Link href="/admin/caja">Caja</Link></div><p>El selector solo organiza las vistas de esta demo; no representa autenticación ni control de acceso real.</p></section></main></div>;
+  }
 
   return (
     <div className={`sm-admin ${menuOpen ? "sm-admin-menu-open" : ""}`}>
@@ -98,6 +110,8 @@ export default function AdminDashboard() {
                   <Link key={item.id} href="/admin" className="admin-nav-item active" aria-current="page" onClick={() => setMenuOpen(false)}>
                     <Icon name={item.icon} /><span>{item.label}</span><span className="admin-nav-current">Ahora</span>
                   </Link>
+                ) : item.id === "pos" || item.id === "caja" ? (
+                  <Link key={item.id} href={`/admin/${item.id}`} className="admin-nav-item" onClick={() => setMenuOpen(false)}><Icon name={item.icon} /><span>{item.label}</span><span className="admin-nav-stage">E02</span></Link>
                 ) : (
                   <button key={item.id} className="admin-nav-item admin-nav-disabled" type="button" disabled title={`Disponible en ${item.stage}`}>
                     <Icon name={item.icon} /><span>{item.label}</span><span className="admin-nav-stage">{item.stage.replace("Etapa ", "E")}</span>
@@ -154,13 +168,17 @@ export default function AdminDashboard() {
           </section>
 
           <section className="admin-metrics" aria-label="Indicadores del negocio">
-            {dashboardMetrics.map((metric) => (
+            {dashboardMetrics.map((originalMetric) => {
+              const metric = originalMetric.id === "today"
+                ? { ...originalMetric, label: "Ventas registradas", value: `Gs. ${liveSalesTotal.toLocaleString("es-PY")}`, change: String(state.sales.length), note: "operaciones de esta demo" }
+                : originalMetric;
+              return (
               <article className="admin-metric-card" key={metric.id}>
                 <div className="admin-metric-top"><span>{metric.label}</span><span className={`admin-metric-icon ${metric.tone}`}><Icon name={metric.icon} size={18} /></span></div>
                 <strong className="admin-metric-value">{metric.value}</strong>
                 <div className="admin-metric-foot"><span className={metric.id === "stock" || metric.id === "orders" ? "admin-metric-link" : "admin-metric-change"}>{metric.change}</span><span>{metric.note}</span></div>
               </article>
-            ))}
+            );})}
           </section>
 
           <section className="admin-insight-grid" aria-label="Resumen de ventas y cobros">
@@ -183,9 +201,9 @@ export default function AdminDashboard() {
             </article>
 
             <article className="admin-panel admin-payments-panel">
-              <div className="admin-panel-heading"><div><p className="admin-panel-kicker">RESUMEN DE CAJA</p><h2>Medios de pago</h2><span className="admin-panel-caption">Ventas de hoy · datos simulados</span></div><button className="admin-icon-button" type="button" aria-label="Más opciones" disabled><span>···</span></button></div>
-              <div className="admin-payments-total"><strong>Gs. 8.450.000</strong><span>3 medios registrados</span></div>
-              <div className="admin-payment-list">{paymentSummary.map((payment) => <div className="admin-payment-row" key={payment.name}><div className="admin-payment-info"><span>{payment.name}</span><strong>{payment.amount}</strong></div><div className="admin-payment-track"><span className={payment.color} style={{ width: `${payment.percent}%` }} /></div><small>{payment.percent}%</small></div>)}</div>
+              <div className="admin-panel-heading"><div><p className="admin-panel-kicker">RESUMEN DE CAJA</p><h2>Medios de pago</h2><span className="admin-panel-caption">Ventas POS guardadas · datos simulados</span></div><button className="admin-icon-button" type="button" aria-label="Más opciones" disabled><span>···</span></button></div>
+              <div className="admin-payments-total"><strong>Gs. {liveSalesTotal.toLocaleString("es-PY")}</strong><span>{state.sales.length} ventas · esta demo</span></div>
+              <div className="admin-payment-list">{livePaymentSummary.map((payment) => <div className="admin-payment-row" key={payment.name}><div className="admin-payment-info"><span>{payment.name}</span><strong>{payment.amount}</strong></div><div className="admin-payment-track"><span className={payment.color} style={{ width: `${payment.percent}%` }} /></div><small>{payment.percent}%</small></div>)}</div>
             </article>
           </section>
 
@@ -198,8 +216,8 @@ export default function AdminDashboard() {
             </article>
 
             <article className="admin-panel admin-activity-panel">
-              <div className="admin-panel-heading"><div><p className="admin-panel-kicker">MOVIMIENTOS</p><h2>Actividad reciente</h2><span className="admin-panel-caption">Registro de ejemplo</span></div><button className="admin-text-button" type="button" disabled>Ver todo <Icon name="arrow" size={15} /></button></div>
-              <div className="admin-activity-list">{recentActivity.map((activity) => <div className="admin-activity-item" key={activity.id}><span className={`admin-activity-icon ${activity.tone}`}><Icon name={activity.icon} size={17} /></span><div><strong>{activity.title}</strong><small>{activity.detail}</small></div><time>{activity.time}</time></div>)}</div>
+              <div className="admin-panel-heading"><div><p className="admin-panel-kicker">MOVIMIENTOS</p><h2>Actividad reciente</h2><span className="admin-panel-caption">{liveRecentActivity.length ? "Operaciones guardadas en esta demo" : "Sin operaciones POS registradas"}</span></div><Link className="admin-text-button" href="/admin/caja">Ver Caja <Icon name="arrow" size={15} /></Link></div>
+              <div className="admin-activity-list">{(liveRecentActivity.length ? liveRecentActivity : []).map((activity) => <div className="admin-activity-item" key={activity.id}><span className={`admin-activity-icon ${activity.tone}`}><Icon name={activity.icon} size={17} /></span><div><strong>{activity.title}</strong><small>{activity.detail}</small></div><time>{activity.time}</time></div>)}{!liveRecentActivity.length && <div className="admin-activity-empty">Las ventas y movimientos confirmados aparecerán aquí.</div>}</div>
             </article>
           </section>
 

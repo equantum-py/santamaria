@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { addManualCashMovement, calculateChange, calculateTotals, closeCashSession, convertAcceptedQuoteToOrder, createOrder, createQuote, openCashSession, recordSale, updateOrderStatus, updateQuoteStatus } from "../../lib/admin/domain.ts";
+import { addManualCashMovement, buildSaleLines, calculateChange, calculateTotals, closeCashSession, convertAcceptedQuoteToOrder, createOrder, createQuote, getExpectedCash, openCashSession, recordSale, updateOrderStatus, updateQuoteStatus } from "../../lib/admin/domain.ts";
 import { createInitialDemoState } from "../../lib/admin/demo-state.ts";
 import { DEMO_STORAGE_KEY, DemoStateStore, loadDemoState, resetDemoState, saveDemoState } from "../../lib/admin/persistence.ts";
 
@@ -75,6 +75,36 @@ test("pagos electrónicos se registran sin sumarse al efectivo contado", () => {
   assert.equal(state.cashSessions[0].movements[0].cashEffectPyg, 0);
   const closed = closeCashSession(state, { sessionId: state.cashSessions[0].id, countedCashPyg: 100000 }, NOW);
   assert.equal(closed.cashSessions[0].differencePyg, 0);
+});
+
+test("completa POS efectivo: cantidades, total, vuelto, una venta y saldo esperado neto", () => {
+  const items = [{ productId: "p1", quantity: 1 }, { productId: "p2", quantity: 2 }];
+  const saleLines = buildSaleLines(items, products);
+  assert.equal(saleLines[0].unitPricePyg, 50000);
+  assert.equal(saleLines[1].lineTotalPyg, 70000);
+  assert.equal(calculateTotals(saleLines).totalPyg, 120000);
+  assert.equal(calculateChange(120000, 135000), 15000);
+  const state = recordSale(openedState(), { operationId: "pos-flow-001", cashierId: "cajero", items, paymentMethod: "cash", cashReceivedPyg: 135000 }, products, NOW);
+  assert.equal(state.sales.length, 1);
+  assert.equal(state.cashSessions[0].movements.length, 1);
+  assert.equal(state.cashSessions[0].movements[0].amountPyg, 120000);
+  assert.equal(state.cashSessions[0].movements[0].cashEffectPyg, 120000);
+  assert.equal(getExpectedCash(state.cashSessions[0]), 220000);
+});
+
+test("escenarios de caja separan cobros electrónicos, egreso y diferencia de cierre", () => {
+  let state = openedState();
+  state = recordSale(state, { operationId: "pos-card-001", cashierId: "cajero", items: [{ productId: "p1", quantity: 1 }], paymentMethod: "card" }, products, NOW);
+  assert.equal(getExpectedCash(state.cashSessions[0]), 100000);
+  assert.equal(state.cashSessions[0].movements[0].amountPyg, 50000);
+  assert.equal(state.cashSessions[0].movements[0].cashEffectPyg, 0);
+  state = addManualCashMovement(state, { operationId: "expense-001", sessionId: state.cashSessions[0].id, kind: "manual_expense", amountPyg: 20000, label: "Compra menor" }, NOW);
+  assert.equal(getExpectedCash(state.cashSessions[0]), 80000);
+  const closed = closeCashSession(state, { sessionId: state.cashSessions[0].id, countedCashPyg: 75000 }, NOW);
+  assert.equal(closed.cashSessions[0].differencePyg, -5000);
+  assert.equal(closed.cashSessions[0].status, "closed");
+  assert.throws(() => recordSale(closed, { operationId: "pos-closed-001", cashierId: "cajero", items: [{ productId: "p1", quantity: 1 }], paymentMethod: "cash", cashReceivedPyg: 50000 }, products, NOW), { code: "OPEN_CASH_REQUIRED" });
+  assert.throws(() => closeCashSession(closed, { sessionId: closed.cashSessions[0].id, countedCashPyg: 75000 }, NOW), { code: "CASH_NOT_OPEN" });
 });
 
 test("presupuesto aceptado genera un pedido una sola vez y el pedido conserva historial", () => {
