@@ -65,6 +65,19 @@ try {
     results.push({ width, ...widths, metrics: 4, profileSelector: "passed", chartFilter: "passed", mobileNavigation: width <= 760 ? "passed" : "not applicable", screenshot });
     await page.close();
   }
+
+  const storefront = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+  const storefrontErrors = [];
+  storefront.on("pageerror", (error) => storefrontErrors.push(error.message));
+  const storefrontResponse = await storefront.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
+  assert.equal(storefrontResponse?.status(), 200, "Public ecommerce route must remain available");
+  assert.match(await storefront.title(), /Santa María/i, "Public route should remain Santa María");
+  await storefront.locator(".site-header").waitFor({ state: "visible" });
+  assert.ok(await storefront.locator(".product-card").count() > 0, "Public catalog should still render product cards");
+  assert.equal(await storefront.locator(".sm-admin").count(), 0, "Admin shell must not leak into the public storefront");
+  assert.deepEqual(storefrontErrors, [], "Public ecommerce route should not emit browser errors");
+  results.push({ route: "/", status: "passed", storefrontHeader: "visible", productCards: "rendered", adminShell: "absent" });
+  await storefront.close();
 } finally {
   await browser.close();
 }
