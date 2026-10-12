@@ -54,7 +54,7 @@ try {
       await page.locator(".order-select-button").filter({ hasText: orderNumber }).click();
       await page.getByLabel("Nuevo estado").selectOption("confirmed");
       await page.getByRole("button", { name: "Guardar estado" }).click();
-      await page.locator(".order-detail-panel").getByRole("status").filter({ hasText: "Confirmado" }).waitFor({ state: "visible" });
+      await page.locator(".order-detail-panel .admin-status-pill").filter({ hasText: "Confirmado" }).waitFor({ state: "visible" });
       await page.getByPlaceholder("La observación quedará en el historial.").fill("Coordinar retiro de demostración");
       await page.getByRole("button", { name: "Guardar observación" }).click();
       await page.getByText("Coordinar retiro de demostración").waitFor({ state: "visible" });
