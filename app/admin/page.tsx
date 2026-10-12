@@ -110,7 +110,7 @@ export default function AdminDashboard() {
                   <Link key={item.id} href="/admin" className="admin-nav-item active" aria-current="page" onClick={() => setMenuOpen(false)}>
                     <Icon name={item.icon} /><span>{item.label}</span><span className="admin-nav-current">Ahora</span>
                   </Link>
-                ) : item.id === "pos" || item.id === "caja" ? (
+                ) : ["pos", "caja", "pedidos", "presupuestos"].includes(item.id) ? (
                   <Link key={item.id} href={`/admin/${item.id}`} className="admin-nav-item" onClick={() => setMenuOpen(false)}><Icon name={item.icon} /><span>{item.label}</span><span className="admin-nav-stage">E02</span></Link>
                 ) : (
                   <button key={item.id} className="admin-nav-item admin-nav-disabled" type="button" disabled title={`Disponible en ${item.stage}`}>
@@ -171,6 +171,8 @@ export default function AdminDashboard() {
             {dashboardMetrics.map((originalMetric) => {
               const metric = originalMetric.id === "today"
                 ? { ...originalMetric, label: "Ventas registradas", value: `Gs. ${liveSalesTotal.toLocaleString("es-PY")}`, change: String(state.sales.length), note: "operaciones de esta demo" }
+                : originalMetric.id === "orders"
+                  ? { ...originalMetric, value: String(state.orders.filter((order) => !["delivered", "cancelled"].includes(order.status)).length), change: `${state.orders.filter((order) => order.status === "preparing").length} para preparar`, note: "pedidos de esta demo" }
                 : originalMetric;
               return (
               <article className="admin-metric-card" key={metric.id}>
@@ -224,7 +226,17 @@ export default function AdminDashboard() {
           <section className="admin-bottom-grid" aria-label="Pendientes y perfil actual">
             <article className="admin-panel admin-tasks-panel">
               <div className="admin-panel-heading"><div><p className="admin-panel-kicker">PARA HOY</p><h2>Atención prioritaria</h2><span className="admin-panel-caption">Pendientes de los módulos en preparación</span></div><span className="admin-badge-neutral">Demo</span></div>
-              <div className="admin-task-list">{dashboardTasks.map((task) => <div className="admin-task-row" key={task.label}><span className={`admin-task-dot ${task.tone}`} /><span>{task.label}</span><strong>{task.count}</strong><Icon name="chevron" size={16} /></div>)}</div>
+              <div className="admin-task-list">{dashboardTasks.map((task) => {
+                const liveCount = task.label === "Pedidos completados hoy"
+                  ? state.orders.filter((order) => order.status === "delivered").length
+                  : task.label === "Pedidos por confirmar"
+                    ? state.orders.filter((order) => order.status === "new").length
+                    : task.label === "Presupuestos pendientes"
+                      ? state.quotes.filter((quote) => ["draft", "sent"].includes(quote.status)).length
+                      : null;
+                const liveLabel = task.label === "Pedidos completados hoy" ? "Pedidos entregados" : task.label;
+                return <div className="admin-task-row" key={task.label}><span className={`admin-task-dot ${task.tone}`} /><span>{liveLabel}</span><strong>{liveCount === null ? task.count : String(liveCount).padStart(2, "0")}</strong><Icon name="chevron" size={16} /></div>;
+              })}</div>
             </article>
             <article className="admin-panel admin-profile-panel">
               <p className="admin-panel-kicker">PERFIL ACTIVO</p><div className="admin-profile-large"><span className="admin-avatar">{profile.initials}</span><div><h2>{profile.role}</h2><p>{profile.name}</p></div></div>

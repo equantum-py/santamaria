@@ -301,6 +301,45 @@ export function updateOrderStatus(
   };
 }
 
+export function assignOrderResponsible(
+  state: DemoState,
+  input: { orderId: string; responsibleOperatorId: string },
+  now = new Date().toISOString(),
+): DemoState {
+  const index = state.orders.findIndex((order) => order.id === input.orderId);
+  if (index < 0) throw new DomainError("No se encontró el pedido.", "ORDER_NOT_FOUND");
+  const operator = getDemoOperator(state, input.responsibleOperatorId);
+  const orders = [...state.orders];
+  orders[index] = { ...orders[index], responsible: operator.displayName };
+  return {
+    ...state,
+    updatedAt: now,
+    orders,
+    activities: addActivity(state.activities, { id: `${input.orderId}-responsible-${now}`, kind: "order", title: "Responsable de pedido actualizado", detail: `${orders[index].number} · ${operator.displayName}`, createdAt: now }),
+  };
+}
+
+export function addOrderObservation(
+  state: DemoState,
+  input: { orderId: string; changedBy: string; note: string },
+  now = new Date().toISOString(),
+): DemoState {
+  const note = input.note.trim();
+  if (!note) throw new DomainError("Escribí una observación antes de guardar.", "ORDER_NOTE_REQUIRED");
+  if (note.length > 500) throw new DomainError("La observación no puede superar 500 caracteres.", "ORDER_NOTE_TOO_LONG");
+  const index = state.orders.findIndex((order) => order.id === input.orderId);
+  if (index < 0) throw new DomainError("No se encontró el pedido.", "ORDER_NOT_FOUND");
+  const order = state.orders[index];
+  const orders = [...state.orders];
+  orders[index] = { ...order, history: [...order.history, { status: order.status, changedAt: now, changedBy: input.changedBy, note }] };
+  return {
+    ...state,
+    updatedAt: now,
+    orders,
+    activities: addActivity(state.activities, { id: `${input.orderId}-note-${now}`, kind: "order", title: "Observación agregada al pedido", detail: `${order.number} · ${note}`, createdAt: now }),
+  };
+}
+
 export function transitionQuote(
   quote: Quote,
   input: { status: QuoteStatus; changedBy: string },
@@ -375,6 +414,44 @@ export function createQuote(
       counters: { ...state.counters, quote: number },
       activities: addActivity(state.activities, { id: quote.id, kind: "quote", title: "Presupuesto creado", detail: `${quote.number} · ${quote.customerLabel}`, createdAt: now }),
     },
+  };
+}
+
+export function editDraftQuote(
+  state: DemoState,
+  input: { operationId: string; quoteId: string; items: readonly ItemDraft[]; authorizedDiscountPyg?: number; discountAuthorizedBy?: string | null; validUntil: string; note?: string },
+  catalog: readonly DemoProduct[],
+  now = new Date().toISOString(),
+): DemoState {
+  assertNewOperation(state, input.operationId);
+  const index = state.quotes.findIndex((item) => item.id === input.quoteId);
+  const quote = state.quotes[index];
+  if (!quote) throw new DomainError("No se encontró el presupuesto.", "QUOTE_NOT_FOUND");
+  if (quote.status !== "draft" || quote.linkedOrderId) throw new DomainError("Solo se puede editar un presupuesto en borrador.", "QUOTE_NOT_EDITABLE");
+  const expiryDate = /^\d{4}-\d{2}-\d{2}$/.test(input.validUntil) ? new Date(`${input.validUntil}T00:00:00.000Z`) : null;
+  if (!expiryDate || Number.isNaN(expiryDate.getTime()) || expiryDate.toISOString().slice(0, 10) !== input.validUntil || input.validUntil < now.slice(0, 10)) {
+    throw new DomainError("La fecha de vigencia debe ser hoy o una fecha posterior.", "INVALID_QUOTE_EXPIRY");
+  }
+  const lines = buildSaleLines(input.items, catalog);
+  const totals = calculateTotals(lines, input.authorizedDiscountPyg ?? 0);
+  const discountAuthorizedBy = input.authorizedDiscountPyg ? input.discountAuthorizedBy?.trim() : null;
+  if (input.authorizedDiscountPyg && !discountAuthorizedBy) throw new DomainError("Indicá quién autorizó el descuento demostrativo.", "DISCOUNT_AUTHORIZER_REQUIRED");
+  const updatedQuote: Quote = {
+    ...quote,
+    lines,
+    ...totals,
+    discountAuthorizedBy: discountAuthorizedBy || null,
+    validUntil: input.validUntil,
+    note: input.note?.trim() ?? "",
+  };
+  const quotes = [...state.quotes];
+  quotes[index] = updatedQuote;
+  return {
+    ...state,
+    updatedAt: now,
+    quotes,
+    processedOperationIds: [...state.processedOperationIds, input.operationId],
+    activities: addActivity(state.activities, { id: `${quote.id}-edited-${input.operationId}`, kind: "quote", title: "Presupuesto actualizado", detail: `${quote.number} · ${quote.customerLabel}`, createdAt: now }),
   };
 }
 
