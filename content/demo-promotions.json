@@ -1,0 +1,49 @@
+{
+  "_meta": {
+    "is_fictitious": true,
+    "scope": "preview-only",
+    "notice": "Precios y descuentos de demostración. No son ofertas reales. Este archivo solo se incorpora a builds de Vercel Preview."
+  },
+  "products": [
+    {
+      "sku": "SM-FER-003",
+      "compare_at_price_pyg": 38889
+    },
+    {
+      "sku": "SM-FER-008",
+      "compare_at_price_pyg": 17647
+    },
+    {
+      "sku": "SM-FER-009",
+      "compare_at_price_pyg": 525000
+    },
+    {
+      "sku": "SM-SAN-004",
+      "compare_at_price_pyg": 346667
+    },
+    {
+      "sku": "SM-CON-006",
+      "compare_at_price_pyg": 328571
+    },
+    {
+      "sku": "SM-CON-007",
+      "compare_at_price_pyg": 1000000
+    },
+    {
+      "sku": "SM-CON-009",
+      "compare_at_price_pyg": 61176
+    },
+    {
+      "sku": "SM-CON-010",
+      "compare_at_price_pyg": 100000
+    },
+    {
+      "sku": "SM-ELE-003",
+      "compare_at_price_pyg": 86667
+    },
+    {
+      "sku": "SM-ELE-004",
+      "compare_at_price_pyg": 31429
+    }
+  ]
+}

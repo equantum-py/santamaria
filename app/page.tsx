@@ -3,6 +3,7 @@
 import { FormEvent, KeyboardEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
 import {
   calculateDelivery,
+  demoDiscountsEnabled,
   categories,
   type CatalogProduct,
   type ProductCategory,
@@ -199,7 +200,7 @@ function TopBar() {
   return (
     <div className="top-bar">
       <div className="top-bar-inner">
-        <span className="top-bar-demo"><span className="demo-dot" /> Demo: precios de muestra, stock y entregas por confirmar</span>
+        <span className="top-bar-demo"><span className="demo-dot" /> {demoDiscountsEnabled ? "Precios y descuentos de demostración" : "Demo: precios de muestra, stock y entregas por confirmar"}</span>
         <span className="top-bar-links">
           <span><Icon name="store" size={15} /> Limpio, Paraguay</span>
           <a href={WHATSAPP_URL}><Icon name="chat" size={15} /> WhatsApp {WHATSAPP_LABEL}</a>

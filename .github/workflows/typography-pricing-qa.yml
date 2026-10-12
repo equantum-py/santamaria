@@ -28,7 +28,9 @@ jobs:
       - name: Install project dependencies
         run: npm install --no-audit --no-fund
 
-      - name: Verify production build
+      - name: Verify production build with demo discounts disabled
+        env:
+          VERCEL_ENV: production
         run: npm run build
 
       - name: Install Playwright and Chromium

@@ -1,4 +1,5 @@
 import catalog from "@/content/catalog.json";
+import demoPromotions from "@/content/demo-promotions.json";
 import deliveryData from "@/content/delivery-zones.json";
 
 export type CatalogProduct = (typeof catalog.products)[number] & { compare_at_price_pyg?: number };
@@ -64,7 +65,16 @@ export type DemoOrder = {
   status_history: Array<{ status: OrderStatus; at: string }>;
 };
 
-export const products = catalog.products as CatalogProduct[];
+// Demo overlays are isolated from real catalog prices and compiled into Preview only.
+export const demoDiscountsEnabled = process.env.NEXT_PUBLIC_SM_DEMO_DISCOUNTS_ENABLED === "true";
+const demoPreviousPrices = new Map(
+  demoPromotions.products.map((promotion) => [promotion.sku, promotion.compare_at_price_pyg] as const),
+);
+export const products: CatalogProduct[] = (catalog.products as CatalogProduct[]).map((product) => {
+  if (!demoDiscountsEnabled) return product;
+  const compareAtPrice = demoPreviousPrices.get(product.sku);
+  return compareAtPrice === undefined ? product : { ...product, compare_at_price_pyg: compareAtPrice };
+});
 export const categories = [...catalog.categories].sort((a, b) => a.order - b.order) as ProductCategory[];
 export const zones = deliveryData.zones as DeliveryZone[];
 export const pickup = deliveryData.pickup;

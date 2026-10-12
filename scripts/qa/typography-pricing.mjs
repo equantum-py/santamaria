@@ -5,6 +5,11 @@ import { chromium } from "playwright";
 const previewUrl = process.env.PREVIEW_URL;
 assert.ok(previewUrl, "PREVIEW_URL is required");
 const catalog = JSON.parse(await readFile("content/catalog.json", "utf8"));
+const demoPricing = JSON.parse(await readFile("content/demo-promotions.json", "utf8"));
+assert.equal(demoPricing._meta.is_fictitious, true, "Demo price file must stay marked fictitious");
+assert.equal(demoPricing._meta.scope, "preview-only", "Demo price file must be Preview only");
+const demoPreviousPrices = new Map(demoPricing.products.map((item) => [item.sku, item.compare_at_price_pyg]));
+assert.equal(demoPreviousPrices.size, 10, "Expected 10 demonstrative discount entries");
 const vercelOidcToken = process.env.VERCEL_OIDC_TOKEN;
 assert.ok(vercelOidcToken, "VERCEL_OIDC_TOKEN is required for the protected Preview");
 const previewHost = new URL(previewUrl).hostname;
@@ -138,6 +143,10 @@ try {
       `Vercel login appeared instead of the store at ${width}px: ${page.url()} ${title}`);
     assert.ok(!/Manrope|DM Sans/i.test(pageState.bodyFont), `Legacy font remains at ${width}px: ${pageState.bodyFont}`);
     assert.ok(pageState.fontLoaded, `Inter font did not load at ${width}px: ${pageState.bodyFont}`);
+    assert.ok(
+      (await page.locator(".top-bar-demo").innerText()).includes("Precios y descuentos de demostración"),
+      `Demo discount notice missing at ${width}px`,
+    );
     assert.deepEqual(pageState.weights, { heading: "600", navigation: "500", productName: "500", addButton: "500", currentPrice: "600" },
       `Unexpected typography weights at ${width}px`);
     for (const row of pageState.rows) {
@@ -149,14 +158,22 @@ try {
     assert.ok(pageState.cardCount > 0, `No ecommerce product cards rendered at ${width}px`);
 
     for (const product of catalog.products) {
-      const promotion = validPromotion(product);
+      const previousPrice = demoPreviousPrices.get(product.sku);
+      const previewProduct = previousPrice === undefined ? product : { ...product, compare_at_price_pyg: previousPrice };
+      const promotion = validPromotion(previewProduct);
       const card = page.getByRole("article", { name: product.name, exact: true }).first();
       if (await card.count()) {
         const currentPriceText = (await card.locator(".product-price .price-values strong").innerText()).replace(/\D/g, "");
         assert.equal(currentPriceText, String(product.price_pyg), `${product.sku}: current card price differs from price_pyg`);
         if (promotion) {
           await card.locator(".product-discount-badge").filter({ hasText: `-${promotion.percent}% OFF` }).waitFor({ state: "visible" });
-          assert.ok(await card.locator(".product-price .price-values s").count(), `${product.sku}: previous price missing from card`);
+          const previousText = (await card.locator(".product-price .price-values s").innerText()).replace(/\\D/g, "");
+          assert.equal(previousText, String(promotion.previous), `${product.sku}: previous price differs from the demo data`);
+          assert.equal(
+            (await card.locator(".product-discount-badge").innerText()).trim(),
+            `-${promotion.percent}% OFF`,
+            `${product.sku}: discount sticker percent is incorrect`,
+          );
         } else {
           assert.equal(await card.locator(".product-discount-badge").count(), 0, `${product.sku}: invalid or absent promotion must stay hidden`);
           assert.equal(await card.locator(".product-price .price-values s").count(), 0, `${product.sku}: invalid or absent previous price must stay hidden`);
