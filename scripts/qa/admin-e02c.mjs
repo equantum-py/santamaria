@@ -59,6 +59,7 @@ try {
       await page.getByRole("button", { name: "Guardar observación" }).click();
       await page.getByText("Coordinar retiro de demostración").waitFor({ state: "visible" });
       await page.reload({ waitUntil: "networkidle" });
+      await page.getByText(orderNumber, { exact: true }).first().click();
       assert.ok(await page.getByText("Coordinar retiro de demostración").isVisible(), "Order state and observations persist after reload");
       if ([1440, 390].includes(width)) await page.screenshot({ path: `${output}/order-flow-${width}.png`, fullPage: true });
 
