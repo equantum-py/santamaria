@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { AdminModuleFrame } from "../module-frame";
 import { demoProfiles } from "../demo-data";
 import { demoProducts } from "@/lib/admin/catalog";
-import { convertAcceptedQuoteToOrder, createQuote, editDraftQuote, updateQuoteStatus } from "@/lib/admin/domain";
+import { convertAcceptedQuoteToOrder, createQuote, editDraftQuote, operationalCatalog, updateQuoteStatus } from "@/lib/admin/domain";
 import { demoStateStore, useDemoProfile, useDemoState } from "@/lib/admin/client-state";
 import type { FulfillmentMode, QuoteStatus } from "@/lib/admin/types";
 
@@ -41,7 +41,7 @@ export default function QuotesPage() {
     return (!needle || haystack.includes(needle)) && (filter === "all" || quote.status === filter);
   }).slice().reverse(), [state.quotes, query, filter]);
   const selected = state.quotes.find((quote) => quote.id === selectedId) ?? null;
-  const activeProducts = demoProducts.filter((product) => product.active);
+  const activeProducts = operationalCatalog(state, demoProducts).filter((product) => product.active);
   const cart = Object.entries(items).filter(([, amount]) => amount > 0).map(([id, amount]) => ({ product: activeProducts.find((product) => product.id === id), amount })).filter((entry): entry is { product: (typeof activeProducts)[number]; amount: number } => Boolean(entry.product));
   const subtotal = cart.reduce((sum, entry) => sum + entry.product.pricePyg * entry.amount, 0);
   const discountAmount = discount === "" ? 0 : Number(discount);
