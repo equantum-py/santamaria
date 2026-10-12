@@ -14,6 +14,7 @@ try {
   for (const width of widths) {
     const page = await browser.newPage({ viewport: { width, height: width > 760 ? 1000 : 900 }, isMobile: width <= 760, hasTouch: width <= 760 });
     const errors = [];
+    let electronicTotal = 0;
     page.on("pageerror", (error) => errors.push(error.message));
     page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
 
@@ -73,6 +74,21 @@ try {
     assert.equal(openedExpected, 100000 + saleTotal, "Cash movement records net sale total");
     if ([1440, 390].includes(width)) await page.screenshot({ path: `${output}/cash-movements-${width}.png`, fullPage: true });
 
+    if (width === 1440) {
+      await page.goto(`${baseUrl}/admin/pos`, { waitUntil: "networkidle" });
+      await page.getByLabel("Buscar por nombre, SKU o categoría").fill("cemento");
+      await page.locator(".pos-product-row").first().getByRole("button", { name: /Agregar/ }).click();
+      await page.getByRole("button", { name: "Tarjeta" }).click();
+      electronicTotal = parseMoney(await page.locator(".pos-total-row strong").innerText());
+      await page.getByRole("button", { name: "Confirmar venta" }).click();
+      await page.getByRole("status").filter({ hasText: "Venta registrada" }).waitFor({ state: "visible" });
+      await page.goto(`${baseUrl}/admin/caja`, { waitUntil: "networkidle" });
+      const afterCardExpected = parseMoney(await page.locator(".cash-summary-grid article").nth(1).locator("strong").innerText());
+      assert.equal(afterCardExpected, 100000 + saleTotal, "Card payment does not increase cash expected");
+      assert.ok(await page.locator(".cash-movements").getByText("Venta con tarjeta").isVisible());
+      if ([1440, 390].includes(width)) await page.screenshot({ path: `${output}/cash-electronic-payment-${width}.png`, fullPage: true });
+    }
+
     await page.getByLabel("Tipo").selectOption("manual_expense");
     await page.getByLabel("Importe (Gs.)").fill("20000");
     await page.getByLabel("Motivo").fill("Egreso de prueba");
@@ -97,13 +113,13 @@ try {
     await page.getByLabel("Cambiar perfil de demostración").selectOption("admin");
     await page.getByRole("heading", { name: /Buen día, Laura/ }).waitFor({ state: "visible" });
     const dashboardSales = parseMoney(await page.locator(".admin-metric-card").first().locator(".admin-metric-value").innerText());
-    assert.equal(dashboardSales, saleTotal, "Dashboard uses the shared sale state without static double-counting");
-    assert.match(await page.locator(".admin-payments-total").innerText(), /1 ventas/);
+    assert.equal(dashboardSales, saleTotal + electronicTotal, "Dashboard uses the shared sale state without static double-counting");
+    assert.match(await page.locator(".admin-payments-total").innerText(), new RegExp(`${electronicTotal ? 2 : 1} ventas`));
     if ([1440, 390].includes(width)) await page.screenshot({ path: `${output}/dashboard-updated-${width}.png`, fullPage: true });
     dimensions = await page.evaluate(() => ({ document: document.documentElement.scrollWidth, body: document.body.scrollWidth }));
     assert.ok(dimensions.document <= width && dimensions.body <= width, `Horizontal overflow at ${width}px on dashboard: ${JSON.stringify(dimensions)}`);
     assert.deepEqual(errors, [], `Browser errors at ${width}px: ${errors.join(" | ")}`);
-    reports.push({ width, products: 40, searched: true, sale: saleNumber, cashNetAmount: saleTotal, manualExpense: 20000, closeDifference: -5000, dashboardTotal: dashboardSales, horizontalOverflow: false, browserErrors: errors.length });
+    reports.push({ width, products: 40, searched: true, sale: saleNumber, cashNetAmount: saleTotal, cardPayment: electronicTotal, manualExpense: 20000, closeDifference: -5000, dashboardTotal: dashboardSales, horizontalOverflow: false, browserErrors: errors.length });
     await page.close();
   }
 
