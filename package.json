@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test:admin-domain": "node --experimental-strip-types scripts/qa/admin-domain.test.mjs"
+    "test:admin-domain": "node --experimental-strip-types scripts/qa/admin-domain.test.mjs",
+    "test:admin-e02c": "node --experimental-strip-types scripts/qa/admin-e02c.test.mjs"
   },
   "engines": {
     "node": ">=20.9.0"
