@@ -59,7 +59,7 @@ try {
       await page.getByRole("button", { name: "Guardar observación" }).click();
       await page.getByText("Coordinar retiro de demostración").waitFor({ state: "visible" });
       await page.reload({ waitUntil: "networkidle" });
-      await page.getByText(orderNumber, { exact: true }).first().click();
+      await page.locator(".order-select-button").filter({ hasText: orderNumber }).click();
       assert.ok(await page.getByText("Coordinar retiro de demostración").isVisible(), "Order state and observations persist after reload");
       dimensions = await page.evaluate(() => ({ viewport: innerWidth, document: document.documentElement.scrollWidth, body: document.body.scrollWidth }));
       assert.ok(dimensions.document <= width && dimensions.body <= width, `Horizontal overflow in order details at ${width}px: ${JSON.stringify(dimensions)}`);
