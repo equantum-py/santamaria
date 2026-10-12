@@ -170,6 +170,7 @@ try {
       if (await card.count()) {
         const currentPriceText = (await card.locator(".product-price .price-values strong").innerText()).replace(/\D/g, "");
         assert.equal(currentPriceText, String(product.price_pyg), `${product.sku}: current card price differs from price_pyg`);
+        assert.equal(await card.locator(".product-price .price-values strong").evaluate((element) => getComputedStyle(element).color), "rgb(230, 0, 18)", `${product.sku}: current product price must be red`);
         assert.ok(promotion, `${product.sku}: every SKU must have a valid demo discount`);
         assert.ok(expectedDiscounts.has(promotion.percent), `${product.sku}: unexpected discount ${promotion.percent}%`);
         {
