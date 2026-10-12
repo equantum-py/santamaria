@@ -49,7 +49,7 @@ try {
     assert.ok(widths.document <= width && widths.body <= width, `Horizontal overflow at ${width}px: ${JSON.stringify(widths)}`);
     assert.match(widths.font, /Inter/);
 
-    if (width <= 760) {
+    if (width <= 1000) {
       const menu = page.getByRole("button", { name: "Abrir menú" });
       assert.ok(await menu.isVisible(), "Mobile navigation toggle should be visible");
       await menu.click();

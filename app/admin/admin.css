@@ -156,8 +156,12 @@
   .admin-insight-grid{grid-template-columns:minmax(0,1.45fr) minmax(250px,.9fr)}
 }
 @media(max-width:1000px){
-  .admin-sidebar{width:232px;padding-inline:11px}
-  .admin-main{margin-left:232px}
+  .admin-sidebar{width:min(290px,86vw);transform:translateX(-102%);transition:transform .22s ease;box-shadow:none}
+  .sm-admin-menu-open .admin-sidebar{transform:translateX(0);box-shadow:8px 0 30px rgba(35,27,23,.13)}
+  .admin-close-menu{width:32px;height:32px;display:grid;place-items:center;margin-left:auto;border:1px solid var(--admin-line);border-radius:6px;background:#fff}
+  .admin-scrim{position:fixed;inset:0;z-index:45;display:block;border:0;background:rgba(33,27,24,.36)}
+  .admin-main{margin-left:0}
+  .admin-menu-toggle{display:grid;width:38px;height:38px}
   .admin-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
   .admin-insight-grid{grid-template-columns:minmax(0,1.3fr) minmax(225px,.9fr)}
   .admin-lower-grid,.admin-bottom-grid{grid-template-columns:1fr}
