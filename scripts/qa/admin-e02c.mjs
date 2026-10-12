@@ -16,7 +16,7 @@ try {
     page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
     let response = await page.goto(`${baseUrl}/admin/presupuestos`, { waitUntil: "networkidle", timeout: 60000 });
     assert.equal(response?.status(), 200, `Presupuestos must load at ${width}px`);
-    await page.getByRole("heading", { name: "Presupuestos", exact: true }).waitFor({ state: "visible" });
+    await page.getByRole("heading", { level: 1, name: "Presupuestos", exact: true }).waitFor({ state: "visible" });
     assert.ok(await page.getByRole("button", { name: "Crear presupuesto demo" }).isVisible());
     let dimensions = await page.evaluate(() => ({ viewport: innerWidth, document: document.documentElement.scrollWidth, body: document.body.scrollWidth }));
     assert.ok(dimensions.document <= width && dimensions.body <= width, `Horizontal overflow on quotes at ${width}px: ${JSON.stringify(dimensions)}`);
