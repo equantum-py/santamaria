@@ -75,3 +75,46 @@ test("migra estado v1 conservando ventas y pedidos y escribe esquema v2", () => 
   assert.equal(loaded.state.sales.length, 0);
   assert.equal(v1.orders.length, loaded.state.orders.length);
 });
+
+
+test("POS no consume unidades reservadas, y conserva venta y caja si falla", () => {
+  let state = createInitialDemoState(NOW, products);
+  const order = createOrder(state, { operationId: "reserve-pos", source: "counter", items: [{ productId: "p1", quantity: 10 }], fulfillmentMode: "pickup" }, products, NOW);
+  state = updateOrderStatus(order.state, { orderId: order.order.id, status: "confirmed", changedBy: "Ventas" }, NOW);
+  state = openCashSession(state, { operationId: "open-reserved", cashierId: "cajero", openingBalancePyg: 100000 }, NOW);
+  const before = JSON.stringify(state);
+  assert.equal(availableStock(state.inventory[0]), 2);
+  assert.throws(() => recordSale(state, { operationId: "reserved-sale", cashierId: "cajero", items: [{ productId: "p1", quantity: 3 }], paymentMethod: "card" }, products, NOW), { code: "INSUFFICIENT_STOCK" });
+  assert.equal(JSON.stringify(state), before);
+  const sold = recordSale(state, { operationId: "allowed-sale", cashierId: "cajero", items: [{ productId: "p1", quantity: 2 }], paymentMethod: "card" }, products, NOW);
+  assert.equal(sold.inventory[0].stockReserved, 10);
+  assert.equal(availableStock(sold.inventory[0]), 0);
+  assert.equal(sold.sales.length, 1);
+  assert.equal(sold.cashSessions[0].movements.length, 1);
+  assert.equal(sold.cashSessions[0].movements[0].cashEffectPyg, 0);
+  assert.throws(() => recordSale(sold, { operationId: "allowed-sale", cashierId: "cajero", items: [{ productId: "p1", quantity: 2 }], paymentMethod: "card" }, products, NOW), { code: "DUPLICATE_OPERATION" });
+});
+
+test("migración v1 conserva ventas, caja, pedidos y reservas sin descontar ventas históricas", () => {
+  let legacy = createInitialDemoState(NOW, products);
+  legacy = openCashSession(legacy, { operationId: "legacy-open", cashierId: "cajero", openingBalancePyg: 100000 }, NOW);
+  legacy = recordSale(legacy, { operationId: "legacy-sale", cashierId: "cajero", items: [{ productId: "p2", quantity: 1 }], paymentMethod: "card" }, products, NOW);
+  const pending = createOrder(legacy, { operationId: "legacy-pending", source: "counter", items: [{ productId: "p1", quantity: 3 }], fulfillmentMode: "pickup" }, products, NOW);
+  legacy = updateOrderStatus(pending.state, { orderId: pending.order.id, status: "confirmed", changedBy: "Ventas" }, NOW);
+  const done = createOrder(legacy, { operationId: "legacy-done", source: "counter", items: [{ productId: "p2", quantity: 1 }], fulfillmentMode: "pickup" }, products, NOW);
+  legacy = updateOrderStatus(done.state, { orderId: done.order.id, status: "confirmed", changedBy: "Ventas" }, NOW);
+  for (const status of ["preparing", "ready", "delivered"]) legacy = updateOrderStatus(legacy, { orderId: done.order.id, status, changedBy: "Depósito" }, NOW);
+  const { schemaVersion, inventory, inventoryMovements, ...rest } = legacy;
+  const v1 = { ...rest, schemaVersion: 1, counters: { cash: rest.counters.cash, sale: rest.counters.sale, order: rest.counters.order, quote: rest.counters.quote, movement: rest.counters.movement } };
+  const storage = memoryStorage(JSON.stringify(v1));
+  const loaded = loadDemoState(storage, NOW, products);
+  assert.equal(loaded.source, "migrated");
+  assert.deepEqual(loaded.state.sales, v1.sales);
+  assert.deepEqual(loaded.state.cashSessions, v1.cashSessions);
+  assert.deepEqual(loaded.state.orders, v1.orders);
+  assert.deepEqual(loaded.state.processedOperationIds, v1.processedOperationIds);
+  assert.equal(loaded.state.inventory[0].stockReserved, 3);
+  assert.equal(loaded.state.inventory[1].stockReserved, 0);
+  assert.equal(loaded.state.inventory[1].stockOnHand, createInitialDemoState(NOW, products).inventory[1].stockOnHand);
+  assert.equal(loaded.state.inventoryMovements.length, 0);
+});
