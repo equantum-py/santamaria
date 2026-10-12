@@ -1,0 +1,40 @@
+name: Santa Maria Admin E02-A Domain QA
+
+on:
+  push:
+    branches:
+      - codex/santamaria-admin-etapa02
+  pull_request:
+    branches:
+      - codex/santamaria-admin-demo
+
+permissions:
+  contents: read
+
+jobs:
+  e02-a-domain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install project dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Run domain tests
+        run: npm run test:admin-domain
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Production build
+        run: npm run build
+
+      - name: Check patch whitespace
+        run: git diff --check
