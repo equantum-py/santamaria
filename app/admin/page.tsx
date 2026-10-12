@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useDemoProfile, useDemoState } from "@/lib/admin/client-state";
+import { availableStock } from "@/lib/admin/inventory";
 import {
   adminModules,
   bestSellingProducts,
@@ -84,7 +85,9 @@ export default function AdminDashboard() {
     const colors = { cash: "brown", card: "yellow", transfer: "terra", qr: "terra" };
     return { name: labels[method], amount: `Gs. ${amount.toLocaleString("es-PY")}`, percent: liveSalesTotal ? Math.round((amount / liveSalesTotal) * 100) : 0, color: colors[method] };
   });
-  const liveRecentActivity = state.activities.slice().reverse().slice(0, 4).map((item) => ({ id: item.id, title: item.title, detail: item.detail, time: new Date(item.createdAt).toLocaleTimeString("es-PY", { hour: "2-digit", minute: "2-digit" }), tone: item.kind === "sale" ? "green" : "amber", icon: item.kind === "sale" ? "cash" : "clock" }));
+  const liveRecentActivity = state.activities.slice().reverse().slice(0, 4).map((item) => ({ id: item.id, title: item.title, detail: item.detail, time: new Date(item.createdAt).toLocaleTimeString("es-PY", { hour: "2-digit", minute: "2-digit" }), tone: item.kind === "sale" ? "green" : item.kind === "inventory" ? "blue" : "amber", icon: item.kind === "sale" ? "cash" : item.kind === "inventory" ? "inventory" : "clock" }));
+  const demoLowStockCount = state.inventory.filter((product) => availableStock(product) <= product.minimumStock).length;
+  const demoOutOfStockCount = state.inventory.filter((product) => availableStock(product) === 0).length;
 
   if (!profile.allowedModules.includes("dashboard")) {
     return <div className="sm-admin"><header className="admin-topbar admin-module-topbar"><div className="admin-breadcrumb"><span>Santa María</span><strong>Perfil de demostración</strong></div><label className="sr-only" htmlFor="admin-demo-profile">Cambiar perfil de demostración</label><select id="admin-demo-profile" className="admin-profile-select" value={profileId} onChange={(event) => setProfileId(event.target.value)}>{demoProfiles.map((item) => <option value={item.id} key={item.id}>{item.role}</option>)}</select></header><main className="admin-content"><section className="admin-panel admin-access-note"><h1>Este perfil no tiene el resumen habilitado</h1><p>El perfil Cajera puede operar desde Punto de venta y Caja.</p><div className="admin-module-links"><Link href="/admin/pos">Punto de venta</Link><Link href="/admin/caja">Caja</Link></div><p>El selector solo organiza las vistas de esta demo; no representa autenticación ni control de acceso real.</p></section></main></div>;
@@ -171,7 +174,9 @@ export default function AdminDashboard() {
             {dashboardMetrics.map((originalMetric) => {
               const metric = originalMetric.id === "today"
                 ? { ...originalMetric, label: "Ventas registradas", value: `Gs. ${liveSalesTotal.toLocaleString("es-PY")}`, change: String(state.sales.length), note: "operaciones de esta demo" }
-                : originalMetric.id === "orders"
+                : originalMetric.id === "stock"
+                  ? { ...originalMetric, value: `${demoLowStockCount} productos`, change: `${demoOutOfStockCount} sin stock`, note: `${state.inventory.length} SKU de esta demo` }
+                  : originalMetric.id === "orders"
                   ? { ...originalMetric, value: String(state.orders.filter((order) => !["delivered", "cancelled"].includes(order.status)).length), change: `${state.orders.filter((order) => order.status === "preparing").length} para preparar`, note: "pedidos de esta demo" }
                 : originalMetric;
               return (
