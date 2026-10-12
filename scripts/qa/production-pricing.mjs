@@ -37,7 +37,7 @@ try {
     previousPrices: document.querySelectorAll(".product-price .price-values s").length,
     cards: [...document.querySelectorAll(".product-card")].map((card) => ({
       name: card.getAttribute("aria-label"),
-      price: card.querySelector(".product-price .price-values strong")?.textContent?.replace(/\\D/g, "") ?? "",
+      price: card.querySelector(".product-price .price-values strong")?.textContent?.replace(/\D/g, "") ?? "",
     })),
   }));
   assert.ok(!rendered.notice.includes("Precios y descuentos de demostración"), "Demo discount notice leaked into Production");
