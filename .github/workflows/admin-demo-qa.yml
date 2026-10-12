@@ -78,7 +78,7 @@ jobs:
       - name: Record preview link
         env:
           PREVIEW_URL: ${{ steps.preview.outputs.url }}
-        run: echo "Vercel Preview READY: $PREVIEW_URL" >> "$GITHUB_STEP_SUMMARY"
+        run: 'echo "Vercel Preview READY: $PREVIEW_URL" >> "$GITHUB_STEP_SUMMARY"'
 
       - name: Check whitespace errors
         run: git diff --check origin/main...HEAD
