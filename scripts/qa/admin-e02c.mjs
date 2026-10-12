@@ -51,7 +51,7 @@ try {
       if ([1440, 390].includes(width)) await page.screenshot({ path: `${output}/quote-accepted-${width}.png`, fullPage: true });
 
       await page.goto(`${baseUrl}/admin/pedidos`, { waitUntil: "networkidle" });
-      await page.getByText(orderNumber, { exact: true }).first().click();
+      await page.locator(".order-select-button").filter({ hasText: orderNumber }).click();
       await page.getByLabel("Nuevo estado").selectOption("confirmed");
       await page.getByRole("button", { name: "Guardar estado" }).click();
       await page.locator(".order-detail-panel").getByRole("status").filter({ hasText: "Confirmado" }).waitFor({ state: "visible" });
