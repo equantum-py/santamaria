@@ -1,0 +1,11 @@
+"use client";
+import {useState} from "react";
+import {AdminModuleFrame} from "../module-frame";
+import {demoStateStore,useDemoState} from "@/lib/admin/client-state";
+import {addSupplier,editSupplier,addCustomer,editCustomer,createPurchase,orderPurchase,receivePurchase,cancelPurchase} from "@/lib/admin/procurement";
+const operationId=()=>crypto.randomUUID();
+export default function ProveedoresPage(){
+const state=useDemoState();const [name,setName]=useState("");const [contact,setContact]=useState("");const [selected,setSelected]=useState("");const [active,setActive]=useState(true);const [error,setError]=useState("");
+function save(){try{demoStateStore.update(s=>selected?editSupplier(s,{operationId:operationId(),id:selected,name,contact,active}):addSupplier(s,{operationId:operationId(),name,contact}));setName("");setContact("");setSelected("");setError("");}catch(e){setError(e instanceof Error?e.message:"Error");}}
+return <AdminModuleFrame title="Proveedores"><section className="admin-panel" style={{padding:24}}><h1>Proveedores · Demo</h1><p>Datos ficticios, sin contacto con proveedores reales.</p><form onSubmit={e=>{e.preventDefault();save();}}><label>Nombre <input required maxLength={120} value={name} onChange={e=>setName(e.target.value)}/></label> <label>Contacto ficticio <input maxLength={160} value={contact} onChange={e=>setContact(e.target.value)}/></label> {selected&&<label>Activo <input type="checkbox" checked={active} onChange={e=>setActive(e.target.checked)}/></label>} <button type="submit">{selected?"Guardar cambios":"Agregar proveedor"}</button></form>{error&&<p role="alert">{error}</p>}<div className="admin-table-scroll"><table className="admin-table"><thead><tr><th>Proveedor</th><th>Contacto</th><th>Estado</th><th></th></tr></thead><tbody>{state.suppliers.map(p=><tr key={p.id}><td>{p.name}</td><td>{p.contact}</td><td>{p.active?"Activo":"Inactivo"}</td><td><button onClick={()=>{setSelected(p.id);setName(p.name);setContact(p.contact);setActive(p.active);}}>Editar</button></td></tr>)}</tbody></table></div></section></AdminModuleFrame>;
+}

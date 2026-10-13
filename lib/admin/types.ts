@@ -25,6 +25,9 @@ export interface DemoCustomer {
   isFictitious: true;
 }
 
+export interface DemoSupplier { id: string; name: string; contact: string; active: boolean; isFictitious: true; }
+export type PurchaseStatus = "draft" | "ordered" | "received" | "cancelled";
+export interface DemoPurchase { id: string; number: string; supplierId: string; status: PurchaseStatus; lines: Array<{productId: string; quantity: number; unitCostPyg: number}>; createdAt: string; receivedAt: string | null; note: string; isFictitious: true; }
 export interface DemoOperator {
   id: string;
   displayName: string;
@@ -145,7 +148,7 @@ export interface Quote {
 
 export interface DemoActivity {
   id: string;
-  kind: "sale" | "cash" | "order" | "quote" | "inventory";
+  kind: "sale" | "cash" | "order" | "quote" | "inventory" | "purchase" | "supplier" | "customer";
   title: string;
   detail: string;
   createdAt: string;
@@ -190,13 +193,18 @@ export interface DemoCounters {
   quote: number;
   movement: number;
   inventoryMovement: number;
+  supplier: number;
+  purchase: number;
+  customer: number;
 }
 
 export interface DemoState {
-  schemaVersion: 2;
+  schemaVersion: 3;
   environment: "demo";
   updatedAt: string;
   customers: DemoCustomer[];
+  suppliers: DemoSupplier[];
+  purchases: DemoPurchase[];
   operators: DemoOperator[];
   sales: Sale[];
   cashSessions: CashSession[];

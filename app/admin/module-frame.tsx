@@ -7,8 +7,8 @@ import { useDemoProfile } from "@/lib/admin/client-state";
 export function AdminModuleFrame({ title, children }: { title: string; children: React.ReactNode }) {
   const [profileId, setProfileId] = useDemoProfile();
   const profile = demoProfiles.find((item) => item.id === profileId) ?? demoProfiles[0];
-  const moduleLinks = adminModules.filter((item) => ["dashboard", "pos", "caja", "pedidos", "presupuestos", "productos", "inventario", "deposito", "entregas"].includes(item.id) && profile.allowedModules.includes(item.id));
-  const moduleIdByTitle: Record<string, string> = { "Punto de venta": "pos", Caja: "caja", Pedidos: "pedidos", Presupuestos: "presupuestos", Productos: "productos", Inventario: "inventario", "Depósito": "deposito", Entregas: "entregas" };
+  const moduleLinks = adminModules.filter((item) => ["dashboard", "pos", "caja", "pedidos", "presupuestos", "productos", "inventario", "deposito", "entregas", "compras", "proveedores", "clientes"].includes(item.id) && profile.allowedModules.includes(item.id));
+  const moduleIdByTitle: Record<string, string> = { "Punto de venta": "pos", Caja: "caja", Pedidos: "pedidos", Presupuestos: "presupuestos", Productos: "productos", Inventario: "inventario", "Depósito": "deposito", Entregas: "entregas", Compras: "compras", Proveedores: "proveedores", Clientes: "clientes" };
   const requiredModule = moduleIdByTitle[title];
 
   return (
