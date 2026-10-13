@@ -412,7 +412,6 @@ function ImageBannerCarousel({ bank = false, onCatalog }: { bank?: boolean; onCa
         <img src={slides[active]} alt={bank ? "Diseño ilustrativo de posibles beneficios bancarios, no vigentes ni confirmados" : "Santa María, materiales para tu obra"} width={2108} height={704} style={{ width: "100%", height: "auto", display: "block" }} loading={bank ? "lazy" : "eager"} />
         {!bank && <button type="button" onClick={onCatalog} aria-label="Ver catálogo de productos" style={{ position: "absolute", inset: "55% 65% 13% 3%", cursor: "pointer", background: "transparent", border: 0 }} />}
       </div>
-      {bank && <p style={{ margin: "10px 0", fontWeight: 600, fontSize: 14 }}>Imágenes ilustrativas. Las cuotas, bancos y condiciones mostrados no son promociones confirmadas de Santa María. Consultá las formas de pago disponibles antes de comprar.</p>}
       <div style={{ display: "flex", justifyContent: "center", gap: 12, padding: "12px 0" }}>
         {slides.map((slide, index) => <button key={slide} type="button" aria-label={`Mostrar banner ${index + 1}`} aria-pressed={active === index} onClick={() => setActive(index)} style={{ border: 0, borderRadius: 20, width: active === index ? 32 : 12, height: 12, background: active === index ? "#f7bc00" : "#9d918a", cursor: "pointer" }} />)}
       </div>
