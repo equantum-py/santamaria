@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, KeyboardEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import {
   calculateDelivery,
   categories,
@@ -403,17 +404,41 @@ function PromoBanners({ selectCategory }: { selectCategory: (id: string) => void
 
 function ImageBannerCarousel({ bank = false, onCatalog }: { bank?: boolean; onCatalog?: () => void }) {
   const [active, setActive] = useState(0);
-  useEffect(() => {
-    const timer = window.setInterval(() => setActive((current) => (current + 1) % 2), 5000);
-    return () => window.clearInterval(timer);
-  }, []);
+  const [paused, setPaused] = useState(false);
   const slides = bank
     ? ["/banners/banner-bancos-cuotas-santamaria-01.png", "/banners/banner-bancos-promociones-santamaria-02.png"]
     : ["/banners/banner-home-santamaria.png", "/banners/banner-home-santamaria-02.png"];
+
+  useEffect(() => {
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (paused || reducedMotion.matches) return;
+    const timer = window.setInterval(() => {
+      if (!document.hidden) setActive((current) => (current + 1) % slides.length);
+    }, 5000);
+    return () => window.clearInterval(timer);
+  }, [paused, slides.length]);
+
   return (
-    <section aria-label={bank ? "Banners de bancos ilustrativos" : "Banners principales"} style={{ width: "100%", marginTop: bank ? 32 : 0, marginBottom: bank ? 28 : 12 }}>
+    <section
+      aria-label={bank ? "Banners de bancos ilustrativos" : "Banners principales"}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setPaused(false); }}
+      style={{ width: "100%", marginTop: bank ? 32 : 0, marginBottom: bank ? 28 : 12 }}
+    >
       <div style={{ position: "relative", overflow: "hidden" }}>
-        <img src={slides[active]} alt={bank ? "Diseño ilustrativo de posibles beneficios bancarios, no vigentes ni confirmados" : "Santa María, materiales para tu obra"} width={2108} height={704} style={{ width: "100%", height: "auto", display: "block" }} loading={bank ? "lazy" : "eager"} />
+        <Image
+          src={slides[active]}
+          alt={bank ? "Diseño ilustrativo de posibles beneficios bancarios, no vigentes ni confirmados" : "Santa María, materiales para tu obra"}
+          width={2108}
+          height={704}
+          sizes="100vw"
+          quality={75}
+          priority={!bank && active === 0}
+          loading={bank ? "lazy" : undefined}
+          style={{ width: "100%", height: "auto", display: "block" }}
+        />
         {!bank && <button type="button" onClick={onCatalog} aria-label="Ver catálogo de productos" style={{ position: "absolute", inset: "55% 65% 13% 3%", cursor: "pointer", background: "transparent", border: 0 }} />}
       </div>
       <div style={{ display: "flex", justifyContent: "center", gap: 12, padding: "12px 0" }}>
