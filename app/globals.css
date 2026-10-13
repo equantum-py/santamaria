@@ -715,3 +715,25 @@ a.partner-logo:hover{border-color:var(--terra)}
 }
 
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important}}
+
+/* Ajustes mobile de portada: menos altura, categorías deslizables y CTA compacto. */
+@media (max-width: 680px) {
+  .benefit-strip{margin-top:0;border-radius:0 0 12px 12px}
+  .benefit-strip>div{padding:10px 9px;gap:7px;min-width:0}
+  .benefit-strip>div>.icon{width:19px;height:19px;flex:none}
+  .benefit-strip b{font-size:12px;line-height:1.2}
+  .benefit-strip small{font-size:10.5px;line-height:1.25}
+  .category-quick{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(152px,58vw);grid-template-columns:none;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x mandatory;scroll-padding-inline:16px;gap:10px;margin-top:20px;padding:2px 16px 12px;scrollbar-width:none}
+  .category-quick::-webkit-scrollbar{display:none}
+  .category-quick.wrap{width:100%}
+  .quick-card{scroll-snap-align:start;min-height:90px;align-items:center}
+  .service-band{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .service-card{display:block;padding:14px 12px;min-width:0;border-radius:12px}
+  .service-card>.icon{width:24px;height:24px;margin-bottom:7px}
+  .service-card h3{font-size:14px;line-height:1.2;margin-bottom:5px}
+  .service-card p{font-size:12px;line-height:1.35}
+  .list-cta{padding:16px;gap:10px}
+  .list-cta h2{font-size:19px;line-height:1.2}
+  .list-cta p:not(.eyebrow){font-size:13px;line-height:1.4}
+  .list-cta .button{min-height:42px}
+}
