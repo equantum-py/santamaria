@@ -403,6 +403,10 @@ function PromoBanners({ selectCategory }: { selectCategory: (id: string) => void
 
 function ImageBannerCarousel({ bank = false, onCatalog }: { bank?: boolean; onCatalog?: () => void }) {
   const [active, setActive] = useState(0);
+  useEffect(() => {
+    const timer = window.setInterval(() => setActive((current) => (current + 1) % 2), 5000);
+    return () => window.clearInterval(timer);
+  }, []);
   const slides = bank
     ? ["/banners/banner-bancos-cuotas-santamaria-01.png", "/banners/banner-bancos-promociones-santamaria-02.png"]
     : ["/banners/banner-home-santamaria.png", "/banners/banner-home-santamaria-02.png"];
