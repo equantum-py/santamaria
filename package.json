@@ -10,7 +10,8 @@
     "test:admin-domain": "node --experimental-strip-types scripts/qa/admin-domain.test.mjs",
     "test:admin-e02c": "node --experimental-strip-types scripts/qa/admin-e02c.test.mjs",
     "test:admin-e03": "node --experimental-strip-types scripts/qa/admin-e03.test.mjs",
-    "test:admin-e04": "node --experimental-strip-types scripts/qa/admin-e04.test.mjs"
+    "test:admin-e04": "node --experimental-strip-types scripts/qa/admin-e04.test.mjs",
+    "test:admin-e05": "node --experimental-strip-types scripts/qa/admin-e05.test.mjs"
   },
   "engines": {
     "node": ">=20.9.0"
