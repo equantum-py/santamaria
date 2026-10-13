@@ -42,10 +42,12 @@ export function seedAdminInventory(catalog: readonly DemoProduct[], now = new Da
 
 export function createInitialDemoState(now = new Date().toISOString(), catalog: readonly DemoProduct[] = []): DemoState {
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     environment: "demo",
     updatedAt: now,
     customers: demoCustomers.map((customer) => ({ ...customer })),
+    suppliers: [],
+    purchases: [],
     operators: demoOperators.map((operator) => ({ ...operator })),
     sales: [],
     cashSessions: [],
@@ -55,6 +57,6 @@ export function createInitialDemoState(now = new Date().toISOString(), catalog: 
     inventoryMovements: [],
     activities: [],
     processedOperationIds: [],
-    counters: { cash: 0, sale: 0, order: 0, quote: 0, movement: 0, inventoryMovement: 0 },
+    counters: { cash: 0, sale: 0, order: 0, quote: 0, movement: 0, inventoryMovement: 0, supplier: 0, purchase: 0, customer: 0 },
   };
 }
