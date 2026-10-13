@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useState} from "react";
-import {AdminModuleFrame} from "../module-frame";
+import {AdminModuleFrame} from "./module-frame";
 type RecordItem={id:string;name:string;status:"borrador"|"activa"|"pausada";detail:string;start:string;end:string};
 export default function MarketingModule({kind}:{kind:"promociones"|"marketing"}){
  const label=kind==="promociones"?"Promociones":"Campañas";
