@@ -1,0 +1,11 @@
+"use client";
+import {useState} from "react";
+import {AdminModuleFrame} from "../module-frame";
+import {demoStateStore,useDemoState} from "@/lib/admin/client-state";
+import {addSupplier,editSupplier,addCustomer,editCustomer,createPurchase,orderPurchase,receivePurchase,cancelPurchase} from "@/lib/admin/procurement";
+const operationId=()=>crypto.randomUUID();
+export default function ClientesPage(){
+const state=useDemoState();const [name,setName]=useState("");const [kind,setKind]=useState<"consumer"|"business">("consumer");const [selected,setSelected]=useState("");const [error,setError]=useState("");
+function save(){try{demoStateStore.update(s=>selected?editCustomer(s,{operationId:operationId(),id:selected,name,kind}):addCustomer(s,{operationId:operationId(),name,kind}));setName("");setSelected("");setError("");}catch(e){setError(e instanceof Error?e.message:"Error");}}
+return <AdminModuleFrame title="Clientes"><section className="admin-panel" style={{padding:24}}><h1>Clientes · Demo</h1><p>Solo clientes ficticios; historial conectado con pedidos, presupuestos y ventas.</p><form onSubmit={e=>{e.preventDefault();save();}}><label>Nombre <input required maxLength={120} value={name} onChange={e=>setName(e.target.value)}/></label> <label>Tipo <select value={kind} onChange={e=>setKind(e.target.value as "consumer"|"business")}><option value="consumer">Persona</option><option value="business">Empresa</option></select></label> <button type="submit">{selected?"Guardar cambios":"Agregar cliente"}</button></form>{error&&<p role="alert">{error}</p>}<div className="admin-table-scroll"><table className="admin-table"><thead><tr><th>Cliente</th><th>Tipo</th><th>Pedidos</th><th>Presupuestos</th><th>Ventas</th><th></th></tr></thead><tbody>{state.customers.map(c=><tr key={c.id}><td>{c.displayName}</td><td>{c.kind==="business"?"Empresa":"Persona"}</td><td>{state.orders.filter(o=>o.customerId===c.id).length}</td><td>{state.quotes.filter(q=>q.customerId===c.id).length}</td><td>{state.sales.filter(v=>v.customerId===c.id).length}</td><td><button onClick={()=>{setSelected(c.id);setName(c.displayName);setKind(c.kind);}}>Editar</button></td></tr>)}</tbody></table></div></section></AdminModuleFrame>;
+}
