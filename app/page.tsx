@@ -407,8 +407,8 @@ function ImageBannerCarousel({ bank = false, onCatalog }: { bank?: boolean; onCa
     ? ["/banners/banner-bancos-cuotas-santamaria-01.png", "/banners/banner-bancos-promociones-santamaria-02.png"]
     : ["/banners/banner-home-santamaria.png", "/banners/banner-home-santamaria-02.png"];
   return (
-    <section className="wrap" aria-label={bank ? "Banners de bancos ilustrativos" : "Banners principales"} style={{ marginTop: 32, marginBottom: 28 }}>
-      <div style={{ position: "relative", overflow: "hidden", borderRadius: 18 }}>
+    <section aria-label={bank ? "Banners de bancos ilustrativos" : "Banners principales"} style={{ width: "100%", marginTop: bank ? 32 : 0, marginBottom: bank ? 28 : 12 }}>
+      <div style={{ position: "relative", overflow: "hidden" }}>
         <img src={slides[active]} alt={bank ? "Diseño ilustrativo de posibles beneficios bancarios, no vigentes ni confirmados" : "Santa María, materiales para tu obra"} width={2108} height={704} style={{ width: "100%", height: "auto", display: "block" }} loading={bank ? "lazy" : "eager"} />
         {!bank && <button type="button" onClick={onCatalog} aria-label="Ver catálogo de productos" style={{ position: "absolute", inset: "55% 65% 13% 3%", cursor: "pointer", background: "transparent", border: 0 }} />}
       </div>
