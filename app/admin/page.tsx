@@ -141,7 +141,7 @@ export default function AdminDashboard() {
                   <Link key={item.id} href="/admin" className="admin-nav-item active" aria-current="page" onClick={() => setMenuOpen(false)}>
                     <Icon name={item.icon} /><span>{item.label}</span><span className="admin-nav-current">Ahora</span>
                   </Link>
-                ) : ["pos", "caja", "pedidos", "presupuestos", "productos", "inventario", "deposito", "entregas", "compras", "proveedores", "clientes"].includes(item.id) ? (
+                ) : ["pos", "caja", "pedidos", "presupuestos", "productos", "inventario", "deposito", "entregas", "compras", "proveedores", "clientes", "promociones", "marketing"].includes(item.id) ? (
                   <Link key={item.id} href={`/admin/${item.id}`} className="admin-nav-item" onClick={() => setMenuOpen(false)}><Icon name={item.icon} /><span>{item.label}</span><span className="admin-nav-stage">{["compras", "proveedores", "clientes"].includes(item.id) ? "E05" : ["deposito", "entregas"].includes(item.id) ? "E04" : ["productos", "inventario"].includes(item.id) ? "E03" : "E02"}</span></Link>
                 ) : (
                   <button key={item.id} className="admin-nav-item admin-nav-disabled" type="button" disabled title={`Disponible en ${item.stage}`}>
