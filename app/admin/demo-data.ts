@@ -15,11 +15,11 @@ export type AdminModule = {
 };
 
 export const demoProfiles: DemoProfile[] = [
-  { id: "admin", name: "Laura Benítez", role: "Administradora general", initials: "LB", allowedModules: ["dashboard", "pos", "caja", "pedidos", "presupuestos", "productos", "inventario", "deposito", "compras", "proveedores", "facturacion", "clientes", "reportes", "usuarios", "promociones", "marketing", "configuracion"] },
+  { id: "admin", name: "Laura Benítez", role: "Administradora general", initials: "LB", allowedModules: ["dashboard", "pos", "caja", "pedidos", "presupuestos", "productos", "inventario", "deposito", "entregas", "compras", "proveedores", "facturacion", "clientes", "reportes", "usuarios", "promociones", "marketing", "configuracion"] },
   { id: "gerencia", name: "Carlos Vera", role: "Gerencia", initials: "CV", allowedModules: ["dashboard", "pos", "caja", "pedidos", "productos", "inventario", "presupuestos", "reportes"] },
   { id: "cajero", name: "Marta González", role: "Cajera", initials: "MG", allowedModules: ["pos", "caja"] },
   { id: "ventas", name: "Diego Acosta", role: "Ventas", initials: "DA", allowedModules: ["dashboard", "pedidos", "presupuestos", "clientes"] },
-  { id: "deposito", name: "Rubén Rojas", role: "Depósito", initials: "RR", allowedModules: ["dashboard", "pedidos", "inventario", "deposito", "compras", "proveedores"] },
+  { id: "deposito", name: "Rubén Rojas", role: "Depósito", initials: "RR", allowedModules: ["dashboard", "pedidos", "inventario", "deposito", "entregas", "compras", "proveedores"] },
   { id: "marketing", name: "Sofía Duarte", role: "Marketing", initials: "SD", allowedModules: ["dashboard", "promociones", "marketing", "reportes"] },
   { id: "facturacion", name: "Ana Sosa", role: "Facturación", initials: "AS", allowedModules: ["dashboard", "facturacion", "clientes", "reportes"] },
 ];
@@ -32,7 +32,8 @@ export const adminModules: AdminModule[] = [
   { id: "presupuestos", label: "Presupuestos", group: "Operación comercial", stage: "Etapa 02", icon: "quote" },
   { id: "productos", label: "Productos", group: "Gestión interna", stage: "Etapa 03", icon: "products" },
   { id: "inventario", label: "Inventario", group: "Gestión interna", stage: "Etapa 03", icon: "inventory" },
-  { id: "deposito", label: "Depósito", group: "Gestión interna", stage: "Etapa 03", icon: "warehouse" },
+  { id: "deposito", label: "Depósito", group: "Gestión interna", stage: "Etapa 04", icon: "warehouse" },
+  { id: "entregas", label: "Entregas", group: "Gestión interna", stage: "Etapa 04", icon: "orders" },
   { id: "compras", label: "Compras", group: "Gestión interna", stage: "Etapa 03", icon: "purchase" },
   { id: "proveedores", label: "Proveedores", group: "Gestión interna", stage: "Etapa 03", icon: "supplier" },
   { id: "facturacion", label: "Facturación", group: "Administración", stage: "Etapa 04", icon: "invoice" },
