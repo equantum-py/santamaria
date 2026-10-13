@@ -913,13 +913,6 @@ export default function Home() {
             <>
               <ImageBannerCarousel onCatalog={() => selectCategory("construccion")} />
 
-              <section className="benefit-strip wrap" aria-label="Por qué comprar en Santa María">
-                <div><Icon name="truck" /><span><b>Entrega en obra</b><small>Zonas y costos a confirmar</small></span></div>
-                <div><Icon name="store" /><span><b>Retiro en el local</b><small>En Limpio</small></span></div>
-                <div><Icon name="chat" /><span><b>Te asesoramos</b><small>Consultanos por WhatsApp</small></span></div>
-                <div><Icon name="shield" /><span><b>Pedido con seguimiento</b><small>Con tu número de pedido</small></span></div>
-              </section>
-
               <nav className="category-quick wrap" aria-label="Comprá por categoría">
                 {categories.map((category) => (
                   <a className={"quick-card tone-" + category.id} key={category.id} id={"category-" + category.id} href={"#fila-" + category.id}>
