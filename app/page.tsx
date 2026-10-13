@@ -401,6 +401,25 @@ function PromoBanners({ selectCategory }: { selectCategory: (id: string) => void
   );
 }
 
+function ImageBannerCarousel({ bank = false, onCatalog }: { bank?: boolean; onCatalog?: () => void }) {
+  const [active, setActive] = useState(0);
+  const slides = bank
+    ? ["/banners/banner-bancos-cuotas-santamaria-01.png", "/banners/banner-bancos-promociones-santamaria-02.png"]
+    : ["/banners/banner-home-santamaria.png", "/banners/banner-home-santamaria-02.png"];
+  return (
+    <section className="wrap" aria-label={bank ? "Banners de bancos ilustrativos" : "Banners principales"} style={{ marginTop: 32, marginBottom: 28 }}>
+      <div style={{ position: "relative", overflow: "hidden", borderRadius: 18 }}>
+        <img src={slides[active]} alt={bank ? "Diseño ilustrativo de posibles beneficios bancarios, no vigentes ni confirmados" : "Santa María, materiales para tu obra"} width={2108} height={704} style={{ width: "100%", height: "auto", display: "block" }} loading={bank ? "lazy" : "eager"} />
+        {!bank && <button type="button" onClick={onCatalog} aria-label="Ver catálogo de productos" style={{ position: "absolute", inset: "55% 65% 13% 3%", cursor: "pointer", background: "transparent", border: 0 }} />}
+      </div>
+      {bank && <p style={{ margin: "10px 0", fontWeight: 600, fontSize: 14 }}>Imágenes ilustrativas. Las cuotas, bancos y condiciones mostrados no son promociones confirmadas de Santa María. Consultá las formas de pago disponibles antes de comprar.</p>}
+      <div style={{ display: "flex", justifyContent: "center", gap: 12, padding: "12px 0" }}>
+        {slides.map((slide, index) => <button key={slide} type="button" aria-label={`Mostrar banner ${index + 1}`} aria-pressed={active === index} onClick={() => setActive(index)} style={{ border: 0, borderRadius: 20, width: active === index ? 32 : 12, height: 12, background: active === index ? "#f7bc00" : "#9d918a", cursor: "pointer" }} />)}
+      </div>
+    </section>
+  );
+}
+
 function BankPromotions() {
   if (!bankPromotions.length) {
     return (
@@ -864,27 +883,7 @@ export default function Home() {
         <>
           {!categoryId && !query.trim() && (
             <>
-              <section className="hero">
-                <div className="wrap hero-inner">
-                  <div className="hero-copy">
-                    <p className="eyebrow"><span /> FERRETERÍA Y MATERIALES · LIMPIO</p>
-                    <h1>Todo para tu obra, <em>en un solo lugar.</em></h1>
-                    <p className="hero-text">Herramientas, sanitarios, electricidad y materiales de construcción. Pedí desde el celular y elegí si te lo llevamos a la obra o lo retirás en el local.</p>
-                    <div className="hero-actions">
-                      <button className="button button-yellow button-large" onClick={() => selectCategory("construccion")}>Ver materiales de obra <Icon name="arrow" size={18} /></button>
-                      <a className="button button-ghost button-large" href={WHATSAPP_URL}><Icon name="chat" size={18} /> Pedí asesoramiento</a>
-                    </div>
-                  </div>
-                  <div className="hero-steps" aria-label="Cómo comprar">
-                    <p className="hero-steps-title">Comprá en 3 pasos</p>
-                    <ol>
-                      <li><span><Icon name="search" /></span><div><b>Elegí tus productos</b><small>Buscá por nombre o por categoría.</small></div></li>
-                      <li><span><Icon name="truck" /></span><div><b>Entrega en obra o retiro</b><small>Elegí cómo recibir tu pedido.</small></div></li>
-                      <li><span><Icon name="package" /></span><div><b>Seguí tu pedido</b><small>Con tu número de pedido.</small></div></li>
-                    </ol>
-                  </div>
-                </div>
-              </section>
+              <ImageBannerCarousel onCatalog={() => selectCategory("construccion")} />
 
               <section className="benefit-strip wrap" aria-label="Por qué comprar en Santa María">
                 <div><Icon name="truck" /><span><b>Entrega en obra</b><small>Zonas y costos a confirmar</small></span></div>
@@ -904,7 +903,7 @@ export default function Home() {
 
               <ProductRow category={categories.find((category) => category.id === "ferreteria")!} items={homeProductsForCategory("ferreteria")} cart={cart} onOpen={openProduct} onAdd={addToCart} onSeeAll={() => selectCategory("ferreteria")} onSubcategory={(id) => selectSubcategory("ferreteria", id)} />
               <ProductRow category={categories.find((category) => category.id === "sanitarios")!} items={homeProductsForCategory("sanitarios")} cart={cart} onOpen={openProduct} onAdd={addToCart} onSeeAll={() => selectCategory("sanitarios")} onSubcategory={(id) => selectSubcategory("sanitarios", id)} />
-              <BankPromotions />
+              <ImageBannerCarousel bank />
               <ProductRow category={categories.find((category) => category.id === "construccion")!} items={homeProductsForCategory("construccion")} cart={cart} onOpen={openProduct} onAdd={addToCart} onSeeAll={() => selectCategory("construccion")} onSubcategory={(id) => selectSubcategory("construccion", id)} />
               <ProductRow category={categories.find((category) => category.id === "electricos")!} items={homeProductsForCategory("electricos")} cart={cart} onOpen={openProduct} onAdd={addToCart} onSeeAll={() => selectCategory("electricos")} onSubcategory={(id) => selectSubcategory("electricos", id)} />
               <PromoBanners selectCategory={selectCategory} />
