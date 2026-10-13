@@ -34,10 +34,11 @@ export function loadDemoState(storage: StorageLike | null, now = new Date().toIS
   try {
     const parsed: unknown = JSON.parse(raw);
     if (isDemoState(parsed)) return { state: parsed, source: "saved" };
+    if (isV2DemoState(parsed)) return { state: upgradeToV3(parsed), source: "migrated" };
     if (isLegacyDemoState(parsed)) {
       const inventory = migrateLegacyInventory(createInitialDemoState(now, catalog).inventory, parsed.orders);
-      const migrated: DemoState = { ...parsed, schemaVersion: 2, inventory, inventoryMovements: [], counters: { ...parsed.counters, inventoryMovement: 0 } };
-      return { state: migrated, source: "migrated" };
+      const migrated = { ...parsed, schemaVersion: 2 as const, inventory, inventoryMovements: [], counters: { ...parsed.counters, inventoryMovement: 0 } };
+      return { state: upgradeToV3(migrated), source: "migrated" };
     }
     return { state: createInitialDemoState(now, catalog), source: "recovered" };
   } catch {
@@ -116,11 +117,11 @@ function isDemoState(value: unknown): value is DemoState {
   if (!value || typeof value !== "object") return false;
   const state = value as Partial<DemoState>;
   const counters = state.counters;
-  return state.schemaVersion === 2 && state.environment === "demo" && typeof state.updatedAt === "string"
-    && Array.isArray(state.customers) && Array.isArray(state.operators) && Array.isArray(state.sales) && Array.isArray(state.cashSessions)
+  return state.schemaVersion === 3 && state.environment === "demo" && typeof state.updatedAt === "string"
+    && Array.isArray(state.suppliers) && Array.isArray(state.purchases) && Array.isArray(state.customers) && Array.isArray(state.operators) && Array.isArray(state.sales) && Array.isArray(state.cashSessions)
     && Array.isArray(state.orders) && Array.isArray(state.quotes) && Array.isArray(state.inventory) && Array.isArray(state.inventoryMovements) && Array.isArray(state.activities)
     && Array.isArray(state.processedOperationIds) && Boolean(counters)
-    && [counters?.cash, counters?.sale, counters?.order, counters?.quote, counters?.movement, counters?.inventoryMovement].every((n) => Number.isSafeInteger(n) && n! >= 0);
+    && [counters?.cash, counters?.sale, counters?.order, counters?.quote, counters?.movement, counters?.inventoryMovement, counters?.supplier, counters?.purchase, counters?.customer].every((n) => Number.isSafeInteger(n) && n! >= 0);
 }
 
 function isLegacyDemoState(value: unknown): value is Omit<DemoState, "schemaVersion" | "inventory" | "inventoryMovements" | "counters"> & { schemaVersion: 1; counters: Omit<DemoState["counters"], "inventoryMovement"> } {
@@ -152,4 +153,16 @@ function migrateLegacyInventory(seed: AdminProductRecord[], orders: DemoOrder[])
     const reserved = reservations.get(product.productId) ?? 0;
     return { ...product, stockReserved: reserved, stockOnHand: Math.max(product.stockOnHand, reserved) };
   });
+}
+
+function isV2DemoState(value: unknown): value is Omit<DemoState, "schemaVersion" | "suppliers" | "purchases" | "counters"> & {schemaVersion: 2; counters: Omit<DemoState["counters"], "supplier" | "purchase" | "customer">} {
+  if (!value || typeof value !== "object") return false;
+  const state = value as Record<string, unknown>;
+  const counters = state.counters as Record<string, unknown> | undefined;
+  return state.schemaVersion === 2 && state.environment === "demo"
+    && ["customers","operators","sales","cashSessions","orders","quotes","inventory","inventoryMovements","activities","processedOperationIds"].every((key) => Array.isArray(state[key]))
+    && Boolean(counters) && ["cash","sale","order","quote","movement","inventoryMovement"].every((key) => Number.isSafeInteger(counters?.[key]) && (counters?.[key] as number) >= 0);
+}
+function upgradeToV3(state: Omit<DemoState, "schemaVersion" | "suppliers" | "purchases" | "counters"> & {schemaVersion: 2; counters: Omit<DemoState["counters"], "supplier" | "purchase" | "customer">}): DemoState {
+  return {...state, schemaVersion: 3, suppliers: [], purchases: [], counters: {...state.counters, supplier: 0, purchase: 0, customer: 0}};
 }
