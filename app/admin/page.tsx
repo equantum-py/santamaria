@@ -3,13 +3,12 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useDemoProfile, useDemoState } from "@/lib/admin/client-state";
+import { availableStock } from "@/lib/admin/inventory";
 import {
   adminModules,
-  bestSellingProducts,
   dashboardMetrics,
   dashboardTasks,
   demoProfiles,
-  salesSeries,
 } from "./demo-data";
 
 type IconName = string;
@@ -61,7 +60,7 @@ function formatDate() {
     month: "long",
     year: "numeric",
     timeZone: "America/Asuncion",
-  }).format(new Date("2026-10-12T12:00:00-03:00"));
+  }).format(new Date());
 }
 
 export default function AdminDashboard() {
@@ -71,11 +70,41 @@ export default function AdminDashboard() {
   const [menuOpen, setMenuOpen] = useState(false);
   const profile = demoProfiles.find((item) => item.id === profileId) ?? demoProfiles[0];
   const visibleModules = adminModules.filter((item) => profile.allowedModules.includes(item.id));
-  const series = salesSeries[period];
-  const points = useMemo(
-    () => series.points.map((value, index) => `${(index / (series.points.length - 1)) * 620 + 10},${205 - value * 1.65}`).join(" "),
-    [series.points],
-  );
+  const now = new Date();
+  const dayKey = (date: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Asuncion", year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
+  const todayKey = dayKey(now);
+  const todaySales = state.sales.filter((sale) => dayKey(new Date(sale.createdAt)) === todayKey);
+  const todayTotal = todaySales.reduce((sum, sale) => sum + sale.totalPyg, 0);
+  const monthKey = todayKey.slice(0, 7);
+  const monthSales = state.sales.filter((sale) => dayKey(new Date(sale.createdAt)).slice(0, 7) === monthKey);
+  const monthTotal = monthSales.reduce((sum, sale) => sum + sale.totalPyg, 0);
+  const periodStart = new Date(now);
+  if (period === "week") periodStart.setDate(periodStart.getDate() - 6);
+  else periodStart.setDate(1);
+  periodStart.setHours(0, 0, 0, 0);
+  const dayCount = period === "week" ? 7 : now.getDate();
+  const labels = Array.from({ length: dayCount }, (_, index) => {
+    const date = new Date(periodStart);
+    date.setDate(date.getDate() + index);
+    return date.toLocaleDateString("es-PY", { day: "numeric", month: "short", timeZone: "America/Asuncion" });
+  });
+  const pointsData = labels.map((_, index) => {
+    const date = new Date(periodStart);
+    date.setDate(date.getDate() + index);
+    const key = dayKey(date);
+    return state.sales.filter((sale) => dayKey(new Date(sale.createdAt)) === key).reduce((sum, sale) => sum + sale.totalPyg, 0);
+  });
+  const periodTotal = pointsData.reduce((sum, amount) => sum + amount, 0);
+  const peak = Math.max(1, ...pointsData);
+  const points = pointsData.map((value, index) => `${(index / Math.max(1, pointsData.length - 1)) * 620 + 10},${205 - (value / peak) * 155}`).join(" ");
+  const productSales = new Map<string, { name: string; detail: string; sold: number; amount: number }>();
+  for (const sale of state.sales) for (const line of sale.lines) {
+    const item = productSales.get(line.productId) ?? { name: line.name, detail: line.sku, sold: 0, amount: 0 };
+    item.sold += line.quantity;
+    item.amount += line.lineTotalPyg;
+    productSales.set(line.productId, item);
+  }
+  const topProducts = [...productSales.values()].sort((a, b) => b.sold - a.sold).slice(0, 4);
   const groups = [...new Set(visibleModules.map((item) => item.group))];
   const liveSalesTotal = state.sales.reduce((sum, sale) => sum + sale.totalPyg, 0);
   const livePaymentSummary = (["cash", "card", "transfer", "qr"] as const).map((method) => {
@@ -84,7 +113,9 @@ export default function AdminDashboard() {
     const colors = { cash: "brown", card: "yellow", transfer: "terra", qr: "terra" };
     return { name: labels[method], amount: `Gs. ${amount.toLocaleString("es-PY")}`, percent: liveSalesTotal ? Math.round((amount / liveSalesTotal) * 100) : 0, color: colors[method] };
   });
-  const liveRecentActivity = state.activities.slice().reverse().slice(0, 4).map((item) => ({ id: item.id, title: item.title, detail: item.detail, time: new Date(item.createdAt).toLocaleTimeString("es-PY", { hour: "2-digit", minute: "2-digit" }), tone: item.kind === "sale" ? "green" : "amber", icon: item.kind === "sale" ? "cash" : "clock" }));
+  const liveRecentActivity = state.activities.slice().reverse().slice(0, 4).map((item) => ({ id: item.id, title: item.title, detail: item.detail, time: new Date(item.createdAt).toLocaleTimeString("es-PY", { hour: "2-digit", minute: "2-digit" }), tone: item.kind === "sale" ? "green" : item.kind === "inventory" ? "blue" : "amber", icon: item.kind === "sale" ? "cash" : item.kind === "inventory" ? "inventory" : "clock" }));
+  const demoLowStockCount = state.inventory.filter((product) => availableStock(product) <= product.minimumStock).length;
+  const demoOutOfStockCount = state.inventory.filter((product) => availableStock(product) === 0).length;
 
   if (!profile.allowedModules.includes("dashboard")) {
     return <div className="sm-admin"><header className="admin-topbar admin-module-topbar"><div className="admin-breadcrumb"><span>Santa María</span><strong>Perfil de demostración</strong></div><label className="sr-only" htmlFor="admin-demo-profile">Cambiar perfil de demostración</label><select id="admin-demo-profile" className="admin-profile-select" value={profileId} onChange={(event) => setProfileId(event.target.value)}>{demoProfiles.map((item) => <option value={item.id} key={item.id}>{item.role}</option>)}</select></header><main className="admin-content"><section className="admin-panel admin-access-note"><h1>Este perfil no tiene el resumen habilitado</h1><p>El perfil Cajera puede operar desde Punto de venta y Caja.</p><div className="admin-module-links"><Link href="/admin/pos">Punto de venta</Link><Link href="/admin/caja">Caja</Link></div><p>El selector solo organiza las vistas de esta demo; no representa autenticación ni control de acceso real.</p></section></main></div>;
@@ -110,8 +141,8 @@ export default function AdminDashboard() {
                   <Link key={item.id} href="/admin" className="admin-nav-item active" aria-current="page" onClick={() => setMenuOpen(false)}>
                     <Icon name={item.icon} /><span>{item.label}</span><span className="admin-nav-current">Ahora</span>
                   </Link>
-                ) : ["pos", "caja", "pedidos", "presupuestos"].includes(item.id) ? (
-                  <Link key={item.id} href={`/admin/${item.id}`} className="admin-nav-item" onClick={() => setMenuOpen(false)}><Icon name={item.icon} /><span>{item.label}</span><span className="admin-nav-stage">E02</span></Link>
+                ) : ["pos", "caja", "pedidos", "presupuestos", "productos", "inventario"].includes(item.id) ? (
+                  <Link key={item.id} href={`/admin/${item.id}`} className="admin-nav-item" onClick={() => setMenuOpen(false)}><Icon name={item.icon} /><span>{item.label}</span><span className="admin-nav-stage">{["productos", "inventario"].includes(item.id) ? "E03" : "E02"}</span></Link>
                 ) : (
                   <button key={item.id} className="admin-nav-item admin-nav-disabled" type="button" disabled title={`Disponible en ${item.stage}`}>
                     <Icon name={item.icon} /><span>{item.label}</span><span className="admin-nav-stage">{item.stage.replace("Etapa ", "E")}</span>
@@ -170,10 +201,12 @@ export default function AdminDashboard() {
           <section className="admin-metrics" aria-label="Indicadores del negocio">
             {dashboardMetrics.map((originalMetric) => {
               const metric = originalMetric.id === "today"
-                ? { ...originalMetric, label: "Ventas registradas", value: `Gs. ${liveSalesTotal.toLocaleString("es-PY")}`, change: String(state.sales.length), note: "operaciones de esta demo" }
-                : originalMetric.id === "orders"
-                  ? { ...originalMetric, value: String(state.orders.filter((order) => !["delivered", "cancelled"].includes(order.status)).length), change: `${state.orders.filter((order) => order.status === "preparing").length} para preparar`, note: "pedidos de esta demo" }
-                : originalMetric;
+                ? { ...originalMetric, label: "Ventas de hoy", value: `Gs. ${todayTotal.toLocaleString("es-PY")}`, change: String(todaySales.length), note: "ventas de hoy · demo" }
+                : originalMetric.id === "month"
+                  ? { ...originalMetric, value: `Gs. ${monthTotal.toLocaleString("es-PY")}`, change: String(monthSales.length), note: "ventas del mes · demo" }
+                  : originalMetric.id === "stock"
+                    ? { ...originalMetric, value: `${demoLowStockCount} productos`, change: `${demoOutOfStockCount} sin stock`, note: `${state.inventory.length} SKU de esta demo` }
+                    : { ...originalMetric, value: String(state.orders.filter((order) => !["delivered", "cancelled"].includes(order.status)).length), change: `${state.orders.filter((order) => order.status === "preparing").length} para preparar`, note: "pedidos de esta demo" };
               return (
               <article className="admin-metric-card" key={metric.id}>
                 <div className="admin-metric-top"><span>{metric.label}</span><span className={`admin-metric-icon ${metric.tone}`}><Icon name={metric.icon} size={18} /></span></div>
@@ -189,17 +222,17 @@ export default function AdminDashboard() {
                 <div><p className="admin-panel-kicker">VENTAS</p><h2>Rendimiento de ventas</h2><span className="admin-panel-caption">Total registrado en el período</span></div>
                 <label className="admin-period-select"><span className="sr-only">Período del gráfico</span><select value={period} onChange={(event) => setPeriod(event.target.value as "week" | "month")}><option value="week">Últimos 7 días</option><option value="month">Este mes</option></select></label>
               </div>
-              <div className="admin-chart-summary"><strong>{series.total}</strong><span><Icon name="trend" size={15} /> Tendencia simulada</span></div>
+              <div className="admin-chart-summary"><strong>{`Gs. ${periodTotal.toLocaleString("es-PY")}`}</strong><span><Icon name="trend" size={15} /> Ventas registradas</span></div>
               <div className="admin-chart-wrap">
-                <svg className="admin-chart" viewBox="0 0 640 240" role="img" aria-label={`Gráfico demostrativo de ventas: ${series.label}`} preserveAspectRatio="none">
+                <svg className="admin-chart" viewBox="0 0 640 240" role="img" aria-label={`Gráfico de ventas registradas: ${period === "week" ? "últimos 7 días" : "este mes"}`} preserveAspectRatio="none">
                   <defs><linearGradient id="salesArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#925246" stopOpacity=".18" /><stop offset="100%" stopColor="#925246" stopOpacity="0" /></linearGradient></defs>
                   {[40, 90, 140, 190].map((y) => <line key={y} x1="8" x2="632" y1={y} y2={y} className="admin-chart-grid" />)}
                   <polygon points={`10,205 ${points} 630,205`} fill="url(#salesArea)" />
                   <polyline points={points} className="admin-chart-line" />
-                  {series.points.map((value, index) => <circle key={index} cx={(index / (series.points.length - 1)) * 620 + 10} cy={205 - value * 1.65} r="3.5" className="admin-chart-point" />)}
+                  {pointsData.map((value, index) => <circle key={index} cx={(index / Math.max(1, pointsData.length - 1)) * 620 + 10} cy={205 - (value / peak) * 155} r="3.5" className="admin-chart-point" />)}
                 </svg>
               </div>
-              <div className="admin-chart-labels">{series.labels.map((label, index) => <span key={`${label}-${index}`}>{label}</span>)}</div>
+              <div className="admin-chart-labels">{labels.map((label, index) => <span key={`${label}-${index}`}>{label}</span>)}</div>
             </article>
 
             <article className="admin-panel admin-payments-panel">
@@ -211,9 +244,9 @@ export default function AdminDashboard() {
 
           <section className="admin-lower-grid" aria-label="Actividad del negocio">
             <article className="admin-panel admin-products-panel">
-              <div className="admin-panel-heading"><div><p className="admin-panel-kicker">CATÁLOGO</p><h2>Productos más vendidos</h2><span className="admin-panel-caption">Período: últimos 7 días · demo</span></div><span className="admin-badge-neutral">4 productos</span></div>
+              <div className="admin-panel-heading"><div><p className="admin-panel-kicker">CATÁLOGO</p><h2>Productos más vendidos</h2><span className="admin-panel-caption">Ventas POS registradas · demo</span></div><span className="admin-badge-neutral">{topProducts.length} productos</span></div>
               <div className="admin-table-scroll">
-                <table className="admin-table"><thead><tr><th>PRODUCTO</th><th>UNIDADES</th><th>VENTA</th></tr></thead><tbody>{bestSellingProducts.map((item) => <tr key={item.name}><td><strong>{item.name}</strong><small>{item.detail}</small></td><td>{item.sold}</td><td>{item.amount}</td></tr>)}</tbody></table>
+                <table className="admin-table"><thead><tr><th>PRODUCTO</th><th>UNIDADES</th><th>VENTA</th></tr></thead><tbody>{topProducts.map((item) => <tr key={item.name}><td><strong>{item.name}</strong><small>{item.detail}</small></td><td>{item.sold}</td><td>{`Gs. ${item.amount.toLocaleString("es-PY")}`}</td></tr>)}</tbody></table>{topProducts.length === 0 && <p className="admin-activity-empty">Todavía no hay productos vendidos en esta demo.</p>}
               </div>
             </article>
 
@@ -225,9 +258,9 @@ export default function AdminDashboard() {
 
           <section className="admin-bottom-grid" aria-label="Pendientes y perfil actual">
             <article className="admin-panel admin-tasks-panel">
-              <div className="admin-panel-heading"><div><p className="admin-panel-kicker">PARA HOY</p><h2>Atención prioritaria</h2><span className="admin-panel-caption">Pendientes de los módulos en preparación</span></div><span className="admin-badge-neutral">Demo</span></div>
+              <div className="admin-panel-heading"><div><p className="admin-panel-kicker">PARA HOY</p><h2>Atención prioritaria</h2><span className="admin-panel-caption">Pendientes registrados en la demo</span></div><span className="admin-badge-neutral">Demo</span></div>
               <div className="admin-task-list">{dashboardTasks.map((task) => {
-                const liveCount = task.label === "Pedidos completados hoy"
+                const liveCount = task.label === "Alertas de inventario" ? demoLowStockCount : task.label === "Pedidos completados hoy"
                   ? state.orders.filter((order) => order.status === "delivered").length
                   : task.label === "Pedidos por confirmar"
                     ? state.orders.filter((order) => order.status === "new").length
@@ -245,7 +278,7 @@ export default function AdminDashboard() {
             </article>
           </section>
 
-          <footer className="admin-footer"><span>Santa María Admin <b>·</b> Demo funcional, sin conexión con operaciones reales</span><span>Etapa 01 de 05</span></footer>
+          <footer className="admin-footer"><span>Santa María Admin <b>·</b> Demo funcional, sin conexión con operaciones reales</span><span>Demo integrada · E03</span></footer>
         </main>
       </div>
     </div>

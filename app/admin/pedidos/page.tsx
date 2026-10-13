@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { AdminModuleFrame } from "../module-frame";
 import { demoProfiles } from "../demo-data";
 import { demoProducts } from "@/lib/admin/catalog";
-import { addOrderObservation, assignOrderResponsible, canTransitionOrder, createOrder, updateOrderStatus } from "@/lib/admin/domain";
+import { addOrderObservation, assignOrderResponsible, canTransitionOrder, createOrder, operationalCatalog, updateOrderStatus } from "@/lib/admin/domain";
 import { demoStateStore, useDemoProfile, useDemoState } from "@/lib/admin/client-state";
 import type { DemoOrder, FulfillmentMode, OrderStatus } from "@/lib/admin/types";
 
@@ -41,7 +41,7 @@ export default function OrdersPage() {
     return (!needle || haystack.includes(needle)) && (filter === "all" || order.status === filter);
   }).slice().reverse(), [state.orders, query, filter]);
   const selected = orders.find((order) => order.id === selectedId) ?? state.orders.find((order) => order.id === selectedId) ?? null;
-  const activeProducts = demoProducts.filter((item) => item.active);
+  const activeProducts = operationalCatalog(state, demoProducts).filter((item) => item.active);
   const cart = Object.entries(items).filter(([, amount]) => amount > 0).map(([id, amount]) => ({ product: activeProducts.find((item) => item.id === id), amount })).filter((entry): entry is { product: (typeof activeProducts)[number]; amount: number } => Boolean(entry.product));
   const total = cart.reduce((sum, entry) => sum + entry.product.pricePyg * entry.amount, 0);
   const operators = state.operators;

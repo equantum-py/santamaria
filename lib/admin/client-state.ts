@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { DemoStateStore } from "./persistence";
+import { demoProducts } from "./catalog";
 
 // The adapter defers window/localStorage access until the store hydrates in an effect.
 const browserStorage = {
@@ -10,7 +11,7 @@ const browserStorage = {
   removeItem: (key: string) => window.localStorage.removeItem(key),
 };
 
-export const demoStateStore = new DemoStateStore(browserStorage);
+export const demoStateStore = new DemoStateStore(browserStorage, new Date().toISOString(), demoProducts);
 let hydrated = false;
 
 export function useDemoState() {

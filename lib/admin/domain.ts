@@ -14,16 +14,9 @@ import type {
   QuoteStatus,
   SaleLine,
 } from "./types";
-
-export class DomainError extends Error {
-  readonly code: string;
-
-  constructor(message: string, code: string) {
-    super(message);
-    this.name = "DomainError";
-    this.code = code;
-  }
-}
+import { DomainError } from "./errors.ts";
+import { applyStockToSale, fulfillOrderStock, releaseOrderStock, reserveOrderStock } from "./inventory.ts";
+export { DomainError } from "./errors.ts";
 
 export function assertPygAmount(amount: number, label = "El importe"): number {
   if (!Number.isSafeInteger(amount) || amount < 0) {
@@ -53,6 +46,14 @@ export function buildSaleLines(items: readonly ItemDraft[], catalog: readonly De
       unitPricePyg: product.pricePyg,
       lineTotalPyg,
     };
+  });
+}
+
+export function operationalCatalog(state: DemoState, catalog: readonly DemoProduct[]): DemoProduct[] {
+  const records = new Map(state.inventory.map((product) => [product.productId, product]));
+  return catalog.map((product) => {
+    const record = records.get(product.id);
+    return record ? { ...product, name: record.name, pricePyg: record.pricePyg, active: record.active, saleUnit: record.saleUnit, categoryId: record.categoryId, categoryName: record.categoryName } : product;
   });
 }
 
@@ -195,7 +196,7 @@ export function recordSale(
   const cashier = getDemoOperator(state, input.cashierId);
   const session = state.cashSessions.find((item) => item.cashierId === input.cashierId && item.status === "open");
   if (!session) throw new DomainError("Abrí una caja para este cajero antes de registrar una venta.", "OPEN_CASH_REQUIRED");
-  const lines = buildSaleLines(input.items, catalog);
+  const lines = buildSaleLines(input.items, operationalCatalog(state, catalog));
   const totals = calculateTotals(lines, input.authorizedDiscountPyg ?? 0);
   const discountAuthorizedBy = input.authorizedDiscountPyg ? input.discountAuthorizedBy?.trim() : null;
   if (input.authorizedDiscountPyg && !discountAuthorizedBy) throw new DomainError("Indicá quién autorizó el descuento demostrativo.", "DISCOUNT_AUTHORIZER_REQUIRED");
@@ -243,14 +244,15 @@ export function recordSale(
   };
   const updatedSession = { ...session, movements: [...session.movements, movement] };
   getExpectedCash(updatedSession);
+  const stockState = applyStockToSale(state, lines, saleId, cashier.displayName, now);
   return {
-    ...state,
+    ...stockState,
     updatedAt: now,
     sales: [...state.sales, sale],
     cashSessions: replaceSession(state.cashSessions, updatedSession),
     processedOperationIds: [...state.processedOperationIds, input.operationId],
-    counters: { ...state.counters, sale: nextSaleNumber, movement: movementNumber },
-    activities: addActivity(state.activities, { id: saleId, kind: "sale", title: "Venta registrada", detail: `${sale.number} · Gs. ${sale.totalPyg.toLocaleString("es-PY")}`, createdAt: now }),
+    counters: { ...stockState.counters, sale: nextSaleNumber, movement: movementNumber },
+    activities: addActivity(stockState.activities, { id: saleId, kind: "sale", title: "Venta registrada", detail: `${sale.number} · Gs. ${sale.totalPyg.toLocaleString("es-PY")}`, createdAt: now }),
   };
 }
 
@@ -293,11 +295,16 @@ export function updateOrderStatus(
   const updatedOrder = transitionOrder(state.orders[index], input, now);
   const orders = [...state.orders];
   orders[index] = updatedOrder;
+  let inventoryState = state;
+  const previousStatus = state.orders[index].status;
+  if (input.status === "confirmed") inventoryState = reserveOrderStock(state, state.orders[index].lines, state.orders[index].id, input.changedBy, now);
+  if (input.status === "delivered" && previousStatus !== "new") inventoryState = fulfillOrderStock(state, state.orders[index].lines, state.orders[index].id, input.changedBy, now);
+  if (input.status === "cancelled" && ["confirmed", "preparing", "ready", "en_route"].includes(previousStatus)) inventoryState = releaseOrderStock(state, state.orders[index].lines, state.orders[index].id, input.changedBy, now);
   return {
-    ...state,
+    ...inventoryState,
     updatedAt: now,
     orders,
-    activities: addActivity(state.activities, { id: `${updatedOrder.id}-${updatedOrder.history.length}`, kind: "order", title: "Estado de pedido actualizado", detail: `${updatedOrder.number} · ${updatedOrder.status}`, createdAt: now }),
+    activities: addActivity(inventoryState.activities, { id: `${updatedOrder.id}-${updatedOrder.history.length}`, kind: "order", title: "Estado de pedido actualizado", detail: `${updatedOrder.number} · ${updatedOrder.status}`, createdAt: now }),
   };
 }
 
@@ -382,7 +389,7 @@ export function createQuote(
   if (!expiryDate || Number.isNaN(expiryDate.getTime()) || expiryDate.toISOString().slice(0, 10) !== input.validUntil || input.validUntil < now.slice(0, 10)) {
     throw new DomainError("La fecha de vigencia debe ser hoy o una fecha posterior.", "INVALID_QUOTE_EXPIRY");
   }
-  const lines = buildSaleLines(input.items, catalog);
+  const lines = buildSaleLines(input.items, operationalCatalog(state, catalog));
   const totals = calculateTotals(lines, input.authorizedDiscountPyg ?? 0);
   const discountAuthorizedBy = input.authorizedDiscountPyg ? input.discountAuthorizedBy?.trim() : null;
   if (input.authorizedDiscountPyg && !discountAuthorizedBy) throw new DomainError("Indicá quién autorizó el descuento demostrativo.", "DISCOUNT_AUTHORIZER_REQUIRED");
@@ -432,7 +439,7 @@ export function editDraftQuote(
   if (!expiryDate || Number.isNaN(expiryDate.getTime()) || expiryDate.toISOString().slice(0, 10) !== input.validUntil || input.validUntil < now.slice(0, 10)) {
     throw new DomainError("La fecha de vigencia debe ser hoy o una fecha posterior.", "INVALID_QUOTE_EXPIRY");
   }
-  const lines = buildSaleLines(input.items, catalog);
+  const lines = buildSaleLines(input.items, operationalCatalog(state, catalog));
   const totals = calculateTotals(lines, input.authorizedDiscountPyg ?? 0);
   const discountAuthorizedBy = input.authorizedDiscountPyg ? input.discountAuthorizedBy?.trim() : null;
   if (input.authorizedDiscountPyg && !discountAuthorizedBy) throw new DomainError("Indicá quién autorizó el descuento demostrativo.", "DISCOUNT_AUTHORIZER_REQUIRED");
@@ -472,7 +479,7 @@ export function createOrder(
 ) {
   assertNewOperation(state, input.operationId);
   if (input.source !== "ecommerce_demo" && input.source !== "counter") throw new DomainError("El origen del pedido no es válido.", "INVALID_ORDER_SOURCE");
-  const lines = buildSaleLines(input.items, catalog);
+  const lines = buildSaleLines(input.items, operationalCatalog(state, catalog));
   const totals = calculateTotals(lines);
   const customerLabel = resolveDemoCustomerLabel(state, input.customerId ?? null, input.customerLabel);
   const responsible = input.responsibleOperatorId ? getDemoOperator(state, input.responsibleOperatorId).displayName : "Pendiente de asignación";

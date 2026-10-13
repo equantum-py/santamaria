@@ -145,10 +145,42 @@ export interface Quote {
 
 export interface DemoActivity {
   id: string;
-  kind: "sale" | "cash" | "order" | "quote";
+  kind: "sale" | "cash" | "order" | "quote" | "inventory";
   title: string;
   detail: string;
   createdAt: string;
+}
+
+export interface AdminProductRecord {
+  productId: string;
+  sku: string;
+  name: string;
+  categoryId: string;
+  categoryName: string;
+  saleUnit: string;
+  pricePyg: number;
+  stockOnHand: number;
+  stockReserved: number;
+  minimumStock: number;
+  active: boolean;
+  isFictitious: true;
+  updatedAt: string;
+}
+
+export type InventoryMovementKind = "receipt" | "adjustment" | "sale" | "reservation" | "reservation_release" | "fulfillment";
+
+export interface InventoryMovement {
+  id: string;
+  productId: string;
+  kind: InventoryMovementKind;
+  quantity: number;
+  onHandDelta: number;
+  reservedDelta: number;
+  referenceId: string | null;
+  reason: string;
+  actor: string;
+  createdAt: string;
+  isFictitious: true;
 }
 
 export interface DemoCounters {
@@ -157,10 +189,11 @@ export interface DemoCounters {
   order: number;
   quote: number;
   movement: number;
+  inventoryMovement: number;
 }
 
 export interface DemoState {
-  schemaVersion: 1;
+  schemaVersion: 2;
   environment: "demo";
   updatedAt: string;
   customers: DemoCustomer[];
@@ -169,6 +202,8 @@ export interface DemoState {
   cashSessions: CashSession[];
   orders: DemoOrder[];
   quotes: Quote[];
+  inventory: AdminProductRecord[];
+  inventoryMovements: InventoryMovement[];
   activities: DemoActivity[];
   processedOperationIds: string[];
   counters: DemoCounters;

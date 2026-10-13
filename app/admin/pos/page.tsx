@@ -4,7 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import { AdminModuleFrame } from "../module-frame";
 import { demoProfiles } from "../demo-data";
 import { demoProducts } from "@/lib/admin/catalog";
-import { calculateChange, recordSale } from "@/lib/admin/domain";
+import { calculateChange, operationalCatalog, recordSale } from "@/lib/admin/domain";
 import { useDemoProfile, useDemoState, demoStateStore } from "@/lib/admin/client-state";
 
 const money = (amount: number) => `Gs. ${amount.toLocaleString("es-PY")}`;
@@ -13,6 +13,7 @@ type Payment = keyof typeof paymentLabels;
 
 export default function PointOfSalePage() {
   const state = useDemoState();
+  const activeCatalog = operationalCatalog(state, demoProducts).filter((item) => item.active);
   const [profileId] = useDemoProfile();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
@@ -26,16 +27,16 @@ export default function PointOfSalePage() {
   const submitLock = useRef(false);
   const profile = demoProfiles.find((item) => item.id === profileId) ?? demoProfiles[0];
   const activeSession = state.cashSessions.find((session) => session.cashierId === profileId && session.status === "open");
-  const categories = [...new Set(demoProducts.map((item) => item.categoryName))];
+  const categories = [...new Set(activeCatalog.map((item) => item.categoryName))];
   const products = useMemo(() => {
     const normalized = query.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-    return demoProducts.filter((product) => {
+    return activeCatalog.filter((product) => {
       const matchesCategory = category === "all" || product.categoryName === category;
       const content = `${product.name} ${product.sku} ${product.categoryName}`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
       return product.active && matchesCategory && (!normalized || content.includes(normalized));
     });
-  }, [query, category]);
-  const lines = demoProducts.filter((product) => cart[product.id]).map((product) => ({ product, quantity: cart[product.id] }));
+  }, [query, category, activeCatalog]);
+  const lines = activeCatalog.filter((product) => cart[product.id]).map((product) => ({ product, quantity: cart[product.id] }));
   const total = lines.reduce((sum, line) => sum + line.product.pricePyg * line.quantity, 0);
   const receivedAmount = received === "" ? 0 : Number(received);
   const change = payment === "cash" && receivedAmount >= total ? receivedAmount - total : null;
